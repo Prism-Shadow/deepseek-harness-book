@@ -1,7 +1,10 @@
 .DS_Store
 deepseek-harness/
-output/
+output/pdf/*.pdf
+output/rendered/
 tmp/
+__pycache__/
+*.pyc
 node_modules/
 dist/
 *.log

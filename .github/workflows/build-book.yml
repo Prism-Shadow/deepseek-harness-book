@@ -1,0 +1,60 @@
+name: build-book
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc poppler-utils fonts-noto-cjk
+
+      - uses: r-lib/actions/setup-tinytex@v2
+
+      - name: Restore TeX packages
+        id: cache-tex
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.TinyTeX
+          key: tinytex-${{ runner.os }}-${{ hashFiles('.github/workflows/build-book.yml') }}
+
+      - name: Install TeX packages
+        run: >-
+          tlmgr install elegantbook newtx tex-gyre ctex fandol needspace ragged2e fvextra setspace
+          csquotes logreq comment colortbl mwe enumitem esint footmisc jknapltx multirow makecell
+          lipsum hologo listings tocloft tcolorbox tikzfill pdfcol fixtounicode pgf microtype caption bbding manfnt adforn
+
+      - name: Check scripts
+        run: |
+          python3 -m py_compile scripts/*.py
+          python3 -m unittest discover -s tests
+          bash -n scripts/build_pdf.sh
+
+      - name: Build PDF
+        run: ./scripts/build_pdf.sh
+
+      - name: Inspect PDF
+        run: pdfinfo output/pdf/DSH-Book-样章.pdf
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-book-pdf
+          path: output/pdf/*.pdf
+          if-no-files-found: error
+
+      - name: Save TeX packages
+        if: always() && steps.cache-tex.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.TinyTeX
+          key: ${{ steps.cache-tex.outputs.cache-primary-key }}
