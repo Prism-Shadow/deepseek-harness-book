@@ -1,0 +1,7 @@
+.DS_Store
+deepseek-harness/
+output/
+tmp/
+node_modules/
+dist/
+*.log
