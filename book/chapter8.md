@@ -24,7 +24,7 @@ DSH 的文档给这个循环里的两个词下了精确定义（`docs/architectu
   \draw[dsharrow] (m1) -- (chat);
   \draw[dsharrow] (m1) -- (tool);
   \draw[dsharrow] (tool) -- (exec);
-  \draw[dsharrow] (exec) to[bend left=40] node[dshlabel, above] {第 2 次请求，再看一眼} (m1);
+  \draw[dsharrow] (exec.south) to[out=-90, in=-90] node[dshlabel, below=0.5mm] {第 2 次请求，再看一眼} (m1.south east);
 \end{tikzpicture}
 \end{center}
 ```
@@ -39,7 +39,7 @@ DSH 的文档给这个循环里的两个词下了精确定义（`docs/architectu
 
 第 2 章做了三件事。切标题栏那个“标准模式”下拉框，看到标准、PTC、极简、创造四个选项；用创造模式现场给界面挂了一个改主题色的插件，挂上之前还得在左下角的面板里点一下“允许”；最后把这个临时插件写成磁盘上的文件，塞进 `$DSH_HOME/profiles/web/cordis.patch.yml`，才算留住。切模式、装插件、改配置文件，这三件事是同一套机制在三个不同地方露出的痕迹。
 
-DSH 的底层框架叫 Cordis，它对整个产品的定义只有一句话，**产品的每一部分都是插件**，模型适配器是插件，工具注册表是插件，会话日志是插件，就连 agent loop 本身也是插件（`docs/architecture.zh.md` 第 11 行）。这句话要按字面意思读，**不存在一个“特权内核”，可以被谁打个补丁就改了行为**，扩展 DSH 的唯一方式，是把一个新插件挂到别的插件旁边，而不是钻进某个核心文件里改代码。第 2.2 节那个批准面板，正是这条规则在界面上的体现，DSH 现场“定义”了一个插件，但定义本身不会自动生效，得等一次显式的批准动作，插件才会真的挂载；插件的每一项注册，一段提示词、一个令牌覆盖、一个工具，都被当成一个可撤销的副作用，卸载插件或者进程重启，这些注册会按预期原样撤销。这也是为什么第 2.3 节实测“运行时插件重启就没了”是准的，它压根没有落盘，只是内存里一层临时的副作用。
+DSH 的底层框架叫 Cordis，它对整个产品的定义只有一句话（`docs/architecture.zh.md` 第 11 行），**产品的每一部分都是插件**，模型适配器是插件，工具注册表是插件，会话日志是插件，就连 agent loop 本身也是插件。这句话要按字面意思读，**不存在一个“特权内核”，可以被谁打个补丁就改了行为**，扩展 DSH 的唯一方式，是把一个新插件挂到别的插件旁边，而不是钻进某个核心文件里改代码。第 2.2 节那个批准面板，正是这条规则在界面上的体现，DSH 现场“定义”了一个插件，但定义本身不会自动生效，得等一次显式的批准动作，插件才会真的挂载；插件的每一项注册，一段提示词、一个令牌覆盖、一个工具，都被当成一个可撤销的副作用，卸载插件或者进程重启，这些注册会按预期原样撤销。这也是为什么第 2.3 节实测“运行时插件重启就没了”是准的，它压根没有落盘，只是内存里一层临时的副作用。
 
 一个插件长什么样，拆开看很朴素，一个带 `name`、可选 `inject`（声明自己依赖哪些别的服务）和 `apply(ctx)` 的对象或函数。第 2.3 节那份 `emerald-accent/client.js` 就是一个教科书式的例子。`inject: ['theme']` 声明它要用主题服务，`apply(ctx)` 里调用 `ctx.effect()` 包一层，注册一次令牌覆盖，这正是“插件是实现 Service 的对象、注册是可撤销副作用”这两条核心概念的真实代码，不是简化过的教学示例。跑一次 `dsh --profile web --dump-config`，能看到整棵插件树在配置层面长什么样。工具注册表、system prompt 组装、agent loop、DeepSeek 模型适配器，这些名字听起来分量完全不同的东西，在配置文件里是一模一样形状的几行，一个 `id`、一个 `name`、外加可选的 `config`。
 
@@ -66,7 +66,7 @@ DSH 的底层框架叫 Cordis，它对整个产品的定义只有一句话，**�
   \node[dshnode, minimum width=90mm, below=of empty] (base) {dsh-base（模型、工具、持久化、沙箱……）};
   \node[dshnode, minimum width=90mm, below=of base] (webapp) {dsh-web-app（浏览器应用）};
   \node[dshaccentnode, minimum width=90mm, below=of webapp] (patch) {profiles/web/cordis.patch.yml（用户自己的补丁层）};
-  \node[dshnodeflat, minimum width=90mm, below=of patch] (cli) {命令行 --patch（可选）};
+  \node[dshnodeflat, minimum width=90mm, below=of patch] (cli) {命令行 \texttt{-{}-patch}（可选）};
   \draw[dsharrow] (empty) -- (base);
   \draw[dsharrow] (base) -- (webapp);
   \draw[dsharrow] (webapp) -- (patch);
@@ -87,7 +87,7 @@ DSH 的底层框架叫 Cordis，它对整个产品的定义只有一句话，**�
 
 打开这份导出文件会发现，里面是一行一个 JSON 对象、按时间顺序追加的事件流。会话开始时的一条 `session` 头信息，随后是权限模式、沙箱模式这些状态记录，再往下是 `turn/start`、`step/start`，然后才轮到对话内容本身，一条 `user/message`，几十条 `assistant/chunk`（模型逐字吐出的流式片段，用来保证界面回放和真实生成过程一致），一条汇总完的 `assistant/message`，如果这一步调用了工具，还会有 `tool/call` 和 `tool/result`，最后是 `step/end`、`turn/end`。DSH 的会话持久化目录（`docs/persistence-catalog.md`）里记录在案的事件类型有四十多种，绝大多数是像权限切换、审批询问、后台任务这类“记一笔账”的日志，跟模型这一轮说了什么没有关系。
 
-这就是第一个要澄清的事实，**会话在磁盘上的真身，是一份只能追加、不能篡改的事件日志**，界面上看起来一问一答的消息列表，只是这份日志的一种呈现方式。模型每次请求看到的历史，是从这份日志里“投影”出来的，负责投影的函数叫 `deriveMessages()`（`packages/core/session/src/index.ts:726`）。四十多种事件里，会被投影成一条模型可见消息的只有三种，`user/message`、`assistant/message`、`tool/result`，官方文档管这三种叫 surface（表面）事件。一条事件加入 surface 的方式只有两种。`append`，追加到末尾，这是绝大多数消息的路径；`replace`，把一段连续的旧 surface 节点整体换成一个新节点，第 8.5 节要讲的压缩就是靠这个操作实现的。旧的原始事件依然完整地躺在日志里，只是不再出现在模型看到的那份投影里。日志本身永远不重写、不删除。
+这就是第一个要澄清的事实，**会话在磁盘上的真身，是一份只能追加、不能篡改的事件日志**，界面上看起来一问一答的消息列表，只是这份日志的一种呈现方式。模型每次请求看到的历史，是从这份日志里“投影”出来的。负责投影的函数叫 `deriveMessages()`，在 `session` 包的 `src/index.ts:726`。四十多种事件里，会被投影成一条模型可见消息的只有三种，`user/message`、`assistant/message`、`tool/result`，官方文档管这三种叫 surface（表面）事件。一条事件加入 surface 的方式只有两种。`append`，追加到末尾，这是绝大多数消息的路径；`replace`，把一段连续的旧 surface 节点整体换成一个新节点，第 8.5 节要讲的压缩就是靠这个操作实现的。旧的原始事件依然完整地躺在日志里，只是不再出现在模型看到的那份投影里。日志本身永远不重写、不删除。
 
 一条消息的结构也比看上去简单，`role` 只有 `system`、`user`、`assistant` 三种，内容由若干个块拼成，常见的有文本块、推理块（对应第 1 章回复里那一行“Think”）、图片块、工具调用块、工具结果块。这里有一个容易反直觉的设计，**工具执行的结果，在消息层面是一条 `role: 'user'` 的消息**（`packages/llm/llm/src/message.ts:150-156` 明确把 `ToolResultMessage` 定义成 `role: 'user'`）。从模型的视角看，它自己动手执行的工具产生的结果，跟人类在输入框里打字发过来的东西，走的是同一条“外界发生了什么”的通道。模型分不出，也不需要分出这条消息是人打的还是工具返回的，它只知道“轮到我看新情况了”。
 
@@ -96,7 +96,7 @@ DSH 的文档里把这条设计原则称为铁律，**模型可见即已记录**
 ```{=latex}
 \begin{center}
 \begin{tikzpicture}[node distance=13mm, every node/.style={align=center}]
-  \node[dshnodeflat, minimum width=100mm] (log) {会话事件日志（只增不改）\\ \footnotesize\ttfamily turn/start\ \ step/start\ \ user/message\ \ assistant/chunk*\ \ assistant/message\ \ tool/call\ \ tool/result\ \ step/end\ \ turn/end};
+  \node[dshnodeflat, minimum width=118mm] (log) {会话事件日志（只增不改）\\[0.6mm] \scriptsize\ttfamily turn/start\ \ step/start\ \ user/message\ \ assistant/chunk*\\ \scriptsize\ttfamily assistant/message\ \ tool/call\ \ tool/result\ \ step/end\ \ turn/end};
   \node[dshseam, below=of log, minimum width=70mm] (surface) {surface 投影：append / replace\\ \footnotesize 只挑 user/message、assistant/message、tool/result};
   \node[dshaccentnode, below=of surface, minimum width=55mm] (messages) {模型看到的历史\\ \footnotesize deriveMessages()};
   \draw[dsharrow] (log) -- (surface);
@@ -119,26 +119,26 @@ DSH 的文档里把这条设计原则称为铁律，**模型可见即已记录**
 
 ```{=latex}
 \begin{center}
-\begin{tikzpicture}[node distance=8mm and 9mm, every node/.style={align=center}]
+\begin{tikzpicture}[node distance=8mm and 6mm, every node/.style={align=center, font=\footnotesize}]
   \node[dshnode] (call) {模型发起\\ 工具调用};
-  \node[dshnodeflat, right=of call] (log1) {\footnotesize 落日志\\ tool/call};
+  \node[dshnodeflat, right=of call] (log1) {落日志\\ tool/call};
   \node[dshseam, right=of log1] (gate) {裁决\\ 允许 / 拒绝 / 询问};
   \node[dshaccentnode, right=of gate] (exec) {执行\\ 工具本体};
-  \node[dshnodeflat, right=of exec] (log2) {\footnotesize 落日志\\ tool/result};
+  \node[dshnodeflat, right=of exec] (log2) {落日志\\ tool/result};
   \node[dshnode, right=of log2] (back) {回填给\\ 模型};
   \draw[dsharrow] (call) -- (log1);
   \draw[dsharrow] (log1) -- (gate);
   \draw[dsharrow] (gate) -- (exec);
   \draw[dsharrow] (exec) -- (log2);
   \draw[dsharrow] (log2) -- (back);
-  \draw[dshmutedarrow] (gate) to[bend right=45] node[dshlabel, below] {询问但无人应答 $\Rightarrow$ 拒绝} (log1);
+  \draw[dshmutedarrow] (gate.south) to[out=-60, in=-120] node[dshlabel, below=0.5mm] {询问但无人应答 $\Rightarrow$ 拒绝} (log1.south);
 \end{tikzpicture}
 \end{center}
 ```
 
 输入框旁边那个“Workspace Write”，是一个预先打包好的**权限预设**，一个名字背后绑着两个各自独立的旋钮。沙箱模式决定文件这一层能碰到什么，只读、可写工作区、还是完全放开；审批策略决定裁决为“问一下”时怎么处理，弹窗确认，还是压根不问直接放行。DSH 随包自带三档，只读配问、工作区可写配问、完全放开配不问（`packages/bundle/base/cordis.patch.yml`）。切到只读之后再让 DSH 写文件，能实打实看到这套机制拒绝一次真实请求，沙箱层直接报“文件访问在只读模式下被拒绝”，模型有时会尝试申请升级权限重试，这次申请因为找不到审批服务，同样以拒绝收场，两层保守默认叠在一起生效。
 
-“找不到人问就按拒绝算”这条保守默认，在沙箱这一层写得更硬。负责隔离的 `ctx.sandbox.confine()` 只有两种结局，要么返回一条真能强制隔离的命令，要么直接抛出 `SANDBOX_UNAVAILABLE` 错误。源码里那句报错原文写得毫不含糊，“拒绝在无隔离状态下执行这条命令”，出处在 `sandbox` 包的 `src/index.ts:135`。本机要是一个能用的隔离后端都找不到，DSH 宁可让这条命令失败，也不会悄悄降级成不隔离照跑，文档管这条规矩叫“静默的无隔离透传永远不合法”（`docs/subsystems/sandbox.zh.md:154`）。
+“找不到人问就按拒绝算”这条保守默认，在沙箱这一层写得更硬。负责隔离的是 `ctx.sandbox` 这个服务，它的 `confine()` 调用只有两种结局，要么返回一条真能强制隔离的命令，要么直接抛出 `SANDBOX_UNAVAILABLE` 错误。源码里那句报错原文写得毫不含糊，“拒绝在无隔离状态下执行这条命令”，出处在 `sandbox` 包的 `src/index.ts:135`。本机要是一个能用的隔离后端都找不到，DSH 宁可让这条命令失败，也不会悄悄降级成不隔离照跑，文档管这条规矩叫“静默的无隔离透传永远不合法”（`docs/subsystems/sandbox.zh.md:154`）。
 
 隔离到底做到了几成，DSH 也当成一件要如实上报的事。后端会报告自己是 `full` 还是 `partial`，`full` 是这个模式承诺的文件效果全都管住了，`partial` 是只管住了一部分，比如内核的 Landlock ABI 版本偏旧就属于这种（`docs/subsystems/sandbox.zh.md:30`）。这不只是纸面上的可能性。写这一章用的这台 Linux 机器就落在这一档，随便让 DSH 跑一条 bash 命令，展开轨迹看那次调用的原始返回，末尾跟着一行 `landlock-run: partial enforcement (older Landlock ABI)`，它在明说这次隔离打了折扣。你的机器如果装了 bubblewrap，DSH 会优先挑它，那条线就是 `full`，这行提示也就不会出现。
 
@@ -211,8 +211,8 @@ $$\text{触发阈值} = \lfloor 0.8 \times W \rfloor \qquad \text{压缩后保�
   \node[dshaccentnode, below=13mm of a2, xshift=8mm] (s) {摘要 S};
   \node[dshnodeflat, right=6mm of s] (u9b) {u9};
   \node[dshnodeflat, right=4mm of u9b] (a10b) {a10};
-  \node[dshlabel, above=1mm of s, anchor=south west, xshift=-9mm] {压缩后：};
-  \draw[dsharrow] ($(u1.south)!0.5!(a10.south)$) -- (s.north);
+  \node[dshlabel, anchor=south west] at (u1.west |- s.north) {压缩后：};
+  \draw[dsharrow] ($(u1.south)!0.5!(dots1.south)$) -- (s.north);
 \end{tikzpicture}
 \end{center}
 ```
