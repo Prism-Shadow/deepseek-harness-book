@@ -30,9 +30,10 @@ jobs:
 
       - name: Install TeX packages
         run: >-
-          tlmgr install elegantbook anyfontsize newtx tex-gyre ctex fandol needspace ragged2e fvextra setspace
+          tlmgr install elegantbook anyfontsize titlesec newtx tex-gyre ctex fandol needspace ragged2e fvextra setspace
           csquotes logreq comment colortbl mwe enumitem esint footmisc jknapltx multirow makecell
-          lipsum hologo listings tocloft tcolorbox tikzfill pdfcol fixtounicode pgf microtype caption bbding manfnt adforn
+          lipsum hologo listings tocloft tcolorbox tikzfill pdfcol fixtounicode pgf microtype caption
+          bbding manfnt adforn collection-latexextra collection-langchinese collection-fontsrecommended
 
       - name: Check scripts
         run: |
