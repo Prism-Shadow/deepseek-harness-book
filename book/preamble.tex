@@ -384,3 +384,39 @@
   \end{titlepage}
   \clearpage
 }
+
+% === Chapter 8 diagram styles ===
+% Shared TikZ styles for the ~7 mechanism diagrams in chapter 8 (理解 DSH).
+% Every diagram in that chapter should draw from this palette only:
+% DSHInk, DSHMuted, DSHAccent, DSHAccentDark (plus their light backgrounds
+% DSHAccentLight / DSHCode already defined above). Keep diagrams to one idea
+% each, nodes labeled with short Chinese phrases, not full source excerpts.
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds}
+\tikzset{
+  % Default box: a component or stage (harness, model, tool registry, ...).
+  dshnode/.style={
+    rectangle, rounded corners=0.5pt, thick,
+    draw=DSHAccentDark, fill=DSHAccentLight,
+    text=DSHInk, font=\sffamily\small,
+    minimum height=8mm, inner sep=2.4mm, align=center
+  },
+  % Neutral/flat variant: background context, not the thing being explained.
+  dshnodeflat/.style={
+    dshnode, draw=DSHRule, fill=DSHCode, text=DSHMuted
+  },
+  % Emphasis variant: the one node the diagram is actually about.
+  dshaccentnode/.style={
+    dshnode, draw=DSHAccentDark, fill=DSHAccent, text=white
+  },
+  % Seam: a dashed boundary marking a swappable / pluggable edge.
+  dshseam/.style={
+    rectangle, rounded corners=0.5pt, thick, dashed,
+    draw=DSHMuted, text=DSHMuted, font=\sffamily\small,
+    inner sep=2.4mm, align=center
+  },
+  % Arrows: solid for the main flow, muted for secondary/optional paths.
+  dsharrow/.style={-{Stealth[length=2.4mm]}, draw=DSHAccentDark, thick},
+  dshmutedarrow/.style={-{Stealth[length=2mm]}, draw=DSHMuted},
+  % Small annotation text set beside an arrow or between nodes.
+  dshlabel/.style={font=\sffamily\scriptsize, text=DSHMuted, align=center},
+}
