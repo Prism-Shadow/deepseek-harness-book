@@ -52,8 +52,8 @@ def render_outline(outline: Path, actual: list[Path], output: Path) -> None:
             active_part = chapter.part_title
             part_number += 1
             result.append(
-                rf"\hhplanpart{{第{CHINESE_PART_NUMBERS[part_number - 1]}部分\enspace "
-                rf"{latex_escape(active_part)}}}"
+                rf"\hhplanpart{{第{CHINESE_PART_NUMBERS[part_number - 1]}部分}}"
+                rf"{{{latex_escape(active_part)}}}"
             )
         chapter_label = f"ch-{chapter.number}" if f"ch-{chapter.number}" in identifiers else ""
         result.append(

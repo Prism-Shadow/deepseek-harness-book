@@ -11,15 +11,15 @@
 \tcbuselibrary{breakable,skins}
 \usetikzlibrary{calc}
 
-% Colors
+% Brand colors follow the official DSH fish mark.
 \definecolor{DSHInk}{HTML}{1C2530}
-\definecolor{DSHMuted}{HTML}{677482}
-\definecolor{DSHAccent}{HTML}{176B87}
-\definecolor{DSHAccentDark}{HTML}{0B3C5D}
-\definecolor{DSHAccentLight}{HTML}{E7F4F7}
-\definecolor{DSHRule}{HTML}{D8E1E8}
-\definecolor{DSHCode}{HTML}{F4F7F9}
-\definecolor{DSHPaper}{HTML}{F8FAFB}
+\definecolor{DSHMuted}{HTML}{667085}
+\definecolor{DSHAccent}{HTML}{4D6BFE}
+\definecolor{DSHAccentDark}{HTML}{253A9B}
+\definecolor{DSHAccentLight}{HTML}{EEF1FF}
+\definecolor{DSHRule}{HTML}{D9DEEF}
+\definecolor{DSHCode}{HTML}{F5F7FC}
+\definecolor{DSHPaper}{HTML}{F7F8FC}
 
 \colorlet{structurecolor}{DSHAccent}
 \colorlet{main}{DSHAccent}
@@ -100,11 +100,12 @@
 \setcounter{secnumdepth}{1}
 
 \titleformat{\part}[display]
-  {\sffamily\DSHHeadingFont\bfseries\centering\color{DSHAccentDark}}
-  {\fontsize{13pt}{18pt}\selectfont\thepart}
-  {5mm}
-  {\fontsize{27pt}{36pt}\selectfont}
-\titlespacing*{\part}{0pt}{25mm}{20mm}
+  {\sffamily\DSHHeadingFont\bfseries\raggedright\color{DSHInk}}
+  {\includegraphics[width=13mm]{assets/brand/dsh-fish.png}\hspace{4mm}%
+   \fontsize{12pt}{16pt}\selectfont\color{DSHAccent}\thepart}
+  {12mm}
+  {\fontsize{30pt}{39pt}\selectfont}
+\titlespacing*{\part}{0pt}{18mm}{20mm}
 
 \titleformat{\chapter}[hang]
   {\sffamily\DSHHeadingFont\bfseries\color{DSHAccentDark}}
@@ -146,6 +147,15 @@
 \fancypagestyle{plain}{%
   \fancyhf{}
   \renewcommand{\headrulewidth}{0pt}
+  \fancyfoot[R]{\footnotesize\sffamily\color{DSHAccentDark}\thepage}
+}
+\fancypagestyle{dshcontents}{%
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \fancyhead[LE,LO]{%
+    \includegraphics[width=5mm]{assets/brand/dsh-fish.png}%
+    \hspace{2mm}\footnotesize\sffamily\bfseries\color{DSHInk}DSH BOOK}
+  \fancyhead[RE,RO]{\footnotesize\sffamily\DSHHeadingFont\color{DSHMuted}目录}
   \fancyfoot[R]{\footnotesize\sffamily\color{DSHAccentDark}\thepage}
 }
 \renewcommand{\chaptermark}[1]{\markboth{第\thechapter 章\enspace #1}{}}
@@ -221,44 +231,77 @@
     ]\color{DSHInk}}
   {\end{tcolorbox}}
 
-% Planned outline
+% One continuous table of contents, generated from the canonical outline.
 \newcommand{\DSHPlanPage}[1]{%
   \ifstrempty{#1}{}{\hyperref[#1]{\pageref*{#1}}}%
 }
 \newenvironment{hhplannedoutline}{%
   \cleardoublepage
-  \thispagestyle{plain}
+  \pagestyle{dshcontents}
+  \thispagestyle{empty}
   \phantomsection
-  \begin{center}
-    {\sffamily\DSHHeadingFont\bfseries\fontsize{20pt}{26pt}\selectfont\color{DSHInk}目录}
-  \end{center}
-  \vspace{7mm}
+  \noindent\includegraphics[width=12mm]{assets/brand/dsh-fish.png}\par
+  \vspace{8mm}
+  \noindent{\sffamily\bfseries\fontsize{9pt}{12pt}\selectfont
+    \color{DSHAccent}\textls[180]{CONTENTS}}\par
+  \vspace{2mm}
+  \noindent{\sffamily\DSHHeadingFont\bfseries\fontsize{28pt}{36pt}\selectfont
+    \color{DSHInk}目录}\par
+  \vspace{3mm}
+  \noindent{\color{DSHAccent}\rule{24mm}{1.4pt}}\par
+  \vspace{9mm}
   \setlength{\parindent}{0pt}
   \setlength{\parskip}{0pt}
 }{%
   \clearpage
+  \pagestyle{fancy}
 }
 
 \newcommand{\hhplanfront}[2]{%
-  \noindent{\sffamily\DSHHeadingFont\bfseries\color{DSHInk}#1}%
-  \nobreak\hspace{0.7em}{\color{DSHRule}\dotfill}\hspace{0.7em}%
-  \DSHPlanPage{#2}\par\vspace{2.6mm}
+  \noindent\hspace*{12mm}%
+  \parbox[t]{\dimexpr\textwidth-36mm\relax}{%
+    \sffamily\DSHHeadingFont\bfseries\color{DSHInk}#1}%
+  \hfill\makebox[12mm][r]{\sffamily\color{DSHMuted}\DSHPlanPage{#2}}%
+  \par\vspace{4mm}
 }
-\newcommand{\hhplanpart}[1]{%
-  \needspace{3\baselineskip}
-  \vspace{3.5mm}
-  \noindent{\sffamily\DSHHeadingFont\bfseries\color{DSHAccent}#1}\par\vspace{2.3mm}
+\newcommand{\hhplanpart}[2]{%
+  \needspace{9\baselineskip}
+  \vspace{4mm}
+  \begin{tcolorbox}[
+    enhanced,
+    colback=DSHAccentLight,
+    colframe=DSHAccentLight,
+    boxrule=0pt,
+    arc=1.5mm,
+    left=4mm,right=4mm,top=2.6mm,bottom=2.6mm,
+    before skip=0pt,after skip=4mm
+  ]
+    {\sffamily\DSHHeadingFont\bfseries\fontsize{10pt}{14pt}\selectfont
+      \color{DSHAccent}#1}\hfill
+    {\sffamily\DSHHeadingFont\bfseries\fontsize{13pt}{17pt}\selectfont
+      \color{DSHInk}#2}
+  \end{tcolorbox}
 }
 \newcommand{\hhplanchapter}[3]{%
-  \needspace{2.2\baselineskip}
-  \noindent{\sffamily\DSHHeadingFont\bfseries\color{DSHInk}第 #1 章\enspace #2}%
-  \nobreak\hspace{0.7em}{\color{DSHRule}\dotfill}\hspace{0.7em}%
-  \DSHPlanPage{#3}\par\vspace{2.2mm}
+  \needspace{3\baselineskip}
+  \noindent
+  \colorbox{DSHAccent}{%
+    \parbox[c][6.5mm][c]{9mm}{\centering\sffamily\bfseries\color{white}#1}}%
+  \hspace{3mm}%
+  \parbox[t]{\dimexpr\textwidth-30mm\relax}{%
+    \sffamily\DSHHeadingFont\bfseries\fontsize{11.5pt}{16pt}\selectfont
+    \color{DSHInk}#2}%
+  \hfill\makebox[10mm][r]{\sffamily\color{DSHAccentDark}\DSHPlanPage{#3}}%
+  \par\vspace{2.8mm}
 }
 \newcommand{\hhplansection}[3]{%
-  \noindent\hspace*{1.5em}{\sffamily\DSHHeadingFont\color{DSHInk}#1\enspace #2}%
-  \nobreak\hspace{0.65em}{\color{DSHRule}\dotfill}\hspace{0.65em}%
-  \DSHPlanPage{#3}\par\vspace{1.1mm}
+  \noindent\hspace*{12mm}%
+  \makebox[12mm][l]{\sffamily\bfseries\color{DSHAccent}#1}%
+  \parbox[t]{\dimexpr\textwidth-48mm\relax}{%
+    \sffamily\DSHHeadingFont\fontsize{9.8pt}{14pt}\selectfont\color{DSHInk}#2}%
+  \hfill\makebox[10mm][r]{\sffamily\fontsize{9.5pt}{13pt}\selectfont
+    \color{DSHMuted}\DSHPlanPage{#3}}%
+  \par\vspace{1.7mm}
 }
 
 % Cover
@@ -267,28 +310,49 @@
     \thispagestyle{empty}
     \pagecolor{DSHPaper}
     \begin{tikzpicture}[remember picture,overlay]
-      \fill[DSHAccentDark] (current page.north west) rectangle
-        ($(current page.north east)+(0,-7mm)$);
-      \fill[DSHAccent] (current page.south west) rectangle
-        ($(current page.south east)+(0,7mm)$);
-      \draw[DSHRule,line width=0.5pt]
-        ($(current page.north east)+(-34mm,-44mm)$) circle (18mm);
-      \draw[DSHAccent,line width=2pt]
-        ($(current page.north east)+(-34mm,-44mm)$) circle (11mm);
-      \node[font=\sffamily\DSHHeadingFont\bfseries,anchor=center,text=DSHAccentDark]
-        at ($(current page.north east)+(-34mm,-44mm)$) {DSH};
+      \fill[white] (current page.south west) rectangle (current page.north east);
+      \fill[DSHAccent]
+        ($(current page.north east)+(-57mm,0)$) rectangle (current page.south east);
+      \fill[DSHAccentLight]
+        ($(current page.south west)+(0,0)$) rectangle
+        ($(current page.south east)+(0,16mm)$);
+      \draw[white,opacity=.18,line width=.7pt]
+        ($(current page.north east)+(-28mm,-54mm)$) circle (36mm);
+      \draw[white,opacity=.12,line width=8pt]
+        ($(current page.north east)+(-28mm,-54mm)$) circle (48mm);
+      \node[anchor=center,fill=white,circle,inner sep=8mm]
+        at ($(current page.north east)+(-28mm,-54mm)$)
+        {\includegraphics[width=29mm]{assets/brand/dsh-fish.png}};
+      \node[anchor=center,rotate=90,text=white,opacity=.13,
+        font=\sffamily\bfseries\fontsize{44pt}{48pt}\selectfont]
+        at ($(current page.south east)+(-15mm,60mm)$) {HARNESS};
     \end{tikzpicture}
 
-    \vspace*{46mm}
+    \vspace*{24mm}
     \begin{flushleft}
-      {\sffamily\DSHHeadingFont\bfseries\fontsize{36pt}{44pt}\selectfont\color{DSHAccentDark}DSH Book\par}
-      \vspace{7mm}
-      {\color{DSHAccent}\rule{28mm}{1.2pt}\par}
-      \vspace{7mm}
-      {\sffamily\DSHHeadingFont\fontsize{14pt}{22pt}\selectfont\color{DSHMuted}
+      \includegraphics[width=12mm]{assets/brand/dsh-fish.png}%
+      \hspace{3mm}%
+      {\sffamily\bfseries\fontsize{9pt}{12pt}\selectfont\color{DSHInk}
+        \textls[120]{DEEPSEEK HARNESS}}\par
+      \vspace{42mm}
+      {\sffamily\DSHHeadingFont\bfseries\fontsize{50pt}{54pt}\selectfont
+        \color{DSHInk}DSH\par}
+      \vspace{2mm}
+      {\sffamily\bfseries\fontsize{19pt}{24pt}\selectfont\color{DSHAccent}
+        \textls[210]{BOOK}\par}
+      \vspace{10mm}
+      {\color{DSHAccent}\rule{18mm}{1.6pt}\par}
+      \vspace{8mm}
+      {\sffamily\DSHHeadingFont\bfseries\fontsize{16pt}{24pt}\selectfont\color{DSHInk}
         DeepSeek Harness 实战教程\par}
+      \vspace{4mm}
+      {\sffamily\DSHHeadingFont\fontsize{10.5pt}{17pt}\selectfont\color{DSHMuted}
+        面向普通用户的 Agent 实践指南\par}
     \end{flushleft}
     \vfill
+    \noindent{\sffamily\DSHHeadingFont\fontsize{10pt}{15pt}\selectfont\color{DSHInk}
+      实战\quad ·\quad 原理\quad ·\quad 插件与扩展}
+    \vspace*{8mm}
   \end{titlepage}
   \nopagecolor
   \clearpage
