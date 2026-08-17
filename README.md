@@ -2,7 +2,7 @@
 
 DeepSeek Harness 中文实战书稿与配套素材。
 
-本书面向普通用户，从安装和第一次任务开始，通过桌面整理、深度调研、演示文稿、小游戏和个人网页等案例，带读者逐步掌握 DSH。后两部分介绍 DSH 的工作原理及 Skill、MCP、社区插件和自定义插件。
+本书面向普通用户，从安装和第一次任务开始，通过桌面整理、深度调研、演示文稿、小游戏和个人网页等案例，带读者逐步掌握 DSH。第二部分讲 DSH 的工作原理，包括 Agent Harness 的通用循环、DSH 自己的插件框架 Cordis，以及沙箱与审批构成的安全边界。第三部分讲扩展，Skill、MCP、社区插件、自定义插件，以及让 DSH 改写自身运行时的自进化能力。
 
 完整目录见 [`book/outline.md`](book/outline.md)。
 
@@ -14,7 +14,7 @@ book/
   introduction.md   内容简介
   chapter1.md       第1章正文
   ...
-  chapter9.md       第9章正文
+  chapter12.md      第12章正文
   assets/           截图和插图
   preamble.tex      PDF 排版主题
 docs/
