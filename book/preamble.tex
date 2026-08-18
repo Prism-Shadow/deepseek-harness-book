@@ -235,7 +235,7 @@
 }
 \@ifundefined{Shaded}{}{%
   \renewenvironment{Shaded}
-    {\needspace{5\baselineskip}\begin{dshcodebox}}
+    {\Needspace{5\baselineskip}\begin{dshcodebox}}
     {\end{dshcodebox}}%
 }
 \makeatother
@@ -254,6 +254,7 @@
 \makeatletter
 \g@addto@macro\@floatboxreset{\centering}
 \makeatother
+\renewcommand{\floatpagefraction}{0.75}
 
 \renewenvironment{quote}
   {\begin{tcolorbox}[
