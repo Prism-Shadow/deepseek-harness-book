@@ -1,21 +1,21 @@
 const tasks = [
   {
     id: 'T-101',
-    title: '确认交互稿',
+    title: '确认付费页交互',
     owner: '产品 Agent',
     status: 'completed',
     dependencies: [],
   },
   {
     id: 'T-102',
-    title: '完成任务接口',
+    title: '完成订单接口',
     owner: '开发 Agent',
     status: 'in_progress',
     dependencies: [],
   },
   {
     id: 'T-103',
-    title: '联调看板',
+    title: '联调测试',
     owner: '开发 Agent',
     status: 'blocked',
     dependencies: ['T-101', 'T-102'],
