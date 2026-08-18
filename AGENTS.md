@@ -18,6 +18,12 @@
 - DSH 的功能、配置和界面行为以当前源码或实际运行结果为准。
 - 修改目录、标题、图片或 PDF 主题后，运行 `./scripts/build_pdf.sh` 并检查生成的 PDF。
 
+## 仓库写作 Skills
+
+- 新写或大幅改写中文书稿时，优先使用 `.agents/skills/human-writing/`。
+- 已有稿件需要降低 AI 写作痕迹时，使用 `.agents/skills/humanizer-zh/`。
+- Skill 只负责写作与改稿，不能覆盖本文件中的目录约束、事实核验、截图和敏感信息要求。
+
 ## 本地参考源码
 
 - `deepseek-harness/` 是独立的上游源码 checkout，只用于查阅和验证。
