@@ -20,39 +20,35 @@ npx -y @deepseek-ai/dsh web
 
 首次打开会先看到一条内测声明，说明 DSH 目前所处的开发阶段，点击“继续”就行。
 
-![DSH 首次打开时的内测声明](assets/chapter1/1-1-01-first-load.png)
+![DSH 首次打开时的内测声明](assets/chapter1/1-1-01-first-load.png){width=82%}
 
 ### 接入 DeepSeek 官方模型
 
 因为还没有配置任何模型，点掉内测声明之后，DSH 会直接弹出一个添加密钥的对话框，把开始使用之前必须做的这一步摆到台面上。
 
-![尚未配置模型时，DSH 会提示添加一个 API Key](assets/chapter1/1-1-02-add-key-dialog.png)
+![尚未配置模型时，DSH 会提示添加一个 API Key](assets/chapter1/1-1-02-add-key-dialog.png){width=82%}
 
 去 DeepSeek 官网（deepseek.com）申请一个 `sk-` 开头的 API 密钥，粘贴进输入框，点击“保存并继续”。密钥只在这一次输入的时候可见，存进去之后 DSH 不会再把它显示出来，界面上只剩一句“已配置过”的提示，后面的任何截图里也不会出现明文。保存成功后会回到主界面，这时候还没有选工作区，输入框是禁用状态。
 
-![保存密钥后回到主界面，可以开始选择工作区](assets/chapter1/1-1-03-after-save.png)
-
 想再确认一次，点击左下角“设置”，切到“模型”标签，DeepSeek 卡片旁边会出现一个绿点。
 
-![设置 → 模型页面，DeepSeek 卡片旁边亮起绿点](assets/chapter1/1-1-04-models-connected.png)
+![设置 → 模型页面，DeepSeek 卡片旁边亮起绿点](assets/chapter1/1-1-04-models-connected.png){width=84%}
 
 这个绿点的意思是“这一项已经配置过密钥”，不是“密钥验证通过了”——存错了 DSH 在这一步也不会拦你。真正的验证要等下一步真的问模型一句话。点一下卡片右边的“编辑”，密钥输入框只会显示一行“已配置——输入新值可替换”，输入新值就能覆盖，已经存进去的那串明文不会再吐出来。
 
-![再次编辑时，密钥输入框只显示已配置提示，不显示明文](assets/chapter1/1-1-05-deepseek-edit-masked.png)
+![再次编辑时，密钥输入框只显示已配置提示，不显示明文](assets/chapter1/1-1-05-deepseek-edit-masked.png){width=84%}
 
 ### 确认模型真的能回话
 
 密钥配置好，不代表这一路真的通了，还要让 DSH 真的调用一次模型，收到回复，才算验证完成。点击“选择工作区”，弹出的目录列表从主目录开始，随便选一个已有的文件夹，这里选的是 Documents，DSH 会把它设为当前会话的工作目录，输入框这才会被激活。
 
-![选择工作区目录，随便挑一个已有文件夹即可](assets/chapter1/1-1-06-choose-workspace.png)
+![选择工作区目录，随便挑一个已有文件夹即可](assets/chapter1/1-1-06-choose-workspace.png){width=78%}
 
 在输入框里打一句“你好，请用一句话介绍你自己”，回车发送。
 
-![发送前的输入框，右下角能看到当前用的模型是 DeepSeek-V4-Flash](assets/chapter1/1-1-07-hello-before-send.png)
-
 几秒钟后，DeepSeek-V4-Flash 会给出真实的回复。回复上方的“上下文注入”和“Think”是模型收到的系统提示词和它自己的思考过程，具体是什么、为什么会有这两行，第二部分讲 DSH 原理时再细说，这里只要知道回复是真实生成的就行。窗口最底部、输入框下方那行状态栏才是重点，这次对话转了几轮几步、模型算了多久、首个字出现要多久、每秒吐多少 token、消耗了多少输入和输出 token，都列在那一行里。这行数据就是请求真的打到了 DeepSeek 官方接口、模型真的算了一遍的证据，密钥存错或者网络没通，是走不到这一步的。
 
-![收到 DeepSeek-V4-Flash 的真实回复，下方带耗时和 token 统计](assets/chapter1/1-1-08-hello-reply.png)
+![收到 DeepSeek-V4-Flash 的真实回复，下方带耗时和 token 统计](assets/chapter1/1-1-08-hello-reply.png){width=86%}
 
 看到这行回复和统计数据，就说明 DSH 已经装好，模型也接通了，默认可用的模型还有 `deepseek-v4-pro`。下一节让它去做一件有产出的任务。
 
@@ -62,11 +58,9 @@ npx -y @deepseek-ai/dsh web
 
 在输入框里打一句“帮我在这个文件夹里新建一个 about-dsh.md，写清楚 DSH 是什么、能做什么，两三段就行，不用太长”，回车发送。
 
-![发送前的输入框，任务是让 DSH 新建一个说明文档](assets/chapter1/1-2-01-task-before-send.png)
-
 DSH 收到任务后没有直接动笔。它先跑了一次 `pwd && ls -la`，确认自己站在哪个目录、目录里已经有什么；接着又去把 DSH 自己的 README 翻了一遍，把“DSH 是什么、能做什么”这件事核对清楚，才开始写文件。消息流里那一长串 Bash、Read、Think 就是这个过程，动笔之前它还专门说了一句“我已经了解了 DSH 的官方资料……现在创建 about-dsh.md”。一句话的任务，它拆成了八步。先看后动手，还是张口就来，这个区别下一节会用得上。文件写完，回复末尾挂着一个“产物”标签，标着这次任务生成的文件名。
 
-![DSH 先查看目录再创建文件，完成后回复末尾带着产物标签](assets/chapter1/1-2-02-task-result.png)
+![DSH 先查看目录再创建文件，完成后回复末尾带着产物标签](assets/chapter1/1-2-02-task-result.png){width=82%}
 
 “产物 about-dsh.md”这个标签是 DSH 在说，这次任务确实新增了这个文件，不是聊天框里客套两句就算完事。它往里面具体写了什么、有没有动别的地方，下一节接着核对。
 
@@ -76,7 +70,7 @@ DSH 收到任务后没有直接动笔。它先跑了一次 `pwd && ls -la`，确
 
 点击消息流里“Write · about-dsh.md”这一行，也就是页面下方提示的“点击消息流中的工具行查看详情”，会展开一份完整的差异记录，新建了这个文件，加了 7 行、改了 1 个文件，下面还附着实际写进去的全部内容。DSH 在聊天里说自己写了三段，这里可以逐字核对它是不是真写了三段，而不是只报个数字了事。
 
-![展开 Write 工具调用，能看到完整的文件差异和写入内容](assets/chapter1/1-3-01-tool-detail-write.png)
+![展开 Write 工具调用，能看到完整的文件差异和写入内容](assets/chapter1/1-3-01-tool-detail-write.png){width=82%}
 
 打开这份差异能看到，DSH 确实写出了三段像样的文字，第一段说 DSH 是什么，第二段说能做什么，第三段说它的扩展性，跟它在聊天里报的摘要对得上。真实的文件内容是这样开头的。
 

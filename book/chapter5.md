@@ -10,7 +10,7 @@
 
 本章以《从大语言模型到智能体》为主题，制作一份面向公司内部分享的 8 页演示文稿。整个过程分为六步：配置多模态能力、确定主题、组织多个 Agent 调研、确认内容大纲和视觉风格、调用 Skill 生成幻灯片，以及检查并保存成品。
 
-![本章制作演示文稿的六步流程](assets/chapter5/5-0-01-ppt-workflow.png)
+![本章制作演示文稿的六步流程](assets/chapter5/5-0-01-ppt-workflow.png){width=92%}
 
 完成本章后，工作区中将保留调研资料、内容大纲、视觉规范、页面源文件、预览图和最终的 PPTX 文件。以后需要修改文字、调整样式或增加页面时，可以继续让 DSH 在这些文件的基础上处理。
 
@@ -46,7 +46,7 @@ Done in 2s using pnpm v11.22.0
 
 重启后，单击页面左下角的 **Settings**。在设置页面左侧选择 **Plugins**，打开 **Plugin configuration** 选项卡，然后向下找到并展开 **视觉引擎（ModLens）**。
 
-![在插件配置中展开“视觉引擎（ModLens）”](assets/chapter5/5-1-01-modlens-plugin-settings.png)
+![在插件配置中展开“视觉引擎（ModLens）”](assets/chapter5/5-1-01-modlens-plugin-settings.png){width=70%}
 
 单击“引擎”下拉框并选择 `openai`，这里的 `openai` 表示采用 OpenAI 兼容接口，ModLens 可以通过这种通用接口连接 GLM-5V-Turbo。
 
@@ -63,7 +63,7 @@ Done in 2s using pnpm v11.22.0
 
 填写完成后，单击 **保存**。
 
-![配置 GLM-5V-Turbo 视觉模型](assets/chapter5/5-1-02-glm-5v-turbo-config.png)
+![配置 GLM-5V-Turbo 视觉模型](assets/chapter5/5-1-02-glm-5v-turbo-config.png){width=68%}
 
 #### 验证视觉能力
 
@@ -75,7 +75,7 @@ Done in 2s using pnpm v11.22.0
 
 如下图所示，消息记录中出现了 `modlens_read_image` 工具调用，DSH 随后描述了图片的背景、文字和主体元素。这说明 ModLens 已经能够调用 GLM-5V-Turbo 读取图片。
 
-![DSH 通过 ModLens 读取图片并返回识别结果](assets/chapter5/5-1-03-vision-test.png)
+![DSH 通过 ModLens 读取图片并返回识别结果](assets/chapter5/5-1-03-vision-test.png){width=72%}
 
 图中还有一条红色错误信息。ModLens 完成识别后，Agent 又尝试让 DeepSeek-V4 直接读取同一张图片，由于主模型不接受图片输入，这次额外尝试失败了。上方的 `modlens_read_image` 调用和下方的图片描述均已正常返回，因此不影响本节的配置结果。
 
@@ -110,8 +110,6 @@ Done in 2s using pnpm v11.22.0
 
 DSH 根据这些条件整理出六部分内容主线，并指出 10 分钟、8 页的篇幅要求意味着每一页只能突出一个核心信息。它还围绕各部分列出了后续需要核对的问题，为下一步分头调研划定了范围。
 
-![DSH 复述演示任务并整理内容主线](assets/chapter5/5-2-01-topic-understanding.png)
-
 #### 让多个 Agent 分头调研
 
 主题和范围确定后，可以把几个彼此独立的问题交给不同的子 Agent。这里让 4 个子 Agent 分别调查大语言模型、工具调用、Agent 执行过程和 Agent Harness：
@@ -141,11 +139,11 @@ DSH 根据这些条件整理出六部分内容主线，并指出 10 分钟、8 �
 
 DSH 启动 4 个子 Agent 后，当前会话会显示各自的任务名称和运行状态。它们在独立的上下文中工作，完成后把结果交回当前会话。
 
-![4 个子 Agent 在后台分头调研](assets/chapter5/5-2-02-multi-agent-running.png)
+![4 个子 Agent 在后台分头调研](assets/chapter5/5-2-02-multi-agent-running.png){width=72%}
 
 所有任务结束后，主 Agent 对材料进行合并和去重，并生成 `调研简报.md`。4 份专题报告也保留在工作区中，遇到需要进一步核对的观点时，可以回到对应报告查看原始资料。
 
-![DSH 汇总子 Agent 的调研结果](assets/chapter5/5-2-03-research-complete.png)
+![DSH 汇总子 Agent 的调研结果](assets/chapter5/5-2-03-research-complete.png){width=68%}
 
 #### 整理参考资料
 
@@ -204,8 +202,6 @@ Agent Harness”的主线展开。Transformer、GPT-3 等模型历史只需简�
 
 DSH 给出的初稿已经包含页面标题、核心观点、事实、来源、版式和时间预算。先检查内容顺序和各页分量，不必急着生成幻灯片。
 
-![DSH 给出的 8 页演示文稿大纲初稿](assets/chapter5/5-3-01-outline-draft.png)
-
 初稿的信息仍然偏多，预计讲解时间也超过了 10 分钟。继续让 DSH 压缩内容，并把确认后的大纲保存为文件：
 
 ```text
@@ -229,7 +225,7 @@ DSH 给出的初稿已经包含页面标题、核心观点、事实、来源、�
 
 调整后的大纲共 8 页，总时间为 10 分钟。工具调用、执行循环和多 Agent 协作获得了更多讲解时间，模型发展史被压缩为简短的背景信息。
 
-![DSH 调整大纲并保存 outline.md](assets/chapter5/5-3-02-outline-saved.png)
+![DSH 调整大纲并保存 outline.md](assets/chapter5/5-3-02-outline-saved.png){width=82%}
 
 #### 选择视觉风格
 
@@ -249,7 +245,7 @@ DSH 给出的初稿已经包含页面标题、核心观点、事实、来源、�
 
 DSH 给出了“暗夜实验室”“明亮商务”和“渐变光谱”三套方案。考虑到会议室环境光和正文的信息密度，它推荐采用白色背景、蓝色主色的“明亮商务”方案。
 
-![DSH 比较视觉方案并推荐“明亮商务”](assets/chapter5/5-3-03-visual-style-options.png)
+![DSH 比较视觉方案并推荐“明亮商务”](assets/chapter5/5-3-03-visual-style-options.png){width=84%}
 
 确认选择后，让 DSH 把配色、字体、页面网格和逐页布局写成视觉规范：
 
@@ -265,8 +261,6 @@ DSH 给出了“暗夜实验室”“明亮商务”和“渐变光谱”三套�
 ```
 
 `visual-style.md` 统一规定了颜色、字体、页边距、页码和来源栏，还为 8 页内容分别指定了时间轴、循环图、对比图和分层结构图等版式。后续即使由不同子 Agent 制作页面，也可以依据同一份规范保持风格一致。
-
-![DSH 保存最终视觉规范](assets/chapter5/5-3-04-visual-style-saved.png)
 
 ### 调用 Skill 生成整套幻灯片
 
@@ -285,7 +279,7 @@ https://github.com/MiniMax-AI/skills/tree/main/skills/pptx-generator
 
 本次运行中，DSH 将 Skill 的说明文件和配套参考资料保存到当前工作区的 `.dsh/skills/pptx-generator/`。看到 `SKILL.md` 和 5 个 `references` 文件均通过检查，说明安装已经完成。
 
-![pptx-generator Skill 的文件安装并校验完成](assets/chapter5/5-4-01-skill-installed.png)
+![pptx-generator Skill 的文件安装并校验完成](assets/chapter5/5-4-01-skill-installed.png){width=80%}
 
 #### 开始生成演示文稿
 
@@ -309,15 +303,13 @@ slides/output/从大语言模型到智能体.pptx
 
 如下图所示，ModLens 在第一轮检查中发现了文字换行、时间轴标签被截断、循环箭头与节点重叠等问题。DSH 根据检查结果修改对应的页面源文件，然后重新生成并再次检查。
 
-![DSH 使用 ModLens 逐页检查并修改幻灯片](assets/chapter5/5-4-02-modlens-checking.png)
+![DSH 使用 ModLens 逐页检查并修改幻灯片](assets/chapter5/5-4-02-modlens-checking.png){width=76%}
 
 本例共修正了封面胶囊文字换行、时间轴标签截断、竖排文字显示异常、循环图重叠、箭头方向和局部文字拥挤等问题。第二轮检查结束后，8 页预览均通过。
 
 #### 查看生成结果
 
 任务结束时，DSH 给出了最终文件位置，并汇总了制作过程、页面结构、检查结果和保留的源文件。
-
-![DSH 完成演示文稿并汇报检查结果](assets/chapter5/5-4-03-generation-complete.png)
 
 工作区中的主要产物如下：
 
@@ -334,7 +326,7 @@ slides/
 
 下面展示了封面、工具调用、多 Agent 协作和 DeepSeek Harness 案例 4 张代表性页面。它们使用相同的标题位置、蓝色主色和来源栏，同时根据内容采用路线图、循环图、对比图和表格等不同版式。
 
-![最终演示文稿中的 4 张代表性页面](assets/chapter5/5-4-04-slide-previews.png)
+![最终演示文稿中的 4 张代表性页面](assets/chapter5/5-4-04-slide-previews.png){width=90%}
 
 最后打开 `slides/output/从大语言模型到智能体.pptx`，确认文件能够正常播放，文字、图形和来源栏在 PowerPoint 或 Keynote 中显示完整。需要修改内容时，可以让 DSH 编辑对应的 `slide-01.js` 至 `slide-08.js`，再运行 `compile.js` 重新生成 PPTX。
 

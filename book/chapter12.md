@@ -24,7 +24,7 @@
 
 在还没有任何 Skill 的工作区里，打一句“参考本周工作草记.md 里的内容，帮我写一份这周的周报”，DSH 读完文件会自己拿主意该分几段、叫什么名字。
 
-![没有 Skill 时，DSH 自己组织周报的结构和小标题](assets/chapter12/12-1-01-baseline-no-skill.png)
+![没有 Skill 时，DSH 自己组织周报的结构和小标题](assets/chapter12/12-1-01-baseline-no-skill.png){width=88%}
 
 这次它分了“一、本周工作总结”打头带一段话总述，再跟一串编号列表，写完存成了 `本周周报.md`。内容不算差，但换一次话题、换一天问，标题措辞、要不要编号、文件叫什么名字，都可能不一样，没有一份固定的格式可以照着核对。
 
@@ -80,7 +80,7 @@ whenToUse: 用户提到周报，或者给了一份本周的工作草记要求整
 
 开一个新对话，打同一句“参考本周工作草记.md 里的内容，帮我写一份这周的周报”。
 
-![有 Skill 之后，DSH 先加载 Skill 再按固定格式整理](assets/chapter12/12-1-02-skill-loaded.png)
+![有 Skill 之后，DSH 先加载 Skill 再按固定格式整理](assets/chapter12/12-1-02-skill-loaded.png){width=88%}
 
 这次对话开头多了一条“上下文注入 · skill-catalog”，这是 DSH 把当前能用的 Skill 名字和一句话说明报给模型看的目录，模型看到跟任务匹配就会主动调用。往下能看到一行“Skill · weekly-report”，这就是它真的加载了这份格式说明。加载之后它没有直接开写，先跑了一条命令确认今天的日期，因为草记里没写明确的周五日期，按 Skill 里的规则该用今天顶上；接着把内容写进了 `周报-2026-08-17.md`，文件名和上次的 `本周周报.md` 不一样，跟 Skill 里规定的命名规则对上了。
 
@@ -143,7 +143,7 @@ DSH 自带的工具就那么多，读写文件、跑命令、搜网页。MCP（M
 
 存盘之后不用重启 `dsh web` 进程，这份补丁文件本身是被监听的，改一下就会触发 DSH 断开重连一次这份配置对应的服务器，新开的对话立刻能用。开一个新对话，打一句“用 mcp 文件系统工具看看笔记目录里有什么文件，然后读一下数据库偶尔断连排查这份笔记，告诉我下一步排查方向是什么”。
 
-![模型依次调用三个 mcp__notes__ 前缀的工具](assets/chapter12/12-2-01-mcp-tool-calls.png)
+![模型依次调用三个 mcp__notes__ 前缀的工具](assets/chapter12/12-2-01-mcp-tool-calls.png){width=88%}
 
 调用记录里能看到三次工具调用。
 
@@ -153,7 +153,7 @@ DSH 自带的工具就那么多，读写文件、跑命令、搜网页。MCP（M
 
 命名规则是 `mcp__` 加服务器名再加原始工具名，中间用两条下划线连起来，这里的 `notes` 就是配置里填的 `serverName`。这三个工具全部来自刚接上的这个服务器，此前的对话里根本不存在。
 
-![基于笔记内容给出的排查建议](assets/chapter12/12-2-02-mcp-result.png)
+![基于笔记内容给出的排查建议](assets/chapter12/12-2-02-mcp-result.png){width=88%}
 
 最终的回答把笔记里“怀疑连接池空闲超时比 wait_timeout 长”这条具体的排查方向原样接了过去，还补了验证步骤和判断标准。这条建议的来源就是那份笔记本身，回答里能对上笔记原文才算这一步真的接通了。
 
@@ -198,23 +198,23 @@ dsh plugin --profile web add dsh-find-plugin
 
 这里有个容易踩的坑。`cordis.patch.yml` 改了会自动热更新，但 `package.json` 的依赖和 `bundles` 列表不在监听范围内，新装的插件不会立刻生效。装完命令马上试，DSH 还是老样子。
 
-![重启之前，DSH 不知道有这个新工具，只能退回搜网页和翻源码](assets/chapter12/12-3-01-before-restart-no-tool.png)
+![重启之前，DSH 不知道有这个新工具，只能退回搜网页和翻源码](assets/chapter12/12-3-01-before-restart-no-tool.png){width=88%}
 
 这一步能看到它没有调用任何新工具，退而求其次去搜了网页、翻了本机的 DSH 源码检查目录结构，说明这时候新插件确实还没接进工具注册表。回终端按 `Ctrl+C` 停掉 `dsh web`，重新跑一次 `npx -y @deepseek-ai/dsh web` 再打开页面。
 
 开一个新对话，打一句“我想要一个能帮我管理剪贴板历史的 DSH 插件，市面上有类似的吗，帮我搜一下”。
 
-![这次模型直接调用了新装插件带来的 find_dsh_plugin 工具](assets/chapter12/12-3-02-find-tool-call.png)
+![这次模型直接调用了新装插件带来的 find_dsh_plugin 工具](assets/chapter12/12-3-02-find-tool-call.png){width=88%}
 
 这次调用记录里出现了 `find_dsh_plugin`，这个工具此前在这台机器上根本不存在，是 `dsh-find-plugin` 这个插件唯一注册的工具。它内部实时查了 GitHub 上带 `dsh-plugin` 标签的仓库。
 
-![带安装命令和安全提醒的搜索结果](assets/chapter12/12-3-03-find-result.png)
+![带安装命令和安全提醒的搜索结果](assets/chapter12/12-3-03-find-result.png){width=88%}
 
 回答里给出了一个真实存在的候选插件、可以直接执行的安装命令，还主动提醒第三方插件装之前最好先过一遍源码、锁定到具体的 commit，跟前面调查生态时得到的结论一致。这条提醒来自 `find_dsh_plugin` 工具自己写在描述里的固定提示。
 
 最后去设置页确认一遍。点开左下角“设置”，切到“插件”标签，再切到“插件列表”子标签，在搜索框里输入 `find`。
 
-![设置页的插件列表里能搜到新装的插件，状态是已启用](assets/chapter12/12-3-04-settings-plugin-list.png)
+![设置页的插件列表里能搜到新装的插件，状态是已启用](assets/chapter12/12-3-04-settings-plugin-list.png){width=88%}
 
 `find-plugin` 这一行状态是“已启用”，这就是这个第三方插件确实被 DSH 认下、正常挂载运行的证据，跟设置页里看自带插件走的是同一个入口。
 
@@ -321,7 +321,7 @@ schema.additionalProperties must be explicitly true or false
 
 重启之后开一个新对话，打一句“中午不知道吃沙县小吃还是黄焖鸡米饭，帮我随机选一个”。
 
-![DSH 调用了新写的 pick_one 工具并给出结果](assets/chapter12/12-4-01-pick-one-result.png)
+![DSH 调用了新写的 pick_one 工具并给出结果](assets/chapter12/12-4-01-pick-one-result.png){width=88%}
 
 调用记录里的 `pick_one · {"options": ["沙县小吃", "黄焖鸡米饭"]}` 就是刚才写的那个工具，参数是模型自己从这句话里提取出来的两个选项，执行完随机选中一个，写进最终回复。从写下第一行代码到这一刻，中间没有跳过任何步骤。
 

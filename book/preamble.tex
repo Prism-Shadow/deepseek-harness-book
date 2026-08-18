@@ -244,8 +244,16 @@
   font={small,sf},
   labelfont={bf,color=DSHAccentDark},
   textfont={color=DSHMuted},
+  justification=centering,
+  singlelinecheck=false,
   skip=6pt
 }
+
+% Keep every screenshot and its caption visually centered, independent of
+% document-class float defaults.
+\makeatletter
+\g@addto@macro\@floatboxreset{\centering}
+\makeatother
 
 \renewenvironment{quote}
   {\begin{tcolorbox}[
