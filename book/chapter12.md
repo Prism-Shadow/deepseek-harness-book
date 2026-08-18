@@ -81,9 +81,9 @@ dsh 把可替换能力称为 **seam**（接缝）。一条 seam 由接口定义�
 
 截至 2026 年 8 月 18 日，公开讨论主要集中在三个方向：
 
-- Pi Agent 作者 Armin Ronacher 认为，dsh 虽不完美，却是少见的、让他愿意重新审视自身 harness 设计的开源项目（[原帖](https://x.com/mitsuhiko/status/2088189145952731317)）。
-- 早期体验者关注 Creator 模式展示出的自修改能力：Agent 能生成并挂载插件，但内存插件重启后消失，距离持续自演化还有一步（[报道转述](https://en.shuziqushi.com/new417069.html)）。
-- 谨慎意见集中在 Node.js 工具链门槛、插件兼容、界面复杂度和安全治理；这些问题决定 Cordis 能否从开发者框架走向普通用户产品（[报道转述](https://en.shuziqushi.com/new417069.html)）。
+- Pi Agent 作者 Armin Ronacher 认为，dsh 虽不完美，却是少见的、让他愿意重新审视自身 harness 设计的开源项目。
+- 早期体验者关注 Creator 模式展示出的自修改能力：Agent 能生成并挂载插件，但内存插件重启后消失，距离持续自演化还有一步。
+- 谨慎意见集中在 Node.js 工具链门槛、插件兼容、界面复杂度和安全治理；这些问题决定 Cordis 能否从开发者框架走向普通用户产品。
 
 ### 未来不是“插件更多”
 
@@ -93,4 +93,4 @@ Cordis 已在 Koishi 的 4000 多个社区插件中证明了动态装配可以�
 
 接下来的关键，不只是让 Agent “会改自己”，而是回答五个问题：外部动作如何补偿，不可信插件如何隔离，依赖接口如何做版本兼容，频繁重组的运行成本多高，以及谁来批准和审计长期自演化。
 
-> 本章资料截至 2026 年 8 月 18 日。dsh 仍处于 Developer Preview，插件 API 可能发生破坏性变化。核心事实以 [DeepSeek Harness 官方仓库](https://github.com/deepseek-ai/deepseek-harness)、[Cordis 仓库](https://github.com/cordiverse/cordis) 和论文 [A Programming Paradigm for Spatiotemporal Composability](https://github.com/cordiverse/paper) 为准；[HelmCode 的架构导读](https://helmcode.com/deepseek-harness/cordis)用于辅助核对信息结构。
+> 本章资料截至 2026 年 8 月 18 日。dsh 仍处于 Developer Preview，插件 API 可能发生破坏性变化。核心事实以 [DeepSeek Harness 官方仓库](https://github.com/deepseek-ai/deepseek-harness)、[Cordis 仓库](https://github.com/cordiverse/cordis) 和论文 [A Programming Paradigm for Spatiotemporal Composability](https://github.com/cordiverse/paper) 为准。
