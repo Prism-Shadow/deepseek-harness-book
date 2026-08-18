@@ -175,9 +175,9 @@ https://open.bigmodel.cn/usercenter/apikeys
 只根据图片内容，告诉我页面标题、费用预算、实际总费用和预算执行率。
 ```
 
-DSH 调用 `modlens_read_image`，并准确读出页面中的四项信息，说明视觉能力已经可以使用，如图 4-7 所示。
+![DSH 通过 ModLens 读取 Word 页面预览](assets/chapter4/4-3-modlens-test.png){width=60%}
 
-![DSH 通过 ModLens 读取 Word 页面预览](assets/chapter4/4-3-modlens-test.png){width=72%}
+图 4-7 中，DSH 调用 `modlens_read_image`，并准确读出页面中的四项信息，说明视觉能力已经可以使用。
 
 ### 准备演示文稿要求
 
@@ -233,9 +233,9 @@ DSH 生成 PPTX、每页预览和对应的 JavaScript 源文件，并使用 ModL
 
 ![DSH 完成 6 页演示文稿并保留生成源文件](assets/chapter4/4-3-pptx-result.png){width=76%}
 
-本例的 6 页预览如图 4-10 所示。封面和预算页突出关键数字，费用结构页使用环形图和条形列表，异常事项页使用橙色强调需要处理的凭证问题。
-
 ![产品发布会费用复盘演示文稿的六页预览](assets/chapter4/4-3-ppt-preview-overview.png){width=88%}
+
+图 4-10 展示了本例的 6 页预览。封面和预算页突出关键数字，费用结构页使用环形图和条形列表，异常事项页使用橙色强调需要处理的凭证问题。
 
 打开 `4-3-ppt/output/产品发布会费用复盘.pptx`，确认页数为 6 页，并抽查预算、实际费用、执行率和异常金额。源文件保存在 `4-3-ppt/slides/`，需要调整页面时可以继续修改并重新生成。
 
