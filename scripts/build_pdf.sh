@@ -37,6 +37,7 @@ REQUIRED_TEX_FILES=(
   titlesec.sty
   microtype.sty
   needspace.sty
+  float.sty
   ragged2e.sty
   fvextra.sty
   setspace.sty
@@ -73,7 +74,7 @@ REQUIRED_TEX_FILES=(
 for tex_file in "${REQUIRED_TEX_FILES[@]}"; do
   if ! kpsewhich "$tex_file" >/dev/null 2>&1; then
     echo "缺少 TeX 排版依赖：$tex_file" >&2
-    echo "TinyTeX 可运行：tlmgr install elegantbook anyfontsize titlesec newtx tex-gyre ctex fandol needspace ragged2e fvextra setspace csquotes logreq comment colortbl mwe enumitem esint footmisc jknapltx multirow makecell lipsum hologo listings tocloft tcolorbox tikzfill pdfcol fixtounicode pgf microtype caption bbding manfnt adforn" >&2
+    echo "TinyTeX 可运行：tlmgr install elegantbook anyfontsize titlesec newtx tex-gyre ctex fandol needspace float ragged2e fvextra setspace csquotes logreq comment colortbl mwe enumitem esint footmisc jknapltx multirow makecell lipsum hologo listings tocloft tcolorbox tikzfill pdfcol fixtounicode pgf microtype caption bbding manfnt adforn" >&2
     exit 1
   fi
 done
