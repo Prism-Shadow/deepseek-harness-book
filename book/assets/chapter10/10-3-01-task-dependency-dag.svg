@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#315EF5"/>
+    </marker>
+    <style>
+      .zh { font-family: "Songti SC", SimSun, serif; fill: #273142; }
+      .en { font-family: "Times New Roman", serif; fill: #667085; }
+      .title { font-size: 48px; font-weight: 700; }
+      .node { font-size: 30px; font-weight: 700; }
+      .small { font-size: 23px; }
+      .tag { font-size: 20px; font-weight: 700; }
+      .zh.inverse, .en.inverse { fill: #FFFFFF; }
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="90" y="105" class="zh title">把目标拆成带依赖的任务</text>
+  <text x="92" y="150" class="en small">Only ready tasks can be claimed.</text>
+
+  <rect x="110" y="250" width="360" height="190" rx="26" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="145" y="302" class="en tag">t1 · product</text>
+  <text x="290" y="360" text-anchor="middle" class="zh node">产品需求澄清</text>
+  <text x="290" y="405" text-anchor="middle" class="zh small">定义验收标准</text>
+
+  <rect x="110" y="520" width="360" height="190" rx="26" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="145" y="572" class="en tag">t2 · research</text>
+  <text x="290" y="630" text-anchor="middle" class="zh node">代码调研</text>
+  <text x="290" y="675" text-anchor="middle" class="zh small">定位文件与测试入口</text>
+
+  <rect x="650" y="385" width="360" height="190" rx="26" fill="#EEF2FF" stroke="#315EF5" stroke-width="4"/>
+  <text x="685" y="437" class="en tag">t3 · developer</text>
+  <text x="830" y="495" text-anchor="middle" class="zh node">开发实现</text>
+  <text x="830" y="540" text-anchor="middle" class="zh small">等待 t1 与 t2 完成</text>
+
+  <rect x="1190" y="385" width="300" height="190" rx="26" fill="#315EF5" stroke="#2148CC" stroke-width="3"/>
+  <text x="1225" y="437" class="en tag inverse">t4 · tester</text>
+  <text x="1340" y="495" text-anchor="middle" class="zh node inverse">测试验证</text>
+  <text x="1340" y="540" text-anchor="middle" class="zh small inverse">等待 t3 完成</text>
+
+  <path d="M470 345 C560 345 560 440 630 455" fill="none" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)"/>
+  <path d="M470 615 C560 615 560 520 630 505" fill="none" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)"/>
+  <path d="M1010 480 H1170" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)"/>
+
+  <rect x="575" y="700" width="510" height="92" rx="46" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
+  <text x="830" y="758" text-anchor="middle" class="zh small">空闲成员只认领依赖已满足的就绪任务</text>
+</svg>
