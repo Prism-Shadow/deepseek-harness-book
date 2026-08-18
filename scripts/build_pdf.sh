@@ -97,9 +97,9 @@ pandoc "$BOOK_MARKDOWN" \
   --top-level-division=chapter \
   --number-sections \
   --metadata has-frontmatter=true \
-  --metadata title="DSH Book" \
-  --metadata subtitle="DeepSeek Harness 实战教程" \
-  --metadata title-meta="DSH Book" \
+  --metadata title="从零开始玩转 DeepSeek Harness" \
+  --metadata subtitle="面向普通用户的 Agent 实践指南" \
+  --metadata title-meta="从零开始玩转 DeepSeek Harness" \
   --metadata author-meta="" \
   -V documentclass=elegantbook \
   -V classoption=lang=cn \

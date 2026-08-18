@@ -202,8 +202,8 @@
   citecolor=DSHAccentDark,
   urlcolor=DSHAccent,
   pdfborder={0 0 0},
-  pdftitle={DSH Book},
-  pdfsubject={DeepSeek Harness 实战教程}
+  pdftitle={从零开始玩转 DeepSeek Harness},
+  pdfsubject={面向普通用户的 Agent 实践指南}
 }
 
 \makeatletter
@@ -338,49 +338,64 @@
   \par\vspace{1.7mm}
 }
 
-% Cover. Pure vector: a thin accent band top and bottom frames the page, the
-% DSH fish mark is drawn from its own path data (never a rasterized image),
-% and everything else is centered type. No gradients, no translucent giant
-% wordmark in the background — the goal is a page that stays sharp at any
-% zoom and reads calmly at a glance.
+% Cover. Pure vector, inspired by restrained technical-book covers: a black
+% brand mark, one blue title line, and a minimal model-to-tools relationship.
+% Every element stays sharp at any zoom and the title remains the visual focus.
 \renewcommand*{\maketitle}{%
   \begin{titlepage}
     \thispagestyle{empty}
     \begin{tikzpicture}[remember picture,overlay]
       \fill[white] (current page.south west) rectangle (current page.north east);
-      \fill[DSHAccent]
-        (current page.north west) rectangle ([yshift=-7mm]current page.north east);
-      \fill[DSHAccent]
-        (current page.south west) rectangle ([yshift=7mm]current page.south east);
-    \end{tikzpicture}
 
-    \vspace*{40mm}
-    \begin{center}
-      \DSHFishMark{32mm}\par
-      \vspace{6mm}
-      {\sffamily\bfseries\fontsize{9pt}{12pt}\selectfont\color{DSHInk}
-        \textls[160]{DEEPSEEK HARNESS}\par}
-      \vspace{22mm}
-      {\sffamily\DSHHeadingFont\bfseries\fontsize{54pt}{58pt}\selectfont
-        \color{DSHInk}DSH\par}
-      \vspace{1mm}
-      {\sffamily\bfseries\fontsize{16pt}{21pt}\selectfont\color{DSHAccent}
-        \textls[260]{BOOK}\par}
-      \vspace{10mm}
-      {\color{DSHAccent}\rule{16mm}{1.6pt}\par}
-      \vspace{9mm}
-      {\sffamily\DSHHeadingFont\bfseries\fontsize{16pt}{24pt}\selectfont\color{DSHInk}
-        DeepSeek Harness 实战教程\par}
-      \vspace{4mm}
-      {\sffamily\DSHHeadingFont\fontsize{10.5pt}{17pt}\selectfont\color{DSHMuted}
-        面向普通用户的 Agent 实践指南\par}
-    \end{center}
-    \vfill
-    \begin{center}
-      {\sffamily\DSHHeadingFont\fontsize{10pt}{15pt}\selectfont\color{DSHInk}
-        实战\quad\textperiodcentered\quad 原理\quad\textperiodcentered\quad 插件与扩展\par}
-    \end{center}
-    \vspace*{16mm}
+      % Small monochrome brand signature.
+      \node[anchor=north west,inner sep=0pt]
+        at ($(current page.north west)+(22mm,-20mm)$)
+        {\DSHFishMark[DSHInk]{10mm}};
+      \node[anchor=west,text=DSHInk,
+        font=\sffamily\bfseries\fontsize{8.5pt}{11pt}\selectfont]
+        at ($(current page.north west)+(36mm,-25mm)$)
+        {\textls[150]{DEEPSEEK HARNESS}};
+      \draw[DSHRule,line width=.7pt]
+        ($(current page.north west)+(22mm,-38mm)$) --
+        ($(current page.north east)+(-22mm,-38mm)$);
+
+      % Book title.
+      \node[anchor=north,text=DSHInk,
+        font=\sffamily\DSHHeadingFont\bfseries\fontsize{29pt}{38pt}\selectfont]
+        at ($(current page.north)+(0,-59mm)$) {从零开始玩转};
+      \node[anchor=north,text=DSHAccent,
+        font=\sffamily\bfseries\fontsize{39pt}{47pt}\selectfont]
+        at ($(current page.north)+(0,-91mm)$) {DeepSeek Harness};
+      \node[anchor=north,text=DSHMuted,
+        font=\sffamily\DSHHeadingFont\fontsize{11pt}{17pt}\selectfont]
+        at ($(current page.north)+(0,-132mm)$)
+        {面向普通用户的 Agent 实践指南};
+
+      % One understated relationship instead of a literal architecture chart.
+      \coordinate (model) at ($(current page.south)+(-49mm,69mm)$);
+      \coordinate (dsh) at ($(current page.south)+(0,69mm)$);
+      \coordinate (tools) at ($(current page.south)+(49mm,69mm)$);
+      \draw[DSHRule,line width=1pt] ($(model)+(16mm,0)$) -- ($(dsh)+(-17mm,0)$);
+      \draw[DSHRule,line width=1pt] ($(dsh)+(17mm,0)$) -- ($(tools)+(-16mm,0)$);
+      \fill[DSHAccent] ($(model)+(16mm,0)$) circle (1.2mm);
+      \fill[DSHAccent] ($(tools)+(-16mm,0)$) circle (1.2mm);
+      \node[text=DSHMuted,
+        font=\sffamily\bfseries\fontsize{10pt}{12pt}\selectfont]
+        at (model) {MODEL};
+      \node[fill=DSHAccent,rounded corners=2mm,minimum width=30mm,
+        minimum height=13mm,text=white,inner sep=0pt,
+        font=\sffamily\bfseries\fontsize{11pt}{13pt}\selectfont]
+        at (dsh) {DSH};
+      \node[text=DSHMuted,
+        font=\sffamily\bfseries\fontsize{10pt}{12pt}\selectfont]
+        at (tools) {TOOLS};
+      \node[anchor=north,text=DSHInk,
+        font=\sffamily\DSHHeadingFont\fontsize{10pt}{15pt}\selectfont]
+        at ($(dsh)+(0,-15mm)$) {连接模型、工具与真实任务};
+      \draw[DSHAccent,line width=2pt]
+        ($(current page.south)+(-12mm,20mm)$) -- ++(24mm,0);
+    \end{tikzpicture}
+    \null
   \end{titlepage}
   \clearpage
 }

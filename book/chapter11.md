@@ -1,330 +1,140 @@
-# 扩展 DSH 的能力 {#ch-11}
+# dsh 的核心：cordis {#ch-11}
 
-前面几章看到的都是 DSH 已经装好的能力。第 9 章拆开讲过，DSH 里能看到的每一样东西，模型适配器、工具注册表、system prompt、agent loop 本身，都是一个个插件，靠 `cordis.patch.yml` 这层配置叠加组装起来。这一章反过来，从用的一侧走到扩展的一侧，动手往这套叠层里加东西。四节各加一样东西，先自己写一个 Skill，再接一个 MCP 服务器进来，然后装一个第三方插件，最后自己写一个几十行的插件塞进配置里。每一节结束时，都会有一个能亲眼看到的、DSH 确实多会了一件事的画面。
+第 8 章讲的那套循环，任何一个 agent harness 都绕不开。这一章讲的是 DSH 自己的那一半，它底下那个叫 Cordis 的框架，以及这个框架带来的一个不太常见的结果，产品里没有一块地板是不能撬开的。
 
-## 用 Skill 让 DSH 做得更好 {#sec-11-1}
+## 一切皆插件：dsh 的模块化设计 {#sec-11-1}
 
-先看一个真实的麻烦。手头有一份本周随手记的工作草稿，想让 DSH 整理成周报。直接在对话里说清楚要求当然可以，但格式要求这种东西，说一次只管这一次，下周再要一份周报，得把“分几段、每段叫什么、日期怎么写”这些规矩重新讲一遍。Skill 解决的就是这类反复要求的方法类知识，写一次，DSH 自己发现、自己按需加载，不用每次现场教。
+第 2 章做了三件事。切标题栏那个“标准模式”下拉框，看到标准、PTC、极简、创造四个选项；用创造模式现场给界面挂了一个改主题色的插件，挂上之前还得在左下角的面板里点一下“允许”；最后把这个临时插件写成磁盘上的文件，塞进 `$DSH_HOME/profiles/web/cordis.patch.yml`，才算留住。切模式、装插件、改配置文件，这三件事是同一套机制在三个不同地方露出的痕迹。
 
-### 不教它的样子
+DSH 的底层框架叫 Cordis，它对整个产品的定义只有一句话（`docs/architecture.zh.md` 第 11 行），**产品的每一部分都是插件**，模型适配器是插件，工具注册表是插件，会话日志是插件，就连 agent loop 本身也是插件。这句话要按字面意思读，**不存在一个“特权内核”，可以被谁打个补丁就改了行为**，扩展 DSH 的唯一方式，是把一个新插件挂到别的插件旁边，而不是钻进某个核心文件里改代码。第 2.2 节那个批准面板，正是这条规则在界面上的体现，DSH 现场“定义”了一个插件，但定义本身不会自动生效，得等一次显式的批准动作，插件才会真的挂载；插件的每一项注册，一段提示词、一个令牌覆盖、一个工具，都被当成一个可撤销的副作用，卸载插件或者进程重启，这些注册会按预期原样撤销。这也是为什么第 2.3 节实测“运行时插件重启就没了”是准的，它压根没有落盘，只是内存里一层临时的副作用。
 
-工作区里放着这样一份草稿，`本周工作草记.md`。
-
-```md
-周一到周五的一些记录，随手记的，还没整理：
-
-- 周一 把用户反馈里提到的登录超时问题复现了，是 session 过期时间设太短，改成 2 小时
-- 周二 跟进上面那个问题，把修复合并到 dev 分支，写了两个单元测试
-- 周三 开会讨论下个月的排期，确定先做导出 Excel 功能
-- 周四 导出 Excel 功能写了一半，卡在合并单元格的库选型上，对比了 exceljs 与 xlsx-populate
-- 周五上午 定下来用 exceljs，写了基础的导出逻辑
-- 周五下午 帮产品那边核对了一版需求文档，提了三条修改意见，还没等他们确认
-- 这周还有个遗留问题，测试环境的数据库连接偶尔会断，还没找到原因，先记一下
-```
-
-在还没有任何 Skill 的工作区里，打一句“参考本周工作草记.md 里的内容，帮我写一份这周的周报”，DSH 读完文件会自己拿主意该分几段、叫什么名字。
-
-![没有 Skill 时，DSH 自己组织周报的结构和小标题](assets/chapter11/11-1-01-baseline-no-skill.png)
-
-这次它分了“一、本周工作总结”打头带一段话总述，再跟一串编号列表，写完存成了 `本周周报.md`。内容不算差，但换一次话题、换一天问，标题措辞、要不要编号、文件叫什么名字，都可能不一样，没有一份固定的格式可以照着核对。
-
-### 写一份 Skill
-
-Skill 就是一个带约定格式的 Markdown 文件，放在 DSH 会扫描的目录里就能被发现。项目内的 `.dsh/skills/skill-name/SKILL.md` 只对这个项目生效，适合跟着代码库一起分享给团队；`~/.dsh/skills/skill-name/SKILL.md` 是用户级的，对这台机器上所有项目都生效，适合自己一个人反复用的方法，`skill-name` 换成自己起的名字就行。这次的周报格式跟这个工作区强相关，用项目级。
-
-在工作区里新建 `.dsh/skills/weekly-report/SKILL.md`。
-
-```md
----
-name: weekly-report
-description: 把本周零散的工作记录整理成固定格式的周报。用户要求"写周报"、"整理本周工作"、"周报"时使用。
-whenToUse: 用户提到周报，或者给了一份本周的工作草记要求整理成正式记录时。
----
-
-# 周报整理方法
-
-把用户提供的原始记录，改写成下面这个固定格式的周报，不要自己发明新的章节。
-
-## 输出格式
-
-~~~
-# 周报 YYYY-MM-DD
-
-## 本周完成
-- 已经做完、有结果的事，一行一条，动词开头
-
-## 进行中
-- 开始了但还没做完的事，一行一条，说明卡在哪或者进度到哪
-
-## 下周计划
-- 根据本周进行中和遗留的事，推出下周打算做的 1-3 件事
-
-## 风险与阻塞
-- 需要别人配合、还没解决的问题；没有的话写"无"
-~~~
-
-## 规则
-
-- 日期用原始记录里能推断出的周五日期；推不出来就用今天。
-- 每条不超过一行，不写"这周"、"本周"这种在标题里已经说明的词。
-- "本周完成"和"进行中"要能对应到原始记录里的具体内容，不要编造原始记录里没有的事。
-- 原始记录里如果提到还没解决的问题（比如卡住、等别人确认、故障排查中），归到"风险与阻塞"，不要漏掉。
-- 写完之后把周报保存成一个新文件，文件名是 `周报-YYYY-MM-DD.md`。
-```
-
-`name` 字段必须是 kebab-case，跟目录名对上；`description` 是 DSH 判断“这次任务要不要用这个 Skill”唯一依据的一句话，写清楚触发场景比写得漂亮更重要。这两项是必填项，`whenToUse` 是给这个判断再补一句更具体的场景描述，可选。
-
-存好文件不用重启 DSH，也不用做任何“注册”的动作。DSH 会监听这几个 Skill 目录，文件一存盘就能发现，新开一个对话就能看到效果。
-
-### 教过它之后
-
-开一个新对话，打同一句“参考本周工作草记.md 里的内容，帮我写一份这周的周报”。
-
-![有 Skill 之后，DSH 先加载 Skill 再按固定格式整理](assets/chapter11/11-1-02-skill-loaded.png)
-
-这次对话开头多了一条“上下文注入 · skill-catalog”，这是 DSH 把当前能用的 Skill 名字和一句话说明报给模型看的目录，模型看到跟任务匹配就会主动调用。往下能看到一行“Skill · weekly-report”，这就是它真的加载了这份格式说明。加载之后它没有直接开写，先跑了一条命令确认今天的日期，因为草记里没写明确的周五日期，按 Skill 里的规则该用今天顶上；接着把内容写进了 `周报-2026-08-17.md`，文件名和上次的 `本周周报.md` 不一样，跟 Skill 里规定的命名规则对上了。
-
-打开这份文件核对内容。
-
-```md
-# 周报 2026-08-17
-
-## 本周完成
-- 复现登录超时问题，定位为 session 过期时间设置过短，调整为 2 小时
-- 将登录超时修复合并到 dev 分支，补充两个单元测试
-- 确定下月排期，决定优先开发导出 Excel 功能
-- 对比 exceljs 与 xlsx-populate 后确定采用 exceljs，完成基础导出逻辑
-
-## 进行中
-- 导出 Excel 功能仍在开发，基础导出逻辑已完成，合并单元格部分待实现
-
-## 下周计划
-- 完成导出 Excel 功能的合并单元格实现
-- 跟进产品侧对需求文档修改意见的确认
-- 排查测试环境数据库连接偶发断开问题
-
-## 风险与阻塞
-- 需求文档的三条修改意见已提交，等待产品确认
-- 测试环境数据库连接偶尔断开，原因尚未定位
-```
-
-四个小标题跟 Skill 里写的一字不差，草记里两条还没解决的事（等产品确认、数据库连接问题）也都被正确归进了“风险与阻塞”，没有漏掉。这就是 Skill 跟直接在对话里下指令的差别。格式规则只用写一次，存成文件就能反复用；这份文件本身可以整个复制到别的项目、别的机器，或者跟着代码一起提交、分享给同事，不用再对着聊天记录复制粘贴一遍要求；而且它不占对话的固定成本，没提到周报的任务里，DSH 目录扫过就过去了，只有真的用上才会把完整内容加载进来。
-
-## 用 MCP 接入更多工具 {#sec-11-2}
-
-DSH 自带的工具就那么多，读写文件、跑命令、搜网页。MCP（Model Context Protocol）是一套开放协议，谁都能按它写一个独立的服务进程，把一组工具通过这个协议暴露出来，DSH 接上之后，这些工具会跟自带工具一样出现在模型面前，模型分不出哪个是原生的、哪个是接进来的。这一节接一个官方维护、免费、不用申请任何密钥的 MCP 服务器，官方的文件系统服务 `@modelcontextprotocol/server-filesystem`，让它读一个当前对话本来碰不到的目录。
-
-先准备一份不在当前工作区里的调研笔记，放在 `~/dsh-mcp-notes/`。
-
-```md
-# 数据库偶尔断连排查.md
-
-现象：跑集成测试时，大概每天出现 1-2 次连接被服务端主动断开。
-
-已排除：本地网络问题（同网段其它服务没断过）。
-怀疑方向：连接池空闲超时比数据库 wait_timeout 长，连接在池里变成死连接。
-下一步：把连接池的 idleTimeout 调到比 wait_timeout 短，观察两天。
-```
-
-接入 MCP 服务器的配置写在当前 profile 的 `cordis.patch.yml` 里，也就是启动 `dsh web` 用的那份，路径是 `~/.dsh/profiles/web/cordis.patch.yml`。打开它，往里插一行。
+一个插件长什么样，拆开看很朴素，一个带 `name`、可选 `inject`（声明自己依赖哪些别的服务）和 `apply(ctx)` 的对象或函数。第 2.3 节那份 `emerald-accent/client.js` 就是一个教科书式的例子。`inject: ['theme']` 声明它要用主题服务，`apply(ctx)` 里调用 `ctx.effect()` 包一层，注册一次令牌覆盖，这正是“插件是实现 Service 的对象、注册是可撤销副作用”这两条核心概念的真实代码，不是简化过的教学示例。跑一次 `dsh --profile web --dump-config`，能看到整棵插件树在配置层面长什么样。工具注册表、system prompt 组装、agent loop、DeepSeek 模型适配器，这些名字听起来分量完全不同的东西，在配置文件里是一模一样形状的几行，一个 `id`、一个 `name`、外加可选的 `config`。
 
 ```yaml
-- insert:
-    - id: mcp-notes
-      name: '@deepseek-ai/dsh-mcp-client'
-      config:
-        serverName: notes
-        transport: stdio
-        command: npx
-        args: ['-y', '@modelcontextprotocol/server-filesystem', '/home/你的用户名/dsh-mcp-notes']
+- id: agent-loop
+  name: '@deepseek-ai/dsh-agent-loop'
+  config:
+    agents: []
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+  config:
+    allowParallelInProgress: true
+  disabled: true
 ```
 
-`@deepseek-ai/dsh-mcp-client` 是 DSH 自带的一个桥接插件，每接一个 MCP 服务器就照这个样子加一份实例，`serverName` 是给这个服务器起的命名空间，`transport: stdio` 表示这个服务器是一个本地子进程，DSH 会照 `command` 和 `args` 把它拉起来，用标准输入输出跟它说话；如果对方是一个已经在跑的 HTTP 服务，就换成 `transport: streamable-http`，配 `url` 和可选的 `headers`，需要密钥的服务器把密钥放进 `headers` 或者 `env` 字段，用 `!!js process.env.对应变量名` 引用环境变量，配置文件里永远不直接写明文密钥。这几个字段对齐的空格数容易敲错，YAML 靠缩进分层级，`config` 底下这几行少缩进一格就会被解析成跟 `config` 平级，DSH 启动时会直接报错，对不上就照抄一遍缩进结构。
+驱动整个 agent 循环的 `agent-loop`，和一个只是维护待办列表的小工具 `tool-todo`，在这棵树里是同一种公民，都是一行配置，都能被替换、被禁用、被另一个实现顶替。
 
-存盘之后不用重启 `dsh web` 进程，这份补丁文件本身是被监听的，改一下就会触发 DSH 断开重连一次这份配置对应的服务器，新开的对话立刻能用。开一个新对话，打一句“用 mcp 文件系统工具看看笔记目录里有什么文件，然后读一下数据库偶尔断连排查这份笔记，告诉我下一步排查方向是什么”。
+第 2.3 节动手改的那两个文件，对应的正是这棵插件树是怎么叠出来的。DSH 启动时，配置是从一个空列表开始，一层一层往上叠，先按 profile 声明的顺序叠上各个组合包（比如 `dsh-base` 负责模型适配器、工具、持久化、沙箱这些基础设施，`dsh-web-app` 在此之上加一层浏览器应用），再叠 profile 自己的 `cordis.patch.yml`，再叠 home 目录级别那份，最后才是命令行传的 `--patch`（`docs/architecture.zh.md` 第 27 行）。第 2.3 节让翡翠绿主题“永久生效”的两步操作，往 `profiles/web/package.json` 加一条插件依赖、往 `profiles/web/cordis.patch.yml` 插一行，就是在这叠层里的“profile 自己的 patch”这一层上，多垒一层瓦。`dsh --profile web --dump-config` 打印出来的每一行，理论上都能被自己的 patch 顶替掉，这正是“没有特权内核”的直接推论，连官方随包发布的这些插件，也只是叠层里的普通一层，不是不能碰的地板。
 
-![模型依次调用三个 mcp__notes__ 前缀的工具](assets/chapter11/11-2-01-mcp-tool-calls.png)
-
-调用记录里能看到三次工具调用。
-
-- `mcp__notes__list_allowed_directories`
-- `mcp__notes__directory_tree`
-- `mcp__notes__read_text_file`
-
-命名规则是 `mcp__` 加服务器名再加原始工具名，中间用两条下划线连起来，这里的 `notes` 就是配置里填的 `serverName`。这三个工具全部来自刚接上的这个服务器，此前的对话里根本不存在。
-
-![基于笔记内容给出的排查建议](assets/chapter11/11-2-02-mcp-result.png)
-
-最终的回答把笔记里“怀疑连接池空闲超时比 wait_timeout 长”这条具体的排查方向原样接了过去，还补了验证步骤和判断标准。这条建议的来源就是那份笔记本身，回答里能对上笔记原文才算这一步真的接通了。
-
-## 使用社区插件 {#sec-11-3}
-
-前两节加的东西都很轻，一个 Markdown 文件、一行配置。这一节装一个完整的第三方插件包，走一遍真实的分发流程，包发布在 npm 上，安装进 profile，重启后在设置页的插件清单里能看到它。
-
-### 生态调查
-
-动手之前先搞清楚这东西现在到底有没有。DSH 自己的仓库和文档里翻了一圈，没有找到官方维护的插件市场或者插件目录页面。去 npm 上按 `dsh-plugin` 这类关键词搜，能找到零星几个独立开发者发布的包，命名上有个约定，插件名前缀 `dsh-` 或者带 `dsh-plugin` 关键词，一部分作者还在 GitHub 上给仓库打 `dsh-plugin` 这个 topic 标签，围着这个标签自发聚起一份 `awesome-dsh-plugin` 精选列表。这是一个刚起步、靠零散个人账号维系的社区生态，规模很小，也没有统一的审核或者评分机制，跟成熟生态里那种官方策展的插件市场不是一回事。装第三方插件之前查一眼源码，是这个生态现阶段该有的谨慎，不是走个形式。
-
-这次选择安装的是 `dsh-find-plugin`，一个真实发布在 npm 上、MIT 协议的包。选它的原因很直接，它的源码只有几个文件，核心逻辑几十行就能看完，干的事情也单一，注册一个模型可以调用的工具，实时搜索 GitHub 上带 `dsh-plugin` 标签的仓库，不读写任何本机文件，不触碰配置之外的任何东西，是一个装第一个第三方插件时风险很低的起点。
-
-### 走一遍安装流程
-
-DSH 提供了一条专门装插件的命令，帮你把依赖装进 profile、注册进插件树这两步一起做掉，不用手改 `package.json` 和 `cordis.patch.yml`。
-
-```sh
-dsh plugin --profile web add dsh-find-plugin
+```{=latex}
+\begin{center}
+\begin{tikzpicture}[node distance=6mm, every node/.style={align=center, font=\sffamily\footnotesize}]
+  \node[dshnodeflat, minimum width=90mm] (empty) {空列表};
+  \node[dshnode, minimum width=90mm, below=of empty] (base) {dsh-base（模型、工具、持久化、沙箱……）};
+  \node[dshnode, minimum width=90mm, below=of base] (webapp) {dsh-web-app（浏览器应用）};
+  \node[dshaccentnode, minimum width=90mm, below=of webapp] (patch) {profiles/web/cordis.patch.yml（用户自己的补丁层）};
+  \node[dshnodeflat, minimum width=90mm, below=of patch] (cli) {命令行 \texttt{-{}-patch}（可选）};
+  \draw[dsharrow] (empty) -- (base);
+  \draw[dsharrow] (base) -- (webapp);
+  \draw[dsharrow] (webapp) -- (patch);
+  \draw[dsharrow] (patch) -- (cli);
+\end{tikzpicture}
+\end{center}
 ```
 
-这条命令在幕后就是进到 `~/.dsh/profiles/web/` 目录跑一次 `pnpm add`，装完之后打开这份 profile 的 `package.json` 能看到变化。
+标题栏那个“标准模式”下拉框，切开看是另一层叠加，叫 **agent preset**，一份预先写好、随包发布的插件组合，专门决定“这个会话能用哪些能力”。DSH 目前发四款。`minimal` 接近纯聊天，system prompt 整段锁死不能再拼接，只给持久 bash 和一个文本编辑工具，压缩也是关着的；`standard` 是完整的编码助手，第 1 章到现在用的都是它；`code`，也就是下拉框里的 PTC 模式，在 `standard` 的基础上只多挂了一个“把连续几步工具调用改写成一段 TypeScript 程序、一次执行”的展示层，官方注释原话是“一段本来要五次往返的操作，变成一次”；`cordis`，也就是创造模式，在 `standard` 之上另外开了运行时检查、插件实验和 preset 创作向导，第 2 章一直用它写人设、挂插件。翻一下这两份配置文件的行数就有直观感受，`minimal` 只有 62 行，`standard` 有 251 行，四倍的差距，基本就是“聊天”和“能读写文件、跑命令、管上下文压缩的完整 agent”之间的距离。
 
-```json
-{
-  "dependencies": {
-    "dsh-find-plugin": "^0.3.6"
-  },
-  "dsh": {
-    "profile": {
-      "bundles": [
-        "@deepseek-ai/dsh-base",
-        "@deepseek-ai/dsh-web-app",
-        "dsh-find-plugin"
-      ]
-    }
-  }
-}
+> 深入一点。Cordis 的完整概念还有两个本节没细讲，服务按 `inject`/依赖关系决定加载顺序，以及事件按 `emit`、`waterfall`、`parallel`、`serial` 四种模式分发，这两样是 9.2 的内容。想搞清楚一个具体插件内部是怎么写的、`ctx.effect()` 到底在管什么，`docs/cordis-primer.md` 是最短的入口；真要动手写一个插件，留给第 10 章。
+
+**亲手验证**，跑 `npx @deepseek-ai/dsh --profile web --dump-config`（不需要配置任何密钥），在输出里搜 `agent-loop` 和 `tool-todo`，能看到两者是同样形状的配置行，一个决定了整个循环怎么转，一个只是个小工具，在配置层面待遇相同。再回到界面，把模式切到“极简模式”开一个新会话，让它做一件第 3 章那种要读文件、搜网页的任务，能明显感觉到它能用的手段比标准模式少了一大截，跟本节说的“minimal 只锁了两个工具、其余能力整段裁掉”对得上。四个模式在下拉框里挂着同样的名字长度，背后挂载的插件数量却天差地别，这正是“每一部分都是插件、都能按需增减”的直接体现。
+
+## cordis 的核心组成 {#sec-11-2}
+
+9.1 说 DSH 的每一部分都是插件。这话要真站得住，还欠一个交代。一百多个互不相识的插件，凭什么能拼成一个跑得起来的产品，谁先启动谁后启动，一个插件想拦住另一个插件的行为又该从哪下手。Cordis 用五个概念回答这些问题，第 2.3 节那份十几行的 `emerald-accent/client.js` 里，已经有三个露过面了。
+
+**插件是实现 Service 的对象**。它可以是一个带可选 `inject` 和 `apply(ctx)` 的函数，也可以是一个 `Service` 子类，挂载和卸载由 Cordis 管。翡翠绿那个插件是前一种，二十行不到，没有任何仪式感。
+
+**上下文是服务的容器**。每个服务占住一个固定的 `ctx.<key>`，`ctx.tools` 是工具注册表，`ctx.llm` 是模型适配器，`ctx.sessions` 是会话存储。别的插件要用它，靠的是这个 key，而不是 import 某个具体实现的文件（`docs/cordis-primer.zh.md` 第 10 行）。这一条读起来最平淡，却是下一节整节的前提。
+
+**依赖靠 `inject` 声明**。`inject: ['theme']` 那一行的意思是“主题服务就位之前我不启动”。加载顺序是这么表达出来的，不是谁在配置文件里写得靠前谁先跑。`--dump-config` 打印出来的行有确定的书写次序，但一个插件的 `apply` 什么时候真的执行，取决于它等的那些服务什么时候到齐。
+
+**通信靠类型化事件**。服务声明自己会发哪些事件，别的插件挂监听器上去。事件的分发方式有四种，是公开约定的一部分，不能随便换。
+
+| 模式 | 是否等待 | 顺序 | 有无返回值 |
+|---|---|---|---|
+| `emit` | 否 | 按注册顺序观察 | 无 |
+| `waterfall` | 否 | 按注册顺序观察 | 有 |
+| `parallel` | 是 | 全部并行观察 | 无 |
+| `serial` | 是 | 按注册顺序观察 | 有 |
+
+第 8 章反复出现的那些“拦下来”，用的都是表里的 `waterfall`。`agent/pre-step` 能拒绝一整批还没发出去的消息，`tools/pre-execute` 能把一次工具调用挡在执行之前，机制是同一个。waterfall 是环绕中间件，每个监听器拿到的参数末尾多一个 `next`，调用 `next()` 就把决定权交给下游，不调用直接返回就是短路。文档把这条规矩写得很清楚，握有决定权的策略监听器可以短路，只做标注和观察的必须往下委托（`docs/cordis-primer.zh.md` 第 34 至 38 行）。8.3 讲的那条“允许、拒绝、询问”的裁决链，落到实现上就是一串挂在 `tools/pre-execute` 上的监听器，谁认为这次调用归自己管，谁就不再往下传。
+
+**注册是可撤销的副作用**。提示词片段、工具 schema、模型适配器、监听器，这些东西都通过 `ctx.effect()` 或者 `ctx.on()` 装上去，插件卸载或者重载时按预期原样撤销。翡翠绿插件里 `ctx.effect()` 包的那一层，撤销的就是那次令牌覆盖。Cordis 的实践规则要求每一次注册都配一个对应的清理函数，要么由 `ctx.effect()` 返回，要么用框架提供的辅助方法自动处理。
+
+还有一条不在五个概念里、但读配置时一定会撞见的东西。`--dump-config` 输出中的 `tool-bash` 那一行写着 `disabled: !!js process.platform === 'win32'`，`!!js` 后面跟的是一个表达式，loader 在每次做挂载决策时才求值。同一份配置在 Windows 和在 Linux 上装出来的插件树因此并不相同，Windows 上启用的是 `tool-pwsh` 那一行，条件正好反过来。
+
+**亲手验证**，打开第 2.3 节自己写的那份 `emerald-accent/client.js`，对着上面五条逐个认领，`inject: ['theme']` 是第三条，`apply(ctx)` 是第一条，`ctx.effect()` 是第五条，二十行代码里坐实了三条。再跑一次 `npx @deepseek-ai/dsh --profile web --dump-config`，在输出里搜 `tool-bash`，能看到那行 `disabled: !!js process.platform === 'win32'`，这是“配置项是表达式、按你这台机器的环境求值”的现场证据。
+
+8.3 的旁注里埋过一句话，进程内的子 agent 和外部的 Claude Code，是插在同一个接口后面的不同实现。这句话背后是 DSH 用得最多的一个结构，官方管它叫 **seam**，直译是接缝。
+
+一条 seam 由三个角色组成（`docs/architecture.zh.md` 第 104 行）。**Service Definition** 声明接口，规定这类能力必须能回答哪些问题；**Service Provider** 实现它；**Consumer** 使用它，通常是一个面向模型的工具。一个包可以同时扮演多个角色，但只有一个角色单独存在时不构成 seam。添加一项能力，意味着这三样要一起设计。
+
+拿沙箱这条 seam 对照最省事，因为三个角色在 `--dump-config` 里就是挨着的三行。`sandbox` 是接口，`sandbox-local` 是本机的实现，`bash-sandbox` 是消费方，也就是那个真正拿着命令去 spawn 的家伙。消费方交出即将执行的确切 argv，提供方按这次调用的策略把它包起来再还回去。消费方从头到尾不知道自己跑在 bwrap、Landlock 还是 Seatbelt 上。
+
+```{=latex}
+\begin{center}
+\begin{tikzpicture}[node distance=8mm and 10mm, every node/.style={align=center, font=\sffamily\footnotesize}]
+  \node[dshnode] (consumer) {Consumer\\ 消费方\\ \scriptsize tool-bash};
+  \node[dshseam, right=of consumer, minimum height=12mm] (def) {Service Definition\\ 接口 \texttt{ctx.shell}};
+  \node[dshaccentnode, right=of def, minimum width=28mm] (p1) {bash-local};
+  \node[dshnode, below=4mm of p1, minimum width=28mm] (p2) {bash-sandbox};
+  \node[dshnodeflat, below=4mm of p2, minimum width=28mm] (p3) {pwsh-local};
+  \draw[dsharrow] (consumer) -- (def);
+  \draw[dsharrow] (def) -- (p1);
+  \draw[dshmutedarrow] (def.east) -- (p2.west);
+  \draw[dshmutedarrow] (def.east) -- (p3.west);
+  \node[dshlabel, below=1mm of p3] {同一个接口，换一行配置就换一个实现};
+\end{tikzpicture}
+\end{center}
 ```
 
-`dsh-find-plugin` 除了进了依赖列表，还自动被加进了 `bundles` 数组。这是因为这个包自己声明了 `dsh.bundle.patch`，属于正规的插件包，会带着自己的一份 patch 层随 `bundles` 列表自动挂载，不需要像上一节的 MCP 服务器那样手动在 `cordis.patch.yml` 里插一行。
+DSH 并不打算把所有东西都做成 seam。生成出来的能力图里，56 个有服务声明的包分成三类，26 个是可替换的 seam，29 个是核心主干，剩下一个是组合点（`docs/capability-seams.zh.md` 的服务表，这张表由脚本从源码声明里扫出来，配了完整性守卫，不会跟代码脱节）。主干那一类是会话日志、工具注册表、系统提示词组装这些东西，它们没有替换点，因为换掉其中一个基本等于换一个产品。这条分界线本身就是设计决定，值得看一眼那张表，你会发现凡是跟“怎么执行”有关的几乎都是 seam，凡是跟“怎么记录”有关的几乎都是主干。
 
-这里有个容易踩的坑。`cordis.patch.yml` 改了会自动热更新，但 `package.json` 的依赖和 `bundles` 列表不在监听范围内，新装的插件不会立刻生效。装完命令马上试，DSH 还是老样子。
+seam 真正的威力在于替换一个提供方就能改变整个产品的行为。文件系统和进程这两个提供方共享同一个执行世界，把它们一起指向远程沙箱，Bash、持久终端和语言服务器就一并搬了过去，不需要给每个消费方单独分叉一份（`docs/architecture.zh.md` 第 106 行）。子 agent 那条 seam 的落差更夸张，仓库的 `packages/subagent/` 下并排放着六个实现，进程内新建、进程内 fork、ACP、Codex、Claude Code，以及通过 DSH 自己的 SDK 委派出去。第 4 章那次多 Agent 调研用的是其中最朴素的一个，你现在跑的这棵 web 插件树里挂着的也只有 `spawn` 和 `fork` 两个提供方，另外四个躺在包里等着被配置换上去。
 
-![重启之前，DSH 不知道有这个新工具，只能退回搜网页和翻源码](assets/chapter11/11-3-01-before-restart-no-tool.png)
+替换要真的成立，接口就得管住自己。`ctx.lsp` 那条 seam 的说明里有句话值得抄下来，这条 seam 不提供协议逃生口，后端必须把自己的东西翻译成标准化的请求和结果。一旦允许某个提供方从接口的缝隙里漏出协议细节，消费方迟早会依赖上那些细节，接缝也就名存实亡了。
 
-这一步能看到它没有调用任何新工具，退而求其次去搜了网页、翻了本机的 DSH 源码检查目录结构，说明这时候新插件确实还没接进工具注册表。回终端按 `Ctrl+C` 停掉 `dsh web`，重新跑一次 `npx -y @deepseek-ai/dsh web` 再打开页面。
+**亲手验证**，在 `--dump-config` 的输出里连着找三行，`- id: sandbox` 后面跟的名字是 `@deepseek-ai/dsh-sandbox-local`，这是接口位上装了本机实现；再往下找 `- id: bash-sandbox`，这是消费方。然后搜 `subagent`，能看到 `subagent-spawn-in-process` 和 `subagent-fork-in-process` 两行，各自的 `config` 里写着 `providerName: spawn` 和 `providerName: fork`，一个接口位上并排注册着两个具名提供方，这就是 seam 在配置层面长的样子。
 
-开一个新对话，打一句“我想要一个能帮我管理剪贴板历史的 DSH 插件，市面上有类似的吗，帮我搜一下”。
+## cordis 的设计原理 {#sec-11-3}
 
-![这次模型直接调用了新装插件带来的 find_dsh_plugin 工具](assets/chapter11/11-3-02-find-tool-call.png)
+前面三节讲的是这套结构是什么样，这一节讲它为什么值得这么麻烦。
 
-这次调用记录里出现了 `find_dsh_plugin`，这个工具此前在这台机器上根本不存在，是 `dsh-find-plugin` 这个插件唯一注册的工具。它内部实时查了 GitHub 上带 `dsh-plugin` 标签的仓库。
+代价是明摆着的。加一项能力要同时设计三个角色，每一次注册都得配一个清理函数，任何一个想拦截别人的插件都得老老实实调用 `next()` 往下传。相比之下，在一个核心文件里加个 `if` 分支快得多。DSH 换来的东西，是一句写在架构文档开头的话，不存在需要打补丁的特权内核，扩展它的方式是把插件挂到别的插件旁边（`docs/architecture.zh.md` 第 13 行）。
 
-![带安装命令和安全提醒的搜索结果](assets/chapter11/11-3-03-find-result.png)
+这句话有两个维度上的具体含义，时间上的和空间上的。
 
-回答里给出了一个真实存在的候选插件、可以直接执行的安装命令，还主动提醒第三方插件装之前最好先过一遍源码、锁定到具体的 commit，跟前面调查生态时得到的结论一致。这条提醒来自 `find_dsh_plugin` 工具自己写在描述里的固定提示。
+时间上，挂载和卸载是对称的。一个插件在 `apply` 里做的每一件事，注册一个工具、加一段提示词、覆盖一个主题令牌、挂一个监听器，都被当成副作用记着账，插件走的时候按账本原样撤销。第 2.3 节那个实验之所以结论那么干脆，运行时挂上去的插件重启就没了，正是因为这套账本从来不打算落盘，它记的是内存里这一份运行时的欠账。
 
-最后去设置页确认一遍。点开左下角“设置”，切到“插件”标签，再切到“插件列表”子标签，在搜索框里输入 `find`。
+空间上，依赖关系是活的。`inject` 声明的不只是启动顺序，还有存续条件。一个插件依赖的服务如果消失了，它自己也跟着停下来，而不是抱着一个失效的引用继续跑。所以“换掉一个提供方”这件事在运行时是有确定语义的，旧的一批注册撤销，依赖它的那些跟着重来一遍。
 
-![设置页的插件列表里能搜到新装的插件，状态是已启用](assets/chapter11/11-3-04-settings-plugin-list.png)
-
-`find-plugin` 这一行状态是“已启用”，这就是这个第三方插件确实被 DSH 认下、正常挂载运行的证据，跟设置页里看自带插件走的是同一个入口。
-
-## 写一个自己的插件 {#sec-11-4}
-
-前三节都是接现成的东西。这一节自己写一个，照着 DSH 自带的 `tool-todo` 插件（不到 250 行，实现“待办事项”这一个工具）的样子，写一个小得多但真能用的版本。挑的例子是“随机做决定”，中午吃什么、两个方案选哪个这种纠结时刻，让 DSH 帮着掷一次骰子。全程不需要会 TypeScript，普通 JavaScript 就够。
-
-### 写代码
-
-新建 `~/.dsh/profiles/web/plugins/tool-decide/package.json`。
-
-```json
-{
-  "name": "tool-decide",
-  "private": true,
-  "type": "module",
-  "main": "index.js"
-}
+```{=latex}
+\begin{center}
+\begin{tikzpicture}[node distance=7mm and 14mm, every node/.style={align=center, font=\sffamily\footnotesize}]
+  \node[dshaccentnode] (plug) {一个插件的 \texttt{apply(ctx)}};
+  \node[dshnode, right=of plug] (reg) {注册一个工具\\ 加一段提示词\\ 覆盖一个令牌\\ 挂一个监听器};
+  \node[dshnodeflat, right=of reg] (off) {卸载 / 重启};
+  \draw[dsharrow] (plug) -- node[dshlabel, above=0.5mm] {装上} (reg);
+  \draw[dsharrow] (reg) -- node[dshlabel, above=0.5mm] {逐条撤销} (off);
+  \draw[dshmutedarrow] (off.south) to[out=-120, in=-60] node[dshlabel, below=0.5mm] {回到装之前的样子} (plug.south);
+\end{tikzpicture}
+\end{center}
 ```
 
-再建同目录下的 `index.js`。
+有了这两条，扩展点就不必是恩赐，而可以是清单。架构文档末尾直接列了一张“新行为的归属位置”表，18 行，左边是你想干的事，右边是它该挂在哪。加一个模型提供方，在 `ctx.llm` 上注册适配器；加一个模型能用的能力，在 `ctx.tools` 上注册，它的 schema 会自动进提示词组装；想让某个会话拥有一套不同的能力集合，组装一个 agent preset；想拦住请求、工具或者整个轮次，用对应的 `agent/*` 或 `tools/*` 事件。表里没有任何一行写着“改核心代码”。这张表配着 `dsh --profile web --dump-config` 一起看，是这一章最实在的收获，前者告诉你新东西该往哪挂，后者告诉你已经挂了什么。
 
-```js
-// tool-decide 插件，给 DSH 加一个"随机做决定"的工具。
-import { defineTool } from '@deepseek-ai/dsh-tools'
+事件域的选择是大多数改动的第一个决定，文档把它分成三类（`docs/architecture.zh.md` 第 59 行）。会话事件是追加进日志的持久事实，一件事重新加载之后还得在，就用它；`agent/*` 事件携带活着的 agent，要观察或者拦截正在进行的工作，就用它；能力事件挂在某条 seam 上，`fs/*`、`tools/*` 这些，用来附加策略和适配器，好处是不需要反过来 import 那个循环。
 
-// 插件名字，随便起，配置文件里的 name 字段要跟它对上。
-export const name = 'tool-decide'
-// 声明这个插件要用到工具注册表服务，DSH 会先把 ctx.tools 准备好再启动这个插件。
-export const inject = ['tools']
+最后一条纪律是收口用的。**模型可见即已记录**，任何抵达模型请求的东西都必须能从会话日志重建，这不是一句口号，DSH 用一个运行时不变量服务去断言它（`packages/runtime-diagnostics/invariants`，每个包用自己的 npm 名字注册自己那部分检查，失败时报错会指名道姓说是哪个包违约了）。8.2 讲过的日志只增不改，9.1 讲过的没有特权内核，在这条纪律上合成了一件事，产品的每一部分都可以被换掉，但换成什么都得把话说清楚、记下来。
 
-export function apply(ctx) {
-  ctx.tools.register(defineTool({
-    // 模型看到的工具名字。
-    name: 'pick_one',
-    // 模型看到的工具说明，决定它什么时候会想到用这个工具。
-    description: '当用户在几个选项里纠结、想随机选一个而不是要理性建议时，从给定的选项列表里随机选出一个。',
-    // 模型调用这个工具时要传的参数。
-    parameters: {
-      options: {
-        type: 'array',
-        required: true,
-        description: '待选项，至少两个。',
-        items: { type: 'string' },
-      },
-    },
-    // 工具执行完之后返回给模型的结果长什么样。
-    output: {
-      schema: {
-        type: 'object',
-        additionalProperties: false,
-        properties: {
-          picked: { type: 'string', required: true },
-        },
-      },
-      render: (_args, value) => [{ type: 'text', text: `随机选中：${value.picked}` }],
-    },
-    // 真正执行的逻辑。
-    execute(args) {
-      const options = args.options
-      if (!Array.isArray(options) || options.length < 2) {
-        throw new Error('pick_one 至少需要两个选项')
-      }
-      const picked = options[Math.floor(Math.random() * options.length)]
-      return Promise.resolve({ picked })
-    },
-  }))
-}
-```
-
-跟 `tool-todo` 对比着看，结构是一样的。`name` 和 `inject` 两个导出告诉 DSH 这个插件叫什么、依赖哪些服务；`apply` 函数里用 `ctx.tools.register` 注册一个工具，`defineTool` 里的 `name`、`description`、`parameters` 这三样是给模型看的，模型只凭这三样决定要不要调、怎么调；`execute` 是真正跑的代码，跟模型之间完全隔着一层，模型看不到这段代码本身。
-
-`output.schema` 那几行第一次写很容易漏掉一处。`type: 'object'` 的 schema 必须显式写上 `additionalProperties: false` 或者 `true`，写漏了 DSH 启动时会直接拒绝加载，报错信息是这样。
-
-```text
-Error: dsh: plugin tree failed to load: failed to apply loader entry
-tool-decide (tool-decide): unsupported JSON schema:
-schema.additionalProperties must be explicitly true or false
-```
-
-这段报错是照着 `tool-todo` 的样子第一次省略这一行时，本机跑出来的真实输出，补上 `additionalProperties: false` 就好了。
-
-### 接进配置，重启，验证
-
-在 profile 的 `package.json` 里把这个本地包加成一条依赖，跟第 2 章“翡翠绿主题”插件用的是同一个手法。
-
-```json
-{
-  "dependencies": {
-    "tool-decide": "file:./plugins/tool-decide"
-  }
-}
-```
-
-`cordis.patch.yml` 里插一行。
-
-```yaml
-- insert:
-    - id: tool-decide
-      name: 'tool-decide'
-```
-
-跑一次 `pnpm install` 让 `file:` 依赖链接进 `node_modules`，然后重启 `dsh web`。这里有第二个容易踩的坑。`pnpm install` 把 `plugins/tool-decide/` 下的文件复制（严格说是硬链接）进了 `node_modules/tool-decide/`，之后如果回去改 `index.js` 里的代码，`node_modules` 里那份不会跟着自动更新，得再跑一次 `pnpm install` 才能把改动同步过去，改完代码不生效，先检查是不是漏了这一步。
-
-重启之后开一个新对话，打一句“中午不知道吃沙县小吃还是黄焖鸡米饭，帮我随机选一个”。
-
-![DSH 调用了新写的 pick_one 工具并给出结果](assets/chapter11/11-4-01-pick-one-result.png)
-
-调用记录里的 `pick_one · {"options": ["沙县小吃", "黄焖鸡米饭"]}` 就是刚才写的那个工具，参数是模型自己从这句话里提取出来的两个选项，执行完随机选中一个，写进最终回复。从写下第一行代码到这一刻，中间没有跳过任何步骤。
-
-第 2 章用创造模式现场定义过一个改主题色的动态插件，跟这一节的做法是同一套能力的两种用法。动态插件写好当场审批、当场生效，但只活在这一次进程的内存里，适合“先试试看效果对不对”；写成配置里的一行、装进 `node_modules`，重启才生效，但只要这份配置还在，重启多少次都在，适合长期要用的工具，`pick_one` 用的就是这条路。
-
-`cordis.patch.yml` 里刚才那三行，跟 DSH 自带的 `agent-loop`、`tool-todo` 那几行长得一模一样，都是一个 `id` 加一个 `name`，外加可选的 `config`。DSH 自己怎么跑起来的，和这一节自己加的这个小工具怎么跑起来的，配置上没有任何区别。
+**亲手验证**，跑 `npx @deepseek-ai/dsh --profile web --dump-config`，把输出里以 `# ==` 开头的注释行找出来，它们标着下面每一段配置是从哪一层来的。第 2 章和后面几章做过操作的机器上，能看到 `@deepseek-ai/dsh-base`、`dsh-base` 被 `dsh-web-app` 打过补丁的那一段、`@deepseek-ai/dsh-web-app`，最后是你自己那份 `~/.dsh/profiles/web/cordis.patch.yml`。自己的补丁排在最后一层，这就是 9.1 那张叠层图的实物。想验证“可撤销”，把自己 patch 里第 2.3 节加的那行注释掉，重启 DSH，主题色会退回默认，再把注释去掉重启，它又回来，装上和撤下走的是同一本账。

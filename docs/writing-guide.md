@@ -1,4 +1,4 @@
-# DSH Book 写作规范
+# 《从零开始玩转 DeepSeek Harness》写作规范
 
 ## 写作目标
 

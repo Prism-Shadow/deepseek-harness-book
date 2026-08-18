@@ -1,93 +1,174 @@
-# DSH 的安全边界 {#ch-10}
+# Harness 的工作原理 {#ch-10}
 
-从第 1 章开始，输入框旁边一直挂着一个写着“Workspace Write”的下拉框，偶尔会跳出一个权限确认弹窗。8.3 把它放过去了，说裁决站在执行之前，具体怎么裁留到这里。这一章把这个下拉框整个拆开，两个旋钮各自管什么，边界划在哪儿，以及一件更要紧的事，当 DSH 拿不准的时候它会怎么做。
+## 从聊天助手到 Harness {#sec-10-1}
 
-## 沙箱模式：文件效果的硬边界 {#sec-10-1}
+第 1 章那句“你好，请用一句话介绍你自己”，回复下面跟着一行“1 轮 · 1 步”；第 3 章让 DSH 去整理桌面，同样是发一句话，那一行数字变成了“1 轮 · N 步”。都是打一句话回车，为什么有的只算一步，有的要算好几步。这道题的答案，就是理解 DSH 要迈的第一道门槛，DSH 跑的是一个循环。
 
-第一个旋钮叫沙箱模式，三档，`read-only`、`workspace-write`、`danger-full-access`。
+聊天机器人的工作方式是一问一答，一次请求，一次回复，回复完这轮就彻底结束了。DSH 背后的模型多了一个选项，每次生成回复，除了直接说话，还可以选择“调用一个工具”。一旦模型选了调用工具，DSH 不会就此打住，而是先把工具真正执行了，把执行结果重新喂回给模型，让它再看一眼、再决定下一步。直到某一次它不再申请调用任何工具、只是把话说完，这一轮才算结束。这一整套“回复、执行、回填、再回复”反复打转的过程，就是 agent loop，也是“Agent”和“聊天机器人”之间唯一的分界线，聊天机器人的智能全在一次生成里，agent 的智能藏在这个循环转了几圈。
 
-它的定义范围窄得出乎意料，**只管文件系统效果**（`docs/subsystems/sandbox.zh.md` 第 11 行）。`read-only` 要求后端拒绝一切写入，但仍然会放行 `/dev/null` 这类 shell 跑起来就必须有的接收器，不然一条最普通的命令都执行不了；`workspace-write` 在此之上允许写工作区根目录，外加后端自己承诺的一块临时区域；`danger-full-access` 绕过隔离。
+DSH 的文档给这个循环里的两个词下了精确定义（`docs/architecture.zh.md` 第 69 行）。一个**步骤**（step）是一次模型请求，加上这次请求申请调用的工具；一个**轮次**（turn）由零个或多个步骤组成，从领到第一条待处理的输入开始算起，一直到不再欠着任何工作才结束。界面统计行里的“轮 / 步”，说的就是这两个词，不是随口起的说法。“你好”那次，模型看到问题，直接组织语言回答，中间没有申请调用任何工具，一次模型请求就把这一轮的活干完，是 1 轮 1 步；整理桌面那次，模型第一次请求申请调用工具去看桌面上有什么，工具执行完把结果喂回去，模型看着这份结果再决定下一步该怎么整理，可能又申请调用一次工具。每一次“模型请求 + 它申请的工具”算一步，攒够了才关闭这一轮，步数自然就上去了。
 
-第三档的实现方式值得单独说一句，它不是“把沙箱调到最松”，而是**根本不进沙箱**。只有前两档会被送给提供方，`danger-full-access` 的消费方直接 spawn 原始的 argv，压根不调用 `ctx.sandbox`（同文第 23 行）。所以这一档不存在“沙箱漏了”这种说法，它本来就没在场。
+定义里“零个步骤”那种情况是真会发生的。DSH 把一批输入送进模型之前，会先过一道 `agent/pre-step` 检查，插件在这里可以改写这批消息，也可以直接拒绝。一旦被拒绝，这一轮不会向模型发出任何请求，步数是零，但它照样先记了 `turn/start`、最后补上 `turn/end`，在会话日志里留下一条完整的轮次记录，只是这条记录没花掉任何一次模型调用（`docs/agent-lifecycle.zh.md` 的时序图里，被拒绝那条分支标着“该轮次不消耗任何步骤”，而 `turn/end` 画在分支之外，两条路都要经过它）。一件压根没发生的事也要老老实实记一笔，这个习惯 8.2 会讲清楚是为什么。
 
-策略是**按每次调用解析并携带**的，不是固定在提供方身上。这个设计带来一个不太直观但很实用的性质，同一时刻两个消费方可以在不同的边界下运行，比如 bash 跑在只读模式下，同时一个受限的子 agent 需要它自己的状态目录可写。模型申请提权、你点了同意之后的那次重试，在这套模型里是一次全新的调用，带着一份更宽的策略，而不是把提供方的状态改了。工作区根目录从调用会话那个不可变的 cwd 派生，先按文件系统语义规范化，再做词法规范化，所以一个路径里带着 `symlink/..` 的 cwd，标识的是进程真正会落脚的那个目录。
-
-后端是分平台的，Linux 上是 bwrap 或 Landlock，macOS 上是 Seatbelt，Windows 上是 ACL 受限令牌。DSH 不假装它们一样强。后端要如实报告这次隔离的完整性，`full` 表示这个模式承诺的文件效果全都管住了，`partial` 表示活跃的后端或者偏旧的内核 ABI 只管住了其中一部分，要求绝对边界的调用方不许把 `partial` 当 `full` 用（同文第 30 行）。当前已知会落进 `partial` 的情形有两类，偏旧的 Landlock ABI，以及 Windows ACL runner 在 Everyone 和硬链接上的边界。
-
-这不只是纸面上的可能。写这一章用的这台 Linux 机器就在这一档，随便让 DSH 跑一条 bash 命令，展开轨迹看那次调用的原始返回，末尾跟着一行 `landlock-run: partial enforcement (older Landlock ABI)`，它在明说这次隔离打了折扣。装了 bubblewrap 的机器上 DSH 会优先挑它，那条线是 `full`，这行提示就不会出现。
-
-还有一个容易被忽略的细节。一条命令跑失败了，可能是隔离生效把它拦下来了，也可能是沙箱 runner 自己在执行之前就崩了，这两件事的含义完全相反。DSH 要求消费方先判后者，把它当成基础设施故障上报，而不是当成任务失败（同文第 118 行）。判断依据也不含糊，每个后端报告自己的**拒绝方言**，bwrap 的只读绑定产生 EROFS 那套文本，Landlock 产生 EACCES，Seatbelt 产生 EPERM，消费方只拿本次选中的后端的方言去匹配，而不是拿一个跨后端的并集，因为并集会声称某个后端根本不会产生的拒绝。
-
-最后把边界划清楚。沙箱模式管文件效果，**网络和进程可见性不在它的定义范围内**。把权限调成只读，能挡住 DSH 改你的文件，挡不住它把已经合法读到的内容通过网络发出去。这一层机制本来就不负责这件事，换哪个预设都一样。真在意这一点的场景，得靠机器本身的网络策略去管，指望这个下拉框是指望错了地方。
-
-**亲手验证**，在 `dsh --profile web --dump-config` 的输出里找 `- id: sandbox-policy`，它的 `config` 里有两行，`mode` 写着 `!!js process.env.DSH_PERMISSION_MODE ?? 'workspace-write'`，`workspaceRoot` 写着 `!!js process.cwd()`。这两行把本节两个最重要的事实摆在明面上，默认模式是工作区可写、可以由环境变量顶掉，而工作区边界就是你启动 DSH 时所在的那个目录。再让 DSH 随便跑一条 bash 命令，展开轨迹看原始返回的末尾，如果出现 `partial enforcement` 那行提示，说明你这台机器上的隔离也打了折扣。
-
-## 审批策略与权限预设 {#sec-10-2}
-
-第二个旋钮叫审批策略，只有两档，`ask` 和 `never`。
-
-它回答的是另一个问题。沙箱管的是“这个进程能碰到哪些文件”，审批管的是“这一个具体操作要不要放行”。后者的结果是一个闭合的四值，`allowed-once`、`rejected`、`cancelled`、`unavailable`，调用方只认第一个，其余三个一律按拒绝处理（`docs/subsystems/approval.zh.md` 第 21 行）。名字里的 `once` 是字面意思，一次批准只授权被问的那一个操作，下次再来还得再问。
-
-两档策略的区别在于交互式应答者跑起来之前发生了什么。`ask` 把问题委托给组装好的应答者链，链上一个应答者都没有的时候，问题会一路落到那个 fail-closed 的 `unavailable`；`never` 更干脆，一次都不问任何人，每个请求确定性地返回 `rejected`，连应答者都不分发。文档给 `never` 的定位是严格的无人值守姿态，CI 和自动化任务用的就是它。
-
-生效的策略值不是一个内存里的开关，是**会话日志里最后一条 `approval/policy` 事件**，没有这条就回退到服务配置。写入路径只有一条 `setApprovalPolicy()`，所以任何一次改动都能从日志重建出来。这正是 8.2 那条铁律在权限这一侧的落地，你什么时候把权限放宽了、什么时候又收回去，是一件可以事后回放核对的事，而不是一个说不清的界面状态。
-
-两种策略还会把自己当前的完整含义贡献进那份运行时上下文快照。审批状态一变，DSH 在保留的历史后面追加一份新的完整快照，而**不是回头改写请求头里的系统提示词**（同文第 49 行）。8.4 讲缓存的时候说过，前缀一动其后全废，权限这种随时可能改的状态如果写在系统提示词里，每改一次就把整段缓存作废一次。追加一条新的、带来源标注的用户消息，模型照样看得见当前权限，缓存前缀却纹丝不动。
-
-审批请求本身还有一处克制的设计。它带着 agent、工具名和这次调用的 `callId`，唯独**不带工具参数**。原因是应答者可以凭 `callId` 把确认框直接挂到界面上那次已经流式输出的工具调用上，而不必再渲染一份可能跟真实参数对不上的副本（同文第 53 行）。你点“允许”的时候，看的就是它真要执行的那一次，中间没有第二份数据。
-
-现在把两个旋钮合起来。界面上那个下拉框其实是一层薄薄的**权限预设**，把沙箱模式和审批策略捆成具名的一档。随包发的三档在配置里写得明明白白。
-
-```yaml
-presets:
-  read-only:
-    sandbox: read-only
-    approval: ask
-  workspace-write:
-    sandbox: workspace-write
-    approval: ask
-  danger-full-access:
-    sandbox: danger-full-access
-    approval: never
-```
+驱动这个循环的代码本身也是一个不算长的循环，核心类叫 `ReactLoopAgent`，跑起来之后一直在做的事就是一行代码，`while (await this.turn()) {}`（`packages/core/agent-loop/src/agent.ts:212`）。只要这一轮还没个了结，就接着跑下一轮，没有新输入、也没有欠着的工作了，循环才退出，跟本节的定义完全对应，不是另外一套东西。统计行里的“步数”，数的是 `step/end` 这个日志事件出现了几次。按气泡数，会把那些没吐出任何可见内容就失败或被取消的步骤漏掉；按事件数，一步不落（`packages/session/session-stats` 的说明文档原话）。
 
 ```{=latex}
 \begin{center}
-\begin{tikzpicture}[every node/.style={align=center, font=\sffamily\footnotesize}]
-  \node[dshnodeflat, minimum width=34mm] (s1) {沙箱模式\\ \scriptsize 三档};
-  \node[dshnodeflat, minimum width=34mm, below=9mm of s1] (s2) {审批策略\\ \scriptsize 两档};
-  \coordinate (mid) at ($(s1.east)!0.5!(s2.east)$);
-  \node[dshnode, right=10mm of mid, minimum width=24mm] (pair) {当前这一对\\ 取值};
-  \node[dshaccentnode, right=10mm of pair, minimum width=28mm] (hit) {命中预设表\\ \scriptsize 显示那一档的名字};
-  \node[dshseam, below=9mm of hit, minimum width=28mm] (miss) {没命中\\ \scriptsize 显示 custom，不能切过去};
-  \draw[dsharrow] (s1.east) -- (pair.west);
-  \draw[dsharrow] (s2.east) -- (pair.west);
-  \draw[dsharrow] (pair) -- (hit);
-  \draw[dshmutedarrow] (pair.east) -- (miss.west);
+\begin{tikzpicture}[node distance=9mm and 12mm, every node/.style={align=center, font=\sffamily\footnotesize}]
+  \node[dshnode] (u1) {用户\\一句话};
+  \node[dshaccentnode, right=of u1] (m1) {模型\\第 1 次请求};
+  \node[dshnodeflat, below=of m1] (chat) {直接回复\\（聊天机器人止步于此）};
+  \node[dshseam, right=of m1] (tool) {申请\\调用工具};
+  \node[dshnode, right=of tool] (exec) {执行工具\\结果回填};
+  \draw[dsharrow] (u1) -- (m1);
+  \draw[dsharrow] (m1) -- (chat);
+  \draw[dsharrow] (m1) -- (tool);
+  \draw[dsharrow] (tool) -- (exec);
+  \draw[dsharrow] (exec.south) to[out=-90, in=-90] node[dshlabel, below=0.5mm] {第 2 次请求，再看一眼} (m1.south east);
 \end{tikzpicture}
 \end{center}
 ```
 
-图里最下面那个 `custom` 需要解释一句。它不是第四档，是**派生出来的状态**。DSH 每次都从两个旋钮的实际生效值反推当前属于哪一档，反推不出来就报 `custom`。界面可以把它显示成当前值，但它永远不是一个可以切过去的目标（`docs/subsystems/permission-presets.zh.md` 第 48 行）。什么时候会出现这种状态，比如你在配置里把审批策略单独调成了 `never`，沙箱却还停在 `workspace-write`，这个组合不在随包的三档里，界面就只能如实说一句“自定义”。
+这个循环里，Harness（DSH 自己）和模型分工非常明确，模型只负责判断“接下来该说话还是该调用工具、调用哪个工具”，除此之外的一切都是 Harness 的活，拼好这次请求要发的内容（身份设定、工具清单、到目前为止的历史），真的把工具跑起来，把每一步、每一次调用原样记进日志，管住上下文不要爆掉。模型是循环里唯一的决策者，Harness 是循环本身、循环之外的一切基础设施，两者边界很干净。
 
-还有一件事值得点破，**预设层自己不拥有任何强制执行**。它不是一个凌驾在两个旋钮之上的权限总开关，切一次预设只是记录一次意图，然后通过每个旋钮各自的规范写入路径落下去，真正执行的时候读的仍然是各自那份折叠结果（同文第 5 行）。这跟 9.1 那条“没有特权内核”是同一个脾气，连权限选择器都不给自己开后门。
+> 深入一点。第 4 章用过的多 Agent 调研，看起来像是“另开了一个 AI”，但在这套循环模型里，子 agent 就是模型可以申请调用的一个工具（`docs/architecture.zh.md` 第 106 行）。调用它、等它跑完、把结果收回来，跟调用一个读文件的工具走的是同一条路径，只是这个“工具”内部自己又是一整个 agent loop。8.3 会具体讲工具调用这条路径，子 agent 这层实现细节留到讲插件扩展的章节。
 
-**亲手验证**，在 `--dump-config` 输出里找 `- id: permission`，能看到上面那张三档表原样躺在配置里，任何一档都可以在你自己的 patch 里改掉或者加一档。再往上找 `- id: approval`，它的 `policy` 是一个表达式，只有当 `DSH_PERMISSION_MODE` 等于 `danger-full-access` 时才是 `never`，其余情况都是 `ask`。两个旋钮的默认值同源于一个环境变量，这就是启动时那一档从哪儿来的答案。
+**亲手验证**，给 DSH 一个必须动手改文件的任务，回复下面的统计行步数应该大于 1；切到“轨迹”标签页，数一数里面出现了几次完整的模型请求，应该正好和统计行报的步数对得上。这行数字是真的在数循环转了几圈，不是凭感觉估的。
 
-## fail-closed：DSH 的保守默认 {#sec-10-3}
+## 消息与会话 {#sec-10-2}
 
-前两节反复撞见同一种处理方式，拿不准的时候答案是“不行”。这套姿态有个名字，fail-closed，出问题时闭合，而不是敞开。它散落在 DSH 各处，值得集中看一遍。
+第 1 章右上角有一个不起眼的按钮，叫“Session log”；第 1.3 节提过一句，说它能把整段记录导出成文件。当时没细讲的是，关掉 DSH 再重新打开，回到同一个工作区，那次对话居然还在，连当时的工具调用、耗时统计都分毫不差，是真的存在磁盘上了。一次对话在磁盘上到底是什么样子，值得打开看一眼。
 
-审批那一侧最典型。应答者缺失、不负责这个请求、抛了异常，或者返回了一个不合规的结果，统统归成 `unavailable`，而 `unavailable` 按拒绝处理（`docs/subsystems/approval.zh.md` 第 21 行）。注意这里的分寸，一个坏掉的应答者不会被跳过去找下一个，也不会被当成默认同意，它只会让这次请求变成拒绝。
+打开这份导出文件会发现，里面是一行一个 JSON 对象、按时间顺序追加的事件流。会话开始时的一条 `session` 头信息，随后是权限模式、沙箱模式这些状态记录，再往下是 `turn/start`、`step/start`，然后才轮到对话内容本身，一条 `user/message`，几十条 `assistant/chunk`（模型逐字吐出的流式片段，用来保证界面回放和真实生成过程一致），一条汇总完的 `assistant/message`，如果这一步调用了工具，还会有 `tool/call` 和 `tool/result`，最后是 `step/end`、`turn/end`。DSH 的会话持久化目录（`docs/persistence-catalog.md`）里记录在案的事件类型有四十多种，绝大多数是像权限切换、审批询问、后台任务这类“记一笔账”的日志，跟模型这一轮说了什么没有关系。
 
-沙箱那一侧写得更硬。`ctx.sandbox.confine()` 只有两种结局，要么返回一条真能强制隔离的命令，要么抛出 `SANDBOX_UNAVAILABLE`。本机一个能用的隔离后端都找不到的时候，DSH 宁可让这条命令彻底失败，也不会悄悄降级成不隔离照跑，文档给这条规矩的措辞是“静默的无隔离透传永远不合法”（`docs/subsystems/sandbox.zh.md` 第 154 行）。上一节说的 `partial` 也是同一种诚实，管住了一部分就说管住了一部分，不许四舍五入成 `full`。
+这就是第一个要澄清的事实，**会话在磁盘上的真身，是一份只能追加、不能篡改的事件日志**，界面上看起来一问一答的消息列表，只是这份日志的一种呈现方式。模型每次请求看到的历史，是从这份日志里“投影”出来的。负责投影的函数叫 `deriveMessages()`，在 `session` 包的 `src/index.ts:726`。四十多种事件里，会被投影成一条模型可见消息的只有三种，`user/message`、`assistant/message`、`tool/result`，官方文档管这三种叫 surface（表面）事件。一条事件加入 surface 的方式只有两种。`append`，追加到末尾，这是绝大多数消息的路径；`replace`，把一段连续的旧 surface 节点整体换成一个新节点，第 8.4 节要讲的压缩就是靠这个操作实现的。旧的原始事件依然完整地躺在日志里，只是不再出现在模型看到的那份投影里。日志本身永远不重写、不删除。
 
-工具并发也遵循这条。只有工具自己明确声明“我在并发环境下是安全的”（`isConcurrencySafe: true`），调度器才会把它和别的调用并行跑，这个声明缺失、抛错，或者返回值不是严格的 `true`，一律按独占对待，宁可慢一点也不冒险。
+一条消息的结构也比看上去简单，`role` 只有 `system`、`user`、`assistant` 三种，内容由若干个块拼成，常见的有文本块、推理块（对应第 1 章回复里那一行“Think”）、图片块、工具调用块、工具结果块。这里有一个容易反直觉的设计，**工具执行的结果，在消息层面是一条 `role: 'user'` 的消息**（`packages/llm/llm/src/message.ts:150-156` 明确把 `ToolResultMessage` 定义成 `role: 'user'`）。从模型的视角看，它自己动手执行的工具产生的结果，跟人类在输入框里打字发过来的东西，走的是同一条“外界发生了什么”的通道。模型分不出，也不需要分出这条消息是人打的还是工具返回的，它只知道“轮到我看新情况了”。
 
-配置这一侧则是尽量早地失败。权限预设服务要求下面必须垫着一个真施加隔离的 bash 执行器，如果你把它组合在一个不施加隔离的执行器之上，插件加载的时候就抛异常，而不是等到某次真要拦的时候才发现拦不住（`docs/subsystems/permission-presets.zh.md` 第 44 行）。第 12 章会讲的 agent preset 也是这个路子，一份坏掉的 preset 会被列出来并带上原因，而不是从列表里悄悄跳过，因为跳过的目录仍然占着那个 id，界面上却什么都看不到，你连删都不知道该删什么。
+DSH 的文档里把这条设计原则称为铁律，**模型可见即已记录**（`docs/architecture.zh.md:100`）。任何进入模型请求的内容，都必须能从日志重建出来，这是一条由运行时强制检查的不变量，不是约定俗成。这条铁律还带来一个实际的好处，进程意外退出也不会丢内容。重新打开一个会话时，如果 DSH 发现日志里有一个 `turn/start` 没等到配对的 `turn/end`，就知道上次是在这一轮中途被打断的，会补一条 `reason: { kind: 'interrupted' }` 的 `turn/end` 把这一轮正式收尾，日志既不截断也不需要人工修复（`docs/subsystems/persistence.md` “Crash recovery preserves an interrupted turn”）。
 
-但 fail-closed 不等于凡事都靠拒绝。有一类保守做在了别处，不挡你的路，只是不给不该给的东西。DSH 起子进程时用的是一份洗过的环境变量，名字里带 `KEY`、`PASSWORD`、`SECRET`、`TOKEN` 的一律不往下传，所有 `DSH_*` 开头的也一并去掉，`PATH`、`HOME`、语言环境和代理设置照常保留，子进程里的命令行工具该怎么跑还怎么跑（`packages/subprocess/subprocess/src/index.ts` 的 `scrubbedParentEnv()`，注释里写明了意图，harness 自己的 `DEEPSEEK_API_KEY` 不能隐式漏进被启动的进程）。你确实需要往下传某个凭据的时候，走显式声明那条路，它在洗过之后才合并进去。同一个脾气还体现在临时文件上，spill 文件和临时文件放在权限 0700 的私有目录里，用随机文件名，以独占且仅所有者可访问的方式打开，因为可预测又全局可读的路径会引出符号链接竞态和信息泄露（`docs/defensive-patterns.zh.md` 第 29 行）。
+```{=latex}
+\begin{center}
+\begin{tikzpicture}[node distance=13mm, every node/.style={align=center}]
+  \node[dshnodeflat, minimum width=118mm] (log) {会话事件日志（只增不改）\\[0.6mm] \scriptsize\ttfamily turn/start\ \ step/start\ \ user/message\ \ assistant/chunk*\\ \scriptsize\ttfamily assistant/message\ \ tool/call\ \ tool/result\ \ step/end\ \ turn/end};
+  \node[dshseam, below=of log, minimum width=70mm] (surface) {surface 投影：append / replace\\ \footnotesize 只挑 user/message、assistant/message、tool/result};
+  \node[dshaccentnode, below=of surface, minimum width=55mm] (messages) {模型看到的历史\\ \footnotesize deriveMessages()};
+  \draw[dsharrow] (log) -- (surface);
+  \draw[dsharrow] (surface) -- (messages);
+\end{tikzpicture}
+\end{center}
+```
 
-把这些凑在一起看，能看出一条挺一致的产品判断。DSH 在“可能挡了你的正事”和“可能悄悄干了件你没同意的事”之间，一律选前者，并且尽量让被挡的那一下看得见、说得清是哪一层挡的。
+**亲手验证**，找一个自己之前做过的任务，比如第 1.2 节那次新建 `about-dsh.md`，打开对应会话，点右上角的“Session log”导出。导出的是解压好的纯文本，一行一个 JSON，直接用文本编辑器打开就能读。原始存档文件本身其实是 zstd 压缩过的（后缀是 `.jsonl.zstd`），Session log 按钮的作用之一就是替你把这层压缩摘掉。在导出的文本里，从头往下找。第一行是 `session` 头，往下能找到一条 `user/message`（就是当时打的那句任务描述），一串 `assistant/chunk`，如果 DSH 当时调用过工具，会有配对的 `tool/call` 和 `tool/result`，最后一条回复文本落在一条 `assistant/message` 里。把这几行跟本节的事件表对一遍，能对上，就说明“会话是事件日志、消息是投影出来的”这件事不是纸上谈兵。
 
-**亲手验证**，这个实验只花一次工具调用，效果却很直接。确认你已经在设置里配好了 DeepSeek 的 API Key，然后让 DSH 执行一条命令把自己的环境变量打出来，比如 `printenv | grep -i -E 'key|token|secret'`。它拿到的那份环境里不会有你的 API Key，也不会有 `DSH_` 开头的任何一项，尽管这个 key 此刻确实配着、DSH 自己也正在用它跟模型说话。模型能调 bash，不等于模型能顺着 bash 摸到 harness 的凭据，这条界线是上面那个正则划出来的。
+> 深入一点。会话事件的完整目录、每个字段的类型和来源文件，都在 `docs/persistence-catalog.md` 里，这份文档由脚本从源码类型定义直接生成，跟代码不会脱节。想搞清楚某个具体字段（比如 `tool/result` 里的 `meta`）是干什么用的，去那里查最快。
+
+## 工具调用与结果返回 {#sec-10-3}
+
+第 1.3 节点开过一张工具卡片，看到过一次完整的文件差异；后面几章里，输入框旁边那个“Workspace Write”下拉框也一直挂在那，偶尔会跳出一个权限确认弹窗。模型说“我要读一下这个文件”“我要执行这条命令”的时候，从它开口到结果回到它眼前，中间这条路上站着哪些环节，是这一节要拆开的东西。
+
+模型申请调用一个工具，靠的是回复里带的一个“工具调用块”，工具名加一段 JSON 参数，仅此而已。模型对每个工具的了解也仅限于此。工具的名字、一句描述、参数长什么样，这三样东西被称为 schema，是唯一进入提示词、喂给模型的信息（`packages/core/tools/src/index.ts` 的 `schemaOf()` 只挑这三个字段）。工具执行要多久超时、允不允许跟别的工具同时跑、内部要不要重试，这些全是宿主（Harness）自己知道、模型完全看不到的私有信息。这是一个刻意的设计，模型只负责“决定调用什么”，至于这次调用安不安全、划不划算，判断权全部留在 Harness 这一侧。
+
+一次调用从请求发出到结果回填，要走一条固定的流水线。模型的回复一解析出工具调用块，DSH 立刻把这次调用记一条 `tool/call` 落进会话日志。注意，是**先记日志、再执行**，这样即使执行过程中进程崩了，重新打开也能从日志里看出“上次正做到哪一步”。落完日志才进入裁决，一连串权限、沙箱、钩子策略依次表态，给出允许、拒绝或者“问一下人类”三种结果之一；选择“问”的会转给审批服务弹出确认框，如果当前环境根本没有审批渠道（比如无人值守的自动化任务），策略上直接按拒绝处理。没有人能回答的问题，答案默认是“不行”，这是一条一以贯之的保守默认。裁决通过之后才执行工具本体，执行完再走一轮后处理，最终结果同样先落一条 `tool/result` 日志，再回填给模型看下一步该干什么。
+
+```{=latex}
+\begin{center}
+\begin{tikzpicture}[node distance=8mm and 6mm, every node/.style={align=center, font=\footnotesize}]
+  \node[dshnode] (call) {模型发起\\ 工具调用};
+  \node[dshnodeflat, right=of call] (log1) {落日志\\ tool/call};
+  \node[dshseam, right=of log1] (gate) {裁决\\ 允许 / 拒绝 / 询问};
+  \node[dshaccentnode, right=of gate] (exec) {执行\\ 工具本体};
+  \node[dshnodeflat, right=of exec] (log2) {落日志\\ tool/result};
+  \node[dshnode, right=of log2] (back) {回填给\\ 模型};
+  \draw[dsharrow] (call) -- (log1);
+  \draw[dsharrow] (log1) -- (gate);
+  \draw[dsharrow] (gate) -- (exec);
+  \draw[dsharrow] (exec) -- (log2);
+  \draw[dsharrow] (log2) -- (back);
+  \draw[dshmutedarrow] (gate.south) to[out=-60, in=-120] node[dshlabel, below=0.5mm] {询问但无人应答 $\Rightarrow$ 拒绝} (log1.south);
+\end{tikzpicture}
+\end{center}
+```
+
+裁决这一环在图上只是一个方框，实际展开是一整套边界。输入框旁边那个“Workspace Write”是一个**权限预设**，一个名字背后绑着两个各自独立的旋钮，一个管文件这层能碰到什么，一个管裁决为“问一下”时是弹窗还是直接放行。这两个旋钮各自有几档、拦得住什么拦不住什么、找不到人应答时为什么答案总是“不行”，是第 10 章一整章的内容，这里只需要记住一件事，裁决站在执行之前，任何一次工具调用都得先过这一关。
+
+并发执行上，DSH 同样采用不出错就不并行的策略，只有工具自己明确声明“我在并发环境下是安全的”（`isConcurrencySafe: true`），调度器才会把它和别的调用一起并行跑；这个声明缺失、抛错，或者返回值不是严格的 `true`，一律按独占对待，宁可慢一点也不冒险。
+
+> 深入一点。连续调用同一个工具、参数几乎不变，是模型卡壳的常见信号。DSH 内置一个“复读机”提醒（repeat-tool-reminder），在连续第 3、5、8 次重复同样的调用时往上下文里加一句提醒，但只是劝，不会强行拦截或者篡改调用，它相信这类判断最终还是该留给模型自己。另外，第 4 章用过的多 Agent 调研功能，在这条流水线上就是一个特殊的“工具”，背后统一走 `ctx.subagents` 这个接口，进程内的子 agent、外部的 Claude Code，都是插在同一个接口后面的不同实现，这种“同一个接口后面挂着一排实现”的结构，9.3 会讲清楚它叫什么、为什么到处都是。
+
+**亲手验证**，让 DSH 写一个新文件，完成后展开消息流里对应的工具行，能看到一次调用先后落了 `tool/call` 和 `tool/result` 两条记录，顺序永远是先请求后结果。接着把 Workspace Write 切到 Read Only（设置里能找到这个选项），再让它写同一个文件，这次会被拒绝，回复里能读到具体是哪一层挡下来的，是沙箱本身，还是审批环节。两次对比一下，比单看一次拒绝更容易看出这套裁决链条分了几层。
+
+## 上下文管理 {#sec-10-4}
+
+第 1 章那行统计数据里有两个当时没解释的数字，“输入 7.7K tok · 缓存命中 0%”。7.7K 是怎么数出来的，命中率又为什么第一轮总是 0%，这两个问题，加上“聊得越久 DSH 会不会记不住”，是本节要讲透的三件事。
+
+### 一次请求里装了什么
+
+DSH 发给模型的每一次请求，是四块内容拼起来的一份文本。分若干段、按固定顺序拼接的 system prompt（从 Harness 的身份说明，到当前工作目录，到各个已启用工具各自的使用提示，一段接一段）；工具表，也就是每个可调用工具的名字、描述和参数 schema；到目前为止投影出来的历史消息（8.2 讲过的那份 surface 投影）；以及运行时注入的快照，也就是第 1 章“上下文注入”卡片的真身，一条特殊的 `user` 消息，只有内容真的变了（比如切换了工作目录、多了一条 skill 说明）才会重新注入一次，没变就不重复占位置。7.7K token，就是这四块内容加总的结果。
+
+### token 怎么数出来的
+
+模型服务商按 token 计费和计量，但请求发出去之前，DSH 得自己先估一个数，用来判断要不要触发下面要讲的压缩。估算公式在 `packages/llm/token-meter/src/estimate.ts` 里，逻辑不复杂，一段文本块的估算 token 数是
+
+$$t(\text{文本}) = \left\lceil \dfrac{\text{字符数}}{4} \right\rceil + 4$$
+
+也就是“每 4 个字符算 1 个 token，再加 4 个块开销”。4 字符约等于 1 token 是英文场景下的经验值，中文场景会偏保守（一个汉字常常就吃掉不止一个 token），所以这本来就是一个刻意留了余量的粗估，不是精算。一条消息由多个块拼成，最终还要在块的总和上再加一份固定的角色开销。这些数字全部只在第一次请求前用来打预算；DeepSeek 官方接口一旦返回真实用量，DSH 立刻拿真实值替换掉估算值，统计行显示的从第二次响应起就是服务商报的准确数字，不再是估的。上下文窗口 $W$（当前默认的 DeepSeek-V4-Flash / V4-Pro 都是 1,000,000 token）是这份预算的硬上限，后面压缩阈值都是拿它当分母算出来的。注意这里的 $W$ 是模型适配器登记的真实上下文容量，跟统计行旁边“最大输出”设置的那个 token 数是两码事，后者只管这次回复最多能吐多长。
+
+### 缓存命中率为什么值得盯着看
+
+缓存命中率这行数字，看着像个无关紧要的性能指标，实际上直接决定这一轮回复要等多久、这一轮要花多少钱。背后的规则很朴素，大模型服务商的前缀缓存只认“从第一个字节开始逐字节完全一致的前缀”，只要这段前缀在中途某个位置发生过一次改动，那个位置之后的所有内容全部要重新计算，缓存一分钱都不省。DSH 为了不白白浪费这份缓存，给自己定了几条纪律。历史消息只在末尾追加，绝不在中间插入或者重排；工具表按照与运行环境无关的固定顺序排列，同一批工具无论在哪台机器上跑，序列化出来都是逐字节相同的文本；system prompt 一旦拼好就不轻易改。命中率的计算很直接。
+
+$$\text{命中率} = \dfrac{\text{缓存命中的 token 数}}{\text{这次请求的输入 token 数}}$$
+
+第一次请求时缓存里什么都没有，命中率自然是 0%，这就是第 1 章“你好”那一行“缓存命中 0%”的来历。那一次是这台机器上打给模型的第一句话，7687 个输入 token 一个都省不掉，全得从头算。
+
+纪律有没有生效，看后面的请求就知道。第 1.2 节那次新建文件的任务，用的是同一份 system prompt 和同一张工具表，这段前缀在“你好”那次已经被服务商缓存下来了，所以这次任务第一步只新送了 28 个 token，另外 7680 个整段命中，命中率 99.6%。这个任务一共八步，每一步都只是在上一步的末尾追加工具结果和新回复，新增部分都不大，最后一步只多了 54 个新 token、命中 16896 个，命中率 99.7%。八步加总，界面统计行报的是“缓存命中 92%、输入 99.6K tok”。八步跑下来近十万 token 的输入，真正重算的不到八千，剩下九万多全靠缓存白拿，这就是“只追加、不改历史”这条纪律换来的东西。
+
+```{=latex}
+\begin{center}
+\begin{tikzpicture}[node distance=2mm, every node/.style={align=left, font=\sffamily\footnotesize}]
+  \node[dshnode, minimum width=68mm, anchor=west] (sys) at (0,0) {system prompt（按 order 分段拼接）};
+  \node[dshnodeflat, minimum width=68mm, anchor=west, below=of sys] (tools) {工具表（固定顺序，逐字节稳定）};
+  \node[dshnode, minimum width=68mm, anchor=west, below=of tools] (hist) {历史消息（8.2 的 surface 投影，只追加）};
+  \node[dshnodeflat, minimum width=68mm, anchor=west, below=of hist] (inject) {运行时注入快照（变了才重新出现的一条 user 消息）};
+  \draw[dshmutedarrow] ([xshift=2mm]sys.east) -- ++(10mm,0) node[dshlabel, right] {\shortstack{可复用的\\缓存前缀}};
+  \draw[dshmutedarrow] ([xshift=2mm]hist.east) -- ++(10mm,0) node[dshlabel, right] {\shortstack{末尾追加，\\不改前面}};
+\end{tikzpicture}
+\end{center}
+```
+
+### 上下文快满了怎么办
+
+一次任务跑得足够久，历史迟早会逼近 $W$ 这条硬上限。DSH 按代价从低到高安排了三道手段。第一道最便宜，单次工具输出如果超过 50000 字节，直接整段落盘存成文件，回填给模型的只是一个定位符，连进入上下文的资格都不给，这一步不花一次模型调用，纯粹是省地方。第二道稍微精细一点，一条已经超出预算的旧工具结果，会被改写成“开头 4096 字符 + 一个省略标记 + 结尾 1024 字符”，模型多数时候只需要头尾就能判断这条历史大致说了什么，同样不用请模型出面。前两道手段都免费，也都先跑一遍。只有跑完之后重新一测，总量还是超标，才会动用第三道花钱的手段，压缩。
+
+压缩的触发和保留量都是按上下文窗口 $W$ 的比例算的。
+
+$$\text{触发阈值} = \lfloor 0.8 \times W \rfloor \qquad \text{压缩后保留尾部} = \lfloor 0.16 \times W \rfloor$$
+
+意思是历史总量摸到 $W$ 的 80% 就要开始处理，处理完之后只留最近这一段、大约相当于 $W$ 的 16%，把中间那一大段换成一条摘要。走到摘要这一步，会实打实花一次模型调用去总结被替换掉的那一段对话，换来的这条摘要会以本节前面提过的 `replace` 操作接在历史里；被替换的那些原始事件不会消失，只是不再出现在模型看到的投影里，跟 8.2 讲的“日志只增不改”完全对得上。
+
+```{=latex}
+\begin{center}
+\begin{tikzpicture}[node distance=7mm and 9mm, every node/.style={align=center, font=\sffamily\footnotesize}]
+  \node[dshnodeflat] (u1) {u1};
+  \node[dshnodeflat, right=4mm of u1] (a2) {a2};
+  \node[dshnodeflat, right=4mm of a2] (dots1) {\dots};
+  \node[dshnodeflat, right=4mm of dots1] (u9) {u9};
+  \node[dshnodeflat, right=4mm of u9] (a10) {a10};
+  \node[dshlabel, above=1mm of u1, anchor=south west, xshift=-1mm] {压缩前：};
+  \node[dshaccentnode, below=13mm of a2, xshift=8mm] (s) {摘要 S};
+  \node[dshnodeflat, right=6mm of s] (u9b) {u9};
+  \node[dshnodeflat, right=4mm of u9b] (a10b) {a10};
+  \node[dshlabel, anchor=south west] at (u1.west |- s.north) {压缩后：};
+  \draw[dsharrow] ($(u1.south)!0.5!(dots1.south)$) -- (s.north);
+\end{tikzpicture}
+\end{center}
+```
+
+以上这些数字，50000 字节、4096/1024 字符、0.8 和 0.16 的比例，都是当前版本代码里的默认配置，可以通过配置整体替换，不是写死不能改的规则；本节引用的每一处都对应着仓库里一份具体的配置文件，版本升级之后这些数字本身可能会调整，但“先免费剪、再花钱摘要，摘要走 replace、原始日志永不删除”这套结构性设计不太会变。
+
+**亲手验证**，连续跟 DSH 聊几轮，观察统计行里缓存命中率的变化。第一次请求必然是 0%，只要中途没有切换工作区或者大幅改动上下文，从第二次起命中率应该显著跳高。实测连续问了 7 轮简单问题，命中率是这样爬升的，第 1 轮 0%，第 2 轮 98.6%，第 3 轮 98.4%，第 4 轮 98.2%，第 5 轮到第 7 轮稳定在 99% 以上。只要历史一直在末尾追加、不做任何中间改动，命中率会一直维持在高位，不会随着聊天变长而衰减。
+
+想亲眼看到压缩发生，有个绕不开的前提要先说清楚。当前这个版本里，Web 界面默认打包的插件树并没有装载 `compaction-basic` 和 `command-compact`（跑一次 `dsh --profile web --dump-config`，能看到这两行明确标着 `disabled: true`）。也就是说，本节前面讲的自动压缩和 `/compact` 命令，在你第 1 章装的这个 Web 应用里眼下是不生效的，这是当前 rc 阶段的真实状态，不是本节写错了。想亲手看一遍完整流程，换成用命令行跑一次无头任务，`npx @deepseek-ai/dsh --profile headless "……"`，`headless` 这个 profile 的默认插件树里两者都是启用的。实测跑一个会用掉不少历史的多步任务，再追加一句“帮我 /compact 一下”触发压缩，几秒钟后收到“Compacted 14 history items (~369 tokens)”的执行结果，会话的 Session log 里能看到严丝合缝的一串记录，`compaction/start` 开始、`compaction/summary` 带着摘要正文和“这次替换掉了哪个范围的历史”，`compaction/end` 收尾，跟 8.2 讲的“任何操作先落日志”是同一个套路。压缩之后再发一条新消息，统计行会看到一个不算意外的副作用，这一次输入 token 数量涨回 6000+、缓存命中率跌到 20% 出头。`replace` 操作换掉了请求前缀的一部分，旧的缓存自然对不上号了，压缩换来的是上下文变小，不是免费的午餐，下一次请求要重新攒一遍缓存。
+
+> 深入一点。本节前面说的“压缩”，实际上有两条触发路径。一条是防患于未然，DSH 在发起下一次模型请求之前，会预先算一遍历史体积，摸到阈值就提前处理，请求还没发出去，就已经不会超限；另一条是兜底，万一还是撞上了服务商返回的“上下文超限”错误，会在那个失败步骤之后立刻补救。两条路径走的是同一套“先剪枝、再摘要”的逻辑，只是触发时机一个在前一个在后。
