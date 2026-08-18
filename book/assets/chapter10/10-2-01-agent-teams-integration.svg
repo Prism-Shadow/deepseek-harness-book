@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">DeepSeek Harness 与 AgentTeams 的集成关系</title>
+  <desc id="desc">当前 DeepSeek Harness 会话作为队长，AgentTeams 插件连接持久子 Agent、依赖调度器、磁盘状态与 Web 活动面板。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#315EF5"/>
+    </marker>
+    <style>
+      .zh { font-family: SimSun, "Songti SC", serif; }
+      .en { font-family: "Times New Roman", serif; }
+      .mixed { font-family: "Times New Roman", SimSun, "Songti SC", serif; }
+      .title { font-size: 50px; font-weight: 700; fill: #273142; }
+      .subtitle { font-size: 25px; fill: #5C667A; }
+      .node-title { font-size: 31px; font-weight: 700; fill: #273142; }
+      .node-copy { font-size: 24px; fill: #526071; }
+      .inverse-title { font-size: 31px; font-weight: 700; fill: #FFFFFF; }
+      .inverse-copy { font-size: 24px; fill: #FFFFFF; }
+      .tag { font-size: 22px; fill: #315EF5; }
+      .line { fill: none; stroke: #315EF5; stroke-width: 4; marker-end: url(#arrow); }
+      .line-dashed { fill: none; stroke: #8E99AA; stroke-width: 4; stroke-dasharray: 12 10; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+
+  <text x="100" y="92" class="mixed title">DeepSeek Harness 与 AgentTeams 的集成关系</text>
+  <text x="100" y="136" class="zh subtitle">一个会话成为队长，插件负责成员协作、任务调度与状态持久化</text>
+
+  <rect x="100" y="280" width="240" height="210" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="220" y="348" text-anchor="middle" class="mixed node-title">OPC 创始人</text>
+  <text x="220" y="399" text-anchor="middle" class="zh node-copy">提出目标</text>
+  <text x="220" y="438" text-anchor="middle" class="zh node-copy">确认验收标准</text>
+
+  <path d="M 340 385 H 445" class="line"/>
+  <text x="392" y="357" text-anchor="middle" class="zh tag">自然语言</text>
+
+  <rect x="450" y="210" width="620" height="480" rx="30" fill="#FFFFFF" stroke="#315EF5" stroke-width="4"/>
+  <rect x="450" y="210" width="620" height="92" rx="30" fill="#EEF2FF"/>
+  <path d="M 450 278 H 1070" stroke="#EEF2FF" stroke-width="48"/>
+  <text x="760" y="270" text-anchor="middle" class="en node-title">DeepSeek Harness</text>
+
+  <rect x="505" y="346" width="230" height="132" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="620" y="397" text-anchor="middle" class="zh node-title">队长会话</text>
+  <text x="620" y="438" text-anchor="middle" class="zh node-copy">拆解目标与验收</text>
+
+  <path d="M 735 412 H 790" class="line"/>
+
+  <rect x="795" y="332" width="220" height="160" rx="20" fill="#315EF5" stroke="#2447C6" stroke-width="3"/>
+  <text x="905" y="388" text-anchor="middle" class="en inverse-title">AgentTeams</text>
+  <text x="905" y="431" text-anchor="middle" class="zh inverse-copy">依赖调度</text>
+  <text x="905" y="466" text-anchor="middle" class="zh inverse-copy">消息与 attempt</text>
+
+  <path d="M 905 492 V 542" class="line"/>
+
+  <rect x="505" y="548" width="510" height="92" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="760" y="589" text-anchor="middle" class="mixed node-title">持久子 Agent 团队</text>
+  <text x="760" y="622" text-anchor="middle" class="zh node-copy">产品·代码调研·开发·测试</text>
+
+  <path d="M 1070 405 H 1170" class="line"/>
+  <text x="1120" y="374" text-anchor="middle" class="zh tag">读写</text>
+
+  <rect x="1175" y="250" width="325" height="190" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="1338" y="311" text-anchor="middle" class="zh node-title">磁盘状态</text>
+  <text x="1338" y="356" text-anchor="middle" class="en node-copy">.agent-teams/</text>
+  <text x="1338" y="397" text-anchor="middle" class="zh node-copy">任务、依赖、邮箱</text>
+
+  <path d="M 1338 440 V 530" class="line"/>
+  <text x="1385" y="495" class="zh tag">轮询</text>
+
+  <rect x="1175" y="535" width="325" height="155" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="1338" y="596" text-anchor="middle" class="mixed node-title">Web 活动面板</text>
+  <text x="1338" y="642" text-anchor="middle" class="zh node-copy">展示磁盘真实状态</text>
+
+  <path d="M 1175 405 C 1122 498, 1080 515, 1014 466" class="line-dashed"/>
+  <text x="1112" y="528" text-anchor="middle" class="zh tag">重启后恢复调度</text>
+
+  <rect x="100" y="752" width="605" height="76" rx="18" fill="#F3F4F6"/>
+  <circle cx="140" cy="790" r="11" fill="#315EF5"/>
+  <text x="170" y="799" class="zh node-copy">实线：正常数据流　　虚线：中断后的恢复路径</text>
+</svg>
