@@ -12,7 +12,7 @@ OPC（One Person Company）并不是一个人包办所有工作，而是一个�
 
 目标也很明确：只改当前项目，不增加依赖；阻塞卡片显示前置任务编号和名称；最后用自动化测试验收。
 
-![从用户吐槽到可验证交付](assets/chapter10/10-1-02-from-complaint-to-release.png)
+![从用户吐槽到可验证交付](assets/chapter10/10-1-02-from-complaint-to-release.svg)
 
 这类需求适合用多 Agent，不是因为代码复杂，而是因为它同时需要需求澄清、代码定位、实现和验证。真正需要协调的是**先做什么、谁可以并行、谁必须等待**。
 
@@ -20,7 +20,7 @@ OPC（One Person Company）并不是一个人包办所有工作，而是一个�
 
 本章使用 [`dsh-agent-teams`](https://github.com/NanmiCoder/dsh-agent-teams)。当前 DSH 会话充当队长，插件负责创建可继续执行的子代理、保存团队状态、调度就绪任务，并把状态写入工作区的 `.agent-teams/` 目录。
 
-![AgentTeams 与 DeepSeek Harness 的集成位置](assets/chapter10/10-2-01-agent-teams-integration.png)
+![AgentTeams 与 DeepSeek Harness 的集成位置](assets/chapter10/10-2-01-agent-teams-integration.svg)
 
 先把插件安装到 Web profile：
 
@@ -59,7 +59,7 @@ dsh web
 | `t3` 开发实现 | 开发 Agent | `t1`、`t2` | 代码与测试 |
 | `t4` 测试验证 | 测试 Agent | `t3` | 测试结论 |
 
-![本章任务的依赖关系](assets/chapter10/10-3-01-task-dependency-dag.png)
+![本章任务的依赖关系](assets/chapter10/10-3-01-task-dependency-dag.svg)
 
 `t1` 与 `t2` 没有前置依赖，因此立即并行。`t3` 虽然已经创建，但必须等两项都完成；`t4` 又必须等待 `t3`。这正是显式依赖的价值：Agent 不需要靠聊天记录猜测“现在轮到谁”。
 
@@ -111,7 +111,7 @@ Web 面板读取的也是这些磁盘状态，而不是单独维护一份容易�
 
 这说明旧尝试已经失效，最终写入属于第二次尝试。相同机制也用于进程重启后的冷恢复：插件会从磁盘检查仍然开放的任务，并用新的尝试继续，而不是让旧执行者和新执行者同时写入。
 
-![中断后的安全接管流程](assets/chapter10/10-5-01-resilient-scheduling.png)
+![中断后的安全接管流程](assets/chapter10/10-5-01-resilient-scheduling.svg)
 
 开发完成后，测试任务才进入就绪状态。本次实际执行：
 
