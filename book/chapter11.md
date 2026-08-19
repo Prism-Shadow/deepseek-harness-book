@@ -13,7 +13,8 @@ dsh 的文档给这个循环里的两个词下了精确定义（`docs/architectu
 驱动这个循环的代码本身也是一个不算长的循环，核心类叫 `ReactLoopAgent`，跑起来之后一直在做的事就是一行代码，`while (await this.turn()) {}`（`packages/core/agent-loop/src/agent.ts:212`）。只要这一轮还没个了结，就接着跑下一轮，没有新输入、也没有欠着的工作了，循环才退出，跟本节的定义完全对应，不是另外一套东西。统计行里的“步数”，数的是 `step/end` 这个日志事件出现了几次。按气泡数，会把那些没吐出任何可见内容就失败或被取消的步骤漏掉；按事件数，一步不落（`packages/session/session-stats` 的说明文档原话）。
 
 ```{=latex}
-\begin{center}
+\begin{figure}[H]
+\centering
 \begin{tikzpicture}[node distance=9mm and 12mm, every node/.style={align=center, font=\sffamily\footnotesize}]
   \node[dshnode] (u1) {用户\\一句话};
   \node[dshaccentnode, right=of u1] (m1) {模型\\第 1 次请求};
@@ -26,7 +27,8 @@ dsh 的文档给这个循环里的两个词下了精确定义（`docs/architectu
   \draw[dsharrow] (tool) -- (exec);
   \draw[dsharrow] (exec.south) to[out=-90, in=-90] node[dshlabel, below=0.5mm] {第 2 次请求，再看一眼} (m1.south east);
 \end{tikzpicture}
-\end{center}
+\caption{聊天机器人直接回复，Agent 通过工具调用继续循环}
+\end{figure}
 ```
 
 这个循环里，Harness（dsh 自己）和模型分工非常明确，模型只负责判断“接下来该说话还是该调用工具、调用哪个工具”，除此之外的一切都是 Harness 的活，拼好这次请求要发的内容（身份设定、工具清单、到目前为止的历史），真的把工具跑起来，把每一步、每一次调用原样记进日志，管住上下文不要爆掉。模型是循环里唯一的决策者，Harness 是循环本身、循环之外的一切基础设施，两者边界很干净。
@@ -48,7 +50,8 @@ dsh 的文档给这个循环里的两个词下了精确定义（`docs/architectu
 dsh 的文档里把这条设计原则称为铁律，**模型可见即已记录**（`docs/architecture.zh.md:100`）。任何进入模型请求的内容，都必须能从日志重建出来，这是一条由运行时强制检查的不变量，不是约定俗成。这条铁律还带来一个实际的好处，进程意外退出也不会丢内容。重新打开一个会话时，如果 dsh 发现日志里有一个 `turn/start` 没等到配对的 `turn/end`，就知道上次是在这一轮中途被打断的，会补一条 `reason: { kind: 'interrupted' }` 的 `turn/end` 把这一轮正式收尾，日志既不截断也不需要人工修复（`docs/subsystems/persistence.md` “Crash recovery preserves an interrupted turn”）。
 
 ```{=latex}
-\begin{center}
+\begin{figure}[H]
+\centering
 \begin{tikzpicture}[node distance=13mm, every node/.style={align=center}]
   \node[dshnodeflat, minimum width=118mm] (log) {会话事件日志（只增不改）\\[0.6mm] \scriptsize\ttfamily turn/start\ \ step/start\ \ user/message\ \ assistant/chunk*\\ \scriptsize\ttfamily assistant/message\ \ tool/call\ \ tool/result\ \ step/end\ \ turn/end};
   \node[dshseam, below=of log, minimum width=70mm] (surface) {surface 投影：append / replace\\ \footnotesize 只挑 user/message、assistant/message、tool/result};
@@ -56,7 +59,8 @@ dsh 的文档里把这条设计原则称为铁律，**模型可见即已记录**
   \draw[dsharrow] (log) -- (surface);
   \draw[dsharrow] (surface) -- (messages);
 \end{tikzpicture}
-\end{center}
+\caption{会话日志经过 surface 投影生成模型看到的历史}
+\end{figure}
 ```
 
 **亲手验证**，找一个自己之前做过的任务，比如第 1.2 节那次新建 `about-dsh.md`，打开对应会话，点右上角的“Session log”导出。导出的是解压好的纯文本，一行一个 JSON，直接用文本编辑器打开就能读。原始存档文件本身其实是 zstd 压缩过的（后缀是 `.jsonl.zstd`），Session log 按钮的作用之一就是替你把这层压缩摘掉。在导出的文本里，从头往下找。第一行是 `session` 头，往下能找到一条 `user/message`（就是当时打的那句任务描述），一串 `assistant/chunk`，如果 dsh 当时调用过工具，会有配对的 `tool/call` 和 `tool/result`，最后一条回复文本落在一条 `assistant/message` 里。把这几行跟本节的事件表对一遍，能对上，就说明“会话是事件日志、消息是投影出来的”这件事不是纸上谈兵。
@@ -72,7 +76,8 @@ dsh 的文档里把这条设计原则称为铁律，**模型可见即已记录**
 一次调用从请求发出到结果回填，要走一条固定的流水线。模型的回复一解析出工具调用块，dsh 立刻把这次调用记一条 `tool/call` 落进会话日志。注意，是**先记日志、再执行**，这样即使执行过程中进程崩了，重新打开也能从日志里看出“上次正做到哪一步”。落完日志才进入裁决，一连串权限、沙箱、钩子策略依次表态，给出允许、拒绝或者“问一下人类”三种结果之一；选择“问”的会转给审批服务弹出确认框，如果当前环境根本没有审批渠道（比如无人值守的自动化任务），策略上直接按拒绝处理。没有人能回答的问题，答案默认是“不行”，这是一条一以贯之的保守默认。裁决通过之后才执行工具本体，执行完再走一轮后处理，最终结果同样先落一条 `tool/result` 日志，再回填给模型看下一步该干什么。
 
 ```{=latex}
-\begin{center}
+\begin{figure}[H]
+\centering
 \begin{tikzpicture}[node distance=8mm and 6mm, every node/.style={align=center, font=\footnotesize}]
   \node[dshnode] (call) {模型发起\\ 工具调用};
   \node[dshnodeflat, right=of call] (log1) {落日志\\ tool/call};
@@ -87,7 +92,8 @@ dsh 的文档里把这条设计原则称为铁律，**模型可见即已记录**
   \draw[dsharrow] (log2) -- (back);
   \draw[dshmutedarrow] (gate.south) to[out=-60, in=-120] node[dshlabel, below=0.5mm] {询问但无人应答 $\Rightarrow$ 拒绝} (log1.south);
 \end{tikzpicture}
-\end{center}
+\caption{工具调用经过裁决和执行后，将结果写回会话并交给模型}
+\end{figure}
 ```
 
 裁决这一环在图上只是一个方框，实际展开是一整套边界。输入框旁边那个“Workspace Write”是一个**权限预设**，一个名字背后绑着两个各自独立的旋钮，一个管文件这层能碰到什么，一个管裁决为“问一下”时是弹窗还是直接放行。这两个旋钮各自有几档、拦得住什么拦不住什么、找不到人应答时为什么答案总是“不行”，共同构成了 dsh 的权限与安全边界。这里先记住一件事：裁决站在执行之前，任何一次工具调用都得先过这一关。
@@ -125,7 +131,8 @@ $$\text{命中率} = \dfrac{\text{缓存命中的 token 数}}{\text{这次请求
 纪律有没有生效，看后面的请求就知道。第 1.2 节那次新建文件的任务，用的是同一份 system prompt 和同一张工具表，这段前缀在“你好”那次已经被服务商缓存下来了，所以这次任务第一步只新送了 28 个 token，另外 7680 个整段命中，命中率 99.6%。这个任务一共八步，每一步都只是在上一步的末尾追加工具结果和新回复，新增部分都不大，最后一步只多了 54 个新 token、命中 16896 个，命中率 99.7%。八步加总，界面统计行报的是“缓存命中 92%、输入 99.6K tok”。八步跑下来近十万 token 的输入，真正重算的不到八千，剩下九万多全靠缓存白拿，这就是“只追加、不改历史”这条纪律换来的东西。
 
 ```{=latex}
-\begin{center}
+\begin{figure}[H]
+\centering
 \begin{tikzpicture}[node distance=2mm, every node/.style={align=left, font=\sffamily\footnotesize}]
   \node[dshnode, minimum width=68mm, anchor=west] (sys) at (0,0) {system prompt（按 order 分段拼接）};
   \node[dshnodeflat, minimum width=68mm, anchor=west, below=of sys] (tools) {工具表（固定顺序，逐字节稳定）};
@@ -134,7 +141,8 @@ $$\text{命中率} = \dfrac{\text{缓存命中的 token 数}}{\text{这次请求
   \draw[dshmutedarrow] ([xshift=2mm]sys.east) -- ++(10mm,0) node[dshlabel, right] {\shortstack{可复用的\\缓存前缀}};
   \draw[dshmutedarrow] ([xshift=2mm]hist.east) -- ++(10mm,0) node[dshlabel, right] {\shortstack{末尾追加，\\不改前面}};
 \end{tikzpicture}
-\end{center}
+\caption{模型请求中可以复用的缓存前缀}
+\end{figure}
 ```
 
 ### 上下文快满了怎么办
@@ -148,7 +156,8 @@ $$\text{触发阈值} = \lfloor 0.8 \times W \rfloor \qquad \text{压缩后保�
 意思是历史总量摸到 $W$ 的 80% 就要开始处理，处理完之后只留最近这一段、大约相当于 $W$ 的 16%，把中间那一大段换成一条摘要。走到摘要这一步，会实打实花一次模型调用去总结被替换掉的那一段对话，换来的这条摘要会以本节前面提过的 `replace` 操作接在历史里；被替换的那些原始事件不会消失，只是不再出现在模型看到的投影里，跟 11.2 讲的“日志只增不改”完全对得上。
 
 ```{=latex}
-\begin{center}
+\begin{figure}[H]
+\centering
 \begin{tikzpicture}[node distance=7mm and 9mm, every node/.style={align=center, font=\sffamily\footnotesize}]
   \node[dshnodeflat] (u1) {u1};
   \node[dshnodeflat, right=4mm of u1] (a2) {a2};
@@ -162,7 +171,8 @@ $$\text{触发阈值} = \lfloor 0.8 \times W \rfloor \qquad \text{压缩后保�
   \node[dshlabel, anchor=south west] at (u1.west |- s.north) {压缩后：};
   \draw[dsharrow] ($(u1.south)!0.5!(dots1.south)$) -- (s.north);
 \end{tikzpicture}
-\end{center}
+\caption{上下文压缩用摘要替换较早的历史，保留最近消息}
+\end{figure}
 ```
 
 以上这些数字，50000 字节、4096/1024 字符、0.8 和 0.16 的比例，都是当前版本代码里的默认配置，可以通过配置整体替换，不是写死不能改的规则；本节引用的每一处都对应着仓库里一份具体的配置文件，版本升级之后这些数字本身可能会调整，但“先免费剪、再花钱摘要，摘要走 replace、原始日志永不删除”这套结构性设计不太会变。

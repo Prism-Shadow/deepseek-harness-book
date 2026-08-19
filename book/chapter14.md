@@ -19,7 +19,8 @@
 这条往返路径上有几处设计经得起细看。它**没有计时器**，唯一的另一条出路是提问的那一轮被取消；一个没有任何页面连着的部署，这个请求就会像其他没人应答的请求一样一直挂着，最后以 `cancelled` 收场，而不是超时之后自己放行。**代码从不随广播传递**，广播出去的事件里只有 id、名字和用途这些元数据，浏览器半的源码只会通过一条单独的通道交给那个被允许的页面，没别的路径能让代码到达浏览器。host 半永远先跑，它失败了就短路，浏览器那边根本不会动。第一个应答的页面说了算，晚到的应答会被接受然后忽略；如果某个页面的应答指向的版本注册表已经翻篇了，这次应答会被拒绝而不是照单应用，因为那个页面手里拿的是一份已经不在服务的分发。
 
 ```{=latex}
-\begin{center}
+\begin{figure}[H]
+\centering
 \begin{tikzpicture}[node distance=7mm and 11mm, every node/.style={align=center, font=\sffamily\footnotesize}]
   \node[dshnode] (def) {\texttt{cordis\_define}\\ 只记录\\ \scriptsize 先编译查语法};
   \node[dshseam, right=of def] (ask) {\texttt{cordis\_run}\\ 等人应答\\ \scriptsize 无计时器};
@@ -32,7 +33,8 @@
   \draw[dshmutedarrow] (stop.north) to[out=110, in=70] node[dshlabel, above=0.5mm] {停掉之后还可以再跑} (ask.north);
   \draw[dshmutedarrow] (live) -- (gone);
 \end{tikzpicture}
-\end{center}
+\caption{浏览器代码如何定义并运行，以及何时停止}
+\end{figure}
 ```
 
 `stop` 只撤下这一次实况分发，处理器摘掉，host 半的 fiber 停到完全静止，定义本身还在，随时可以再跑一次。`undefine` 才是连定义一起忘掉。这两个动词加上前面的往返，一共可能给出六种拒绝原因，定义不存在、host 半失败、client 半失败、被拒绝、被取消、没有正在运行的东西，其中后三种是回答，不是故障。
