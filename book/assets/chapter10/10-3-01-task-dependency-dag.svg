@@ -7,40 +7,47 @@
       .zh { font-family: "Songti SC", SimSun, serif; fill: #273142; }
       .en { font-family: "Times New Roman", serif; fill: #667085; }
       .title { font-size: 48px; font-weight: 700; }
-      .node { font-size: 30px; font-weight: 700; }
-      .small { font-size: 23px; }
+      .node { font-size: 28px; font-weight: 700; }
+      .small { font-size: 22px; }
       .tag { font-size: 20px; font-weight: 700; }
-      .zh.inverse, .en.inverse { fill: #FFFFFF; }
+      .inverse { fill: #FFFFFF; }
     </style>
   </defs>
   <rect width="1600" height="900" fill="#FFFFFF"/>
-  <text x="90" y="105" class="zh title">把目标拆成带依赖的任务</text>
-  <text x="92" y="150" class="en small">Only ready tasks can be claimed.</text>
+  <text x="90" y="105" class="zh title">四路并行审查，队长最后交叉核对</text>
+  <text x="92" y="150" class="en small">95 commits · four independent reviews · one synthesis task</text>
 
-  <rect x="110" y="250" width="360" height="190" rx="26" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
-  <text x="145" y="302" class="en tag">t1 · product</text>
-  <text x="290" y="360" text-anchor="middle" class="zh node">产品需求澄清</text>
-  <text x="290" y="405" text-anchor="middle" class="zh small">定义验收标准</text>
+  <g>
+    <rect x="80" y="235" width="310" height="180" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="115" y="282" class="en tag">t1 · feature</text>
+    <text x="235" y="338" text-anchor="middle" class="zh node">功能分析</text>
+    <text x="235" y="380" text-anchor="middle" class="zh small">归并用户可见变化</text>
 
-  <rect x="110" y="520" width="360" height="190" rx="26" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
-  <text x="145" y="572" class="en tag">t2 · research</text>
-  <text x="290" y="630" text-anchor="middle" class="zh node">代码调研</text>
-  <text x="290" y="675" text-anchor="middle" class="zh small">定位文件与测试入口</text>
+    <rect x="455" y="235" width="310" height="180" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="490" y="282" class="en tag">t2 · bug</text>
+    <text x="610" y="338" text-anchor="middle" class="zh node">修复分析</text>
+    <text x="610" y="380" text-anchor="middle" class="zh small">核对回归测试与可靠性</text>
 
-  <rect x="650" y="385" width="360" height="190" rx="26" fill="#EEF2FF" stroke="#315EF5" stroke-width="4"/>
-  <text x="685" y="437" class="en tag">t3 · developer</text>
-  <text x="830" y="495" text-anchor="middle" class="zh node">开发实现</text>
-  <text x="830" y="540" text-anchor="middle" class="zh small">等待 t1 与 t2 完成</text>
+    <rect x="830" y="235" width="310" height="180" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="865" y="282" class="en tag">t3 · security</text>
+    <text x="985" y="338" text-anchor="middle" class="zh node">安全审查</text>
+    <text x="985" y="380" text-anchor="middle" class="zh small">区分修复、候选与未知</text>
 
-  <rect x="1190" y="385" width="300" height="190" rx="26" fill="#315EF5" stroke="#2148CC" stroke-width="3"/>
-  <text x="1225" y="437" class="en tag inverse">t4 · tester</text>
-  <text x="1340" y="495" text-anchor="middle" class="zh node inverse">测试验证</text>
-  <text x="1340" y="540" text-anchor="middle" class="zh small inverse">等待 t3 完成</text>
+    <rect x="1205" y="235" width="310" height="180" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="1240" y="282" class="en tag">t4 · performance</text>
+    <text x="1360" y="338" text-anchor="middle" class="zh node">性能审查</text>
+    <text x="1360" y="380" text-anchor="middle" class="zh small">寻找优化与剩余瓶颈</text>
+  </g>
 
-  <path d="M470 345 C560 345 560 440 630 455" fill="none" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)"/>
-  <path d="M470 615 C560 615 560 520 630 505" fill="none" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)"/>
-  <path d="M1010 480 H1170" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)"/>
+  <g fill="none" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)">
+    <path d="M235 415 C235 535 575 500 680 585"/>
+    <path d="M610 415 C610 505 690 520 735 585"/>
+    <path d="M985 415 C985 505 910 520 865 585"/>
+    <path d="M1360 415 C1360 535 1025 500 920 585"/>
+  </g>
 
-  <rect x="575" y="700" width="510" height="92" rx="46" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
-  <text x="830" y="758" text-anchor="middle" class="zh small">空闲成员只认领依赖已满足的就绪任务</text>
+  <rect x="535" y="600" width="530" height="190" rx="28" fill="#315EF5" stroke="#2148CC" stroke-width="3"/>
+  <text x="575" y="650" class="en tag inverse">t5 · captain · depends on t1–t4</text>
+  <text x="800" y="712" text-anchor="middle" class="zh node inverse">交叉核对与最终汇总</text>
+  <text x="800" y="757" text-anchor="middle" class="zh small inverse">复查时间窗、提交号、源码证据和风险边界</text>
 </svg>
