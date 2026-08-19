@@ -22,7 +22,7 @@ dsh 可以为不同任务保存不同的助手配置。这里创建一名“技�
 
 ![技术编辑创建完成，消息流显示挂载校验和改动文件](assets/chapter2/2-1-05-tech-editor-created.png){width=84%}
 
-新 preset 保存在 `$DSH_HOME/.agent-presets/tech-editor/`，目录中有两个配置文件。`preset.yml` 决定它在模式下拉框中的名称和简介，`agent.cordis.yml` 决定它由哪些能力组成。后者继续使用标准模式的工具和工作流程，只把 persona 换成刚才指定的审阅规则。
+下面用 `$DSH_HOME` 表示 dsh 的用户配置目录。未单独设置 `DSH_HOME` 时，该目录默认位于当前用户主目录下的 `.dsh` 文件夹。新 preset 保存在 `$DSH_HOME/.agent-presets/tech-editor/`，目录中有两个配置文件。`preset.yml` 决定它在模式下拉框中的名称和简介，`agent.cordis.yml` 决定它由哪些能力组成。后者继续使用标准模式的工具和工作流程，只把 persona 换成刚才指定的审阅规则。
 
 截图末尾的 `mounted OK` 是挂载校验结果，表示 dsh 已经找到并加载 `tech-editor`。这些配置都保存在 `$DSH_HOME` 下，deepseek-harness 源码仓库没有变化。
 

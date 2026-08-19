@@ -1,14 +1,16 @@
 # 扩展 dsh 的能力 {#ch-13}
 
-前面几章看到的都是 dsh 已经装好的能力。第 12 章拆开讲过，dsh 里能看到的每一样东西，模型适配器、工具注册表、system prompt、agent loop 本身，都是一个个插件，靠 `cordis.patch.yml` 这层配置叠加组装起来。这一章反过来，从用的一侧走到扩展的一侧，动手往这套叠层里加东西。四节各加一样东西，先自己写一个 Skill，再接一个 MCP 服务器进来，然后装一个第三方插件，最后自己写一个几十行的插件塞进配置里。每一节结束时，都会有一个能亲眼看到的、dsh 确实多会了一件事的画面。
+前面几章使用的都是 dsh 已经提供的能力。第 12 章说明过，dsh 中的模型适配器、工具注册表、system prompt 和 agent loop 都以插件形式存在，并通过 `cordis.patch.yml` 逐层组合。本章转向扩展 dsh，依次编写 Skill、接入 MCP 服务器、安装第三方插件，并完成一个几十行的自定义插件。每节结束时，读者都可以在界面或工具列表中确认新增能力已经生效。
 
 ## 用 Skill 让 dsh 做得更好 {#sec-13-1}
 
-先看一个真实的麻烦。手头有一份本周随手记的工作草稿，想让 dsh 整理成周报。直接在对话里说清楚要求当然可以，但格式要求这种东西，说一次只管这一次，下周再要一份周报，得把“分几段、每段叫什么、日期怎么写”这些规矩重新讲一遍。Skill 解决的就是这类反复要求的方法类知识，写一次，dsh 自己发现、自己按需加载，不用每次现场教。
+先看一个常见的周报整理场景。准备周报时，工作区中已经有一份 `本周工作草记.md`。它按星期记下了登录超时问题的修复、Excel 导出功能的进度，以及仍在等待确认或排查的事项。记录足以说明本周做过什么，但已完成、进行中和待处理的内容混在一起，还不能直接作为周报使用。现在要用 dsh 整理这份草稿。
 
-### 不教它的样子
+直接在对话中说明格式当然可以，但这类要求只对当前任务有效。下周再次生成周报时，仍要重新说明段落结构、标题和日期格式。Skill 可以把这些规则保存成文件，由 dsh 在任务匹配时自动加载。下面用同一份草稿生成两次周报：第一次不提供 Skill，让 dsh 自行组织内容；随后写入一份周报 Skill，再次生成并核对格式变化。
 
-工作区里放着这样一份草稿，`本周工作草记.md`：
+### 未使用 Skill 时
+
+草稿内容如下：
 
 ```md
 周一到周五的一些记录，随手记的，还没整理：
@@ -22,23 +24,22 @@
 - 这周还有个遗留问题，测试环境的数据库连接偶尔会断，还没找到原因，先记一下
 ```
 
-在还没有任何 Skill 的工作区里，打一句“参考本周工作草记.md 里的内容，帮我写一份这周的周报”，dsh 读完文件会自己拿主意该分几段、叫什么名字。
+在还没有任何 Skill 的工作区中，输入“参考本周工作草记.md 里的内容，帮我写一份这周的周报”。dsh 读取文件后，会自行确定段落结构和标题。
 
 ![没有 Skill 时，dsh 自己组织周报的结构和小标题](assets/chapter13/13-1-01-baseline-no-skill.png){width=88%}
 
-这次它分了“一、本周工作总结”打头带一段话总述，再跟一串编号列表，写完存成了 `本周周报.md`。内容不算差，但换一次话题、换一天问，标题措辞、要不要编号、文件叫什么名字，都可能不一样，没有一份固定的格式可以照着核对。
+这次生成的周报以“一、本周工作总结”开头，先写一段概述，随后列出编号清单，并保存为 `本周周报.md`。内容基本完整，但更换话题或生成日期后，标题措辞、编号方式和文件名都可能变化，缺少一套稳定的格式用于核对。
 
 ### 写一份 Skill
 
-Skill 就是一个带约定格式的 Markdown 文件，放在 dsh 会扫描的目录里就能被发现。项目内的 `.dsh/skills/skill-name/SKILL.md` 只对这个项目生效，适合跟着代码库一起分享给团队；`~/.dsh/skills/skill-name/SKILL.md` 是用户级的，对这台机器上所有项目都生效，适合自己一个人反复用的方法，`skill-name` 换成自己起的名字就行。这次的周报格式跟这个工作区强相关，用项目级。
+Skill 是一个遵循约定格式的 Markdown 文件，放入 dsh 扫描的目录后即可被发现。项目内的 `.dsh/skills/skill-name/SKILL.md` 只对当前项目生效，适合随代码库共享给团队；`$DSH_HOME/skills/skill-name/SKILL.md` 是用户级 Skill，可用于这台机器上的所有项目，适合保存个人反复使用的方法。将 `skill-name` 替换为自定义名称即可。本例的周报格式只用于当前工作区，因此采用项目级 Skill。
 
-在工作区里新建 `.dsh/skills/weekly-report/SKILL.md`：
+在工作区中新建 `.dsh/skills/weekly-report/SKILL.md`：
 
 ```md
 ---
 name: weekly-report
 description: 把本周零散的工作记录整理成固定格式的周报。用户要求"写周报"、"整理本周工作"、"周报"时使用。
-whenToUse: 用户提到周报，或者给了一份本周的工作草记要求整理成正式记录时。
 ---
 
 # 周报整理方法
@@ -72,17 +73,17 @@ whenToUse: 用户提到周报，或者给了一份本周的工作草记要求整
 - 写完之后把周报保存成一个新文件，文件名是 `周报-YYYY-MM-DD.md`。
 ```
 
-`name` 字段必须是 kebab-case，跟目录名对上；`description` 是 dsh 判断“这次任务要不要用这个 Skill”唯一依据的一句话，写清楚触发场景比写得漂亮更重要。这两项是必填项，`whenToUse` 是给这个判断再补一句更具体的场景描述，可选。
+`name` 字段必须使用 kebab-case，并与目录名一致。`name` 和 `description` 是必填项。dsh 根据 Skill 名称和 `description` 判断任务是否匹配。触发条件可以写进 `description`。
 
-存好文件不用重启 dsh，也不用做任何“注册”的动作。dsh 会监听这几个 Skill 目录，文件一存盘就能发现，新开一个对话就能看到效果。
+保存文件后无需重启 dsh，也不需要执行额外的注册操作。dsh 会监听这些 Skill 目录，新的 Skill 保存后会立即出现在可用目录中。新建对话便可验证效果。
 
-### 教过它之后
+### 使用 Skill 后
 
-开一个新对话，打同一句“参考本周工作草记.md 里的内容，帮我写一份这周的周报”。
+新建对话，再次输入“参考本周工作草记.md 里的内容，帮我写一份这周的周报”。
 
 ![有 Skill 之后，dsh 先加载 Skill 再按固定格式整理](assets/chapter13/13-1-02-skill-loaded.png){width=88%}
 
-这次对话开头多了一条“上下文注入 · skill-catalog”，这是 dsh 把当前能用的 Skill 名字和一句话说明报给模型看的目录，模型看到跟任务匹配就会主动调用。往下能看到一行“Skill · weekly-report”，这就是它真的加载了这份格式说明。加载之后它没有直接开写，先跑了一条命令确认今天的日期，因为草记里没写明确的周五日期，按 Skill 里的规则该用今天顶上；接着把内容写进了 `周报-2026-08-17.md`，文件名和上次的 `本周周报.md` 不一样，跟 Skill 里规定的命名规则对上了。
+这次对话开头出现一条“上下文注入 · skill-catalog”。这是 dsh 提供给模型的 Skill 目录，其中包含当前可用的 Skill 名称和简短说明。模型发现任务匹配后会主动调用。随后出现的“Skill · weekly-report”表明模型已经加载这份格式说明。由于草记中没有明确的周五日期，dsh 按照 Skill 规则先执行命令确认当天日期，再生成 `周报-2026-08-17.md`。该文件名与 Skill 中的命名规则一致。
 
 打开这份文件核对内容：
 
@@ -108,13 +109,13 @@ whenToUse: 用户提到周报，或者给了一份本周的工作草记要求整
 - 测试环境数据库连接偶尔断开，原因尚未定位
 ```
 
-四个小标题跟 Skill 里写的一字不差，草记里两条还没解决的事（等产品确认、数据库连接问题）也都被正确归进了“风险与阻塞”，没有漏掉。这就是 Skill 跟直接在对话里下指令的差别。格式规则只用写一次，存成文件就能反复用；这份文件本身可以整个复制到别的项目、别的机器，或者跟着代码一起提交、分享给同事，不用再对着聊天记录复制粘贴一遍要求；而且它不占对话的固定成本，没提到周报的任务里，dsh 目录扫过就过去了，只有真的用上才会把完整内容加载进来。
+四个小标题与 Skill 中的定义完全一致。草记中尚未解决的产品确认和数据库连接问题，也都归入“风险与阻塞”，没有遗漏。将格式规则保存为 Skill 后，便可以反复使用。这份文件还可以复制到其他项目或机器，也可以随代码提交并分享给同事。对于无关任务，dsh 只读取 Skill 的名称和说明；只有确认任务匹配时，才会加载完整内容。
 
 ## 让 MCP 接入更多工具 {#sec-13-2}
 
-dsh 自带的工具就那么多，读写文件、跑命令、搜网页。MCP（Model Context Protocol）是一套开放协议，谁都能按它写一个独立的服务进程，把一组工具通过这个协议暴露出来，dsh 接上之后，这些工具会跟自带工具一样出现在模型面前，模型分不出哪个是原生的、哪个是接进来的。这一节接一个官方维护、免费、不用申请任何密钥的 MCP 服务器，官方的文件系统服务 `@modelcontextprotocol/server-filesystem`，让它读一个当前对话本来碰不到的目录。
+dsh 内置文件读写、命令执行和网页搜索等工具。MCP（Model Context Protocol）是一套开放协议，开发者可以实现独立的服务进程，并通过该协议向 dsh 提供工具。接入后，模型调用这些工具的方式与内置工具相同。本节接入官方维护、免费且无需密钥的文件系统服务 `@modelcontextprotocol/server-filesystem`，让 dsh 读取当前工作区之外的目录。
 
-先准备一份不在当前工作区里的调研笔记，放在 `~/dsh-mcp-notes/`：
+先在当前工作区之外准备一份调研笔记，放在你的 `dsh-mcp-notes` 目录：
 
 ```md
 # 数据库偶尔断连排查.md
@@ -126,7 +127,7 @@ dsh 自带的工具就那么多，读写文件、跑命令、搜网页。MCP（M
 下一步：把连接池的 idleTimeout 调到比 wait_timeout 短，观察两天。
 ```
 
-接入 MCP 服务器的配置写在当前 profile 的 `cordis.patch.yml` 里，也就是启动 `dsh web` 用的那份，路径是 `~/.dsh/profiles/web/cordis.patch.yml`。打开它，往里插一行：
+MCP 服务器的配置写在当前 profile 的 `cordis.patch.yml` 中，也就是启动 `dsh web` 时使用的配置文件，路径为 `$DSH_HOME/profiles/web/cordis.patch.yml`。打开该文件，加入以下配置：
 
 ```yaml
 - insert:
@@ -136,46 +137,50 @@ dsh 自带的工具就那么多，读写文件、跑命令、搜网页。MCP（M
         serverName: notes
         transport: stdio
         command: npx
-        args: ['-y', '@modelcontextprotocol/server-filesystem', '/home/你的用户名/dsh-mcp-notes']
+        args: ['-y', '@modelcontextprotocol/server-filesystem', '你的 dsh-mcp-notes 目录的绝对路径']
 ```
 
-`@deepseek-ai/dsh-mcp-client` 是 dsh 自带的一个桥接插件，每接一个 MCP 服务器就照这个样子加一份实例，`serverName` 是给这个服务器起的命名空间，`transport: stdio` 表示这个服务器是一个本地子进程，dsh 会照 `command` 和 `args` 把它拉起来，用标准输入输出跟它说话；如果对方是一个已经在跑的 HTTP 服务，就换成 `transport: streamable-http`，配 `url` 和可选的 `headers`，需要密钥的服务器把密钥放进 `headers` 或者 `env` 字段，用 `!!js process.env.对应变量名` 引用环境变量，配置文件里永远不直接写明文密钥。这几个字段对齐的空格数容易敲错，YAML 靠缩进分层级，`config` 底下这几行少缩进一格就会被解析成跟 `config` 平级，dsh 启动时会直接报错，对不上就照抄一遍缩进结构。
+`@deepseek-ai/dsh-mcp-client` 是 dsh 内置的桥接插件。每接入一个 MCP 服务器，都需要按照该结构增加一个实例。`serverName` 用于设置服务器的命名空间。`transport: stdio` 表示服务器以本地子进程运行，dsh 根据 `command` 和 `args` 启动进程，并通过标准输入输出与它通信。将 `args` 的最后一项替换为你的 `dsh-mcp-notes` 目录的绝对路径。
 
-存盘之后不用重启 `dsh web` 进程，这份补丁文件本身是被监听的，改一下就会触发 dsh 断开重连一次这份配置对应的服务器，新开的对话立刻能用。开一个新对话，打一句“用 mcp 文件系统工具看看笔记目录里有什么文件，然后读一下数据库偶尔断连排查这份笔记，告诉我下一步排查方向是什么”。
+如果服务器通过 HTTP 提供服务，可以改用 `transport: streamable-http`，再配置 `url` 和可选的 `headers`。需要密钥时，将密钥放入 `headers` 或 `env` 字段，并通过 `!!js process.env.对应变量名` 引用环境变量，不要在配置文件中写入明文密钥。YAML 依靠缩进表示层级。如果 `config` 下的字段少缩进一级，就会被解析为与 `config` 平级，导致 dsh 启动失败。遇到解析错误时，应先对照示例检查缩进。
+
+保存后无需重启 `dsh web`。dsh 会监听该补丁文件，检测到改动后会断开并重新连接对应的服务器。新建对话，输入“用 mcp 文件系统工具看看笔记目录里有什么文件，然后读一下数据库偶尔断连排查这份笔记，告诉我下一步排查方向是什么”。
 
 ![模型依次调用三个 mcp__notes__ 前缀的工具](assets/chapter13/13-2-01-mcp-tool-calls.png){width=88%}
 
-调用记录里能看到三次工具调用。
+调用记录中依次出现三个工具。
 
 - `mcp__notes__list_allowed_directories`
 - `mcp__notes__directory_tree`
 - `mcp__notes__read_text_file`
 
-命名规则是 `mcp__` 加服务器名再加原始工具名，中间用两条下划线连起来，这里的 `notes` 就是配置里填的 `serverName`。这三个工具全部来自刚接上的这个服务器，此前的对话里根本不存在。
+工具名称由 `mcp__`、服务器名和原始工具名组成，各部分使用两条下划线连接。这里的 `notes` 就是配置中的 `serverName`。这三个工具都来自新接入的服务器，接入前不会出现在工具列表中。
 
 ![基于笔记内容给出的排查建议](assets/chapter13/13-2-02-mcp-result.png){width=88%}
 
-最终的回答把笔记里“怀疑连接池空闲超时比 wait_timeout 长”这条具体的排查方向原样接了过去，还补了验证步骤和判断标准。这条建议的来源就是那份笔记本身，回答里能对上笔记原文才算这一步真的接通了。
+最终回答沿用了笔记中“怀疑连接池空闲超时比 wait_timeout 长”这一排查方向，并补充验证步骤和判断标准。回答中的建议可以在笔记原文中找到依据，说明 MCP 服务器已经接入成功。
 
 ## 使用社区插件 {#sec-13-3}
 
-前两节加的东西都很轻，一个 Markdown 文件、一行配置。这一节装一个完整的第三方插件包，走一遍真实的分发流程，包发布在 npm 上，安装进 profile，重启后在设置页的插件清单里能看到它。
+本节安装一个发布在 npm 上的第三方插件包，将其加入 profile，并在重启后从设置页确认加载状态。
 
 ### 生态调查
 
-动手之前先搞清楚这东西现在到底有没有。dsh 自己的仓库和文档里翻了一圈，没有找到官方维护的插件市场或者插件目录页面。去 npm 上按 `dsh-plugin` 这类关键词搜，能找到零星几个独立开发者发布的包，命名上有个约定，插件名前缀 `dsh-` 或者带 `dsh-plugin` 关键词，一部分作者还在 GitHub 上给仓库打 `dsh-plugin` 这个 topic 标签，围着这个标签自发聚起一份 `awesome-dsh-plugin` 精选列表。这是一个刚起步、靠零散个人账号维系的社区生态，规模很小，也没有统一的审核或者评分机制，跟成熟生态里那种官方策展的插件市场不是一回事。装第三方插件之前查一眼源码，是这个生态现阶段该有的谨慎，不是走个形式。
+安装前先了解当前的社区插件生态。查阅 dsh 仓库和官方文档后，没有发现官方维护的插件市场或插件目录。以 `dsh-plugin` 等关键词搜索 npm，可以找到少量独立开发者发布的包。部分插件使用 `dsh-` 前缀，或者在包信息中加入 `dsh-plugin` 关键词。GitHub 上还有作者为仓库添加 `dsh-plugin` topic，社区也据此整理了 `awesome-dsh-plugin` 列表。
 
-这次选择安装的是 `dsh-find-plugin`，一个真实发布在 npm 上、MIT 协议的包。选它的原因很直接，它的源码只有几个文件，核心逻辑几十行就能看完，干的事情也单一，注册一个模型可以调用的工具，实时搜索 GitHub 上带 `dsh-plugin` 标签的仓库，不读写任何本机文件，不触碰配置之外的任何东西，是一个装第一个第三方插件时风险很低的起点。
+目前社区规模较小，插件主要由个人开发者维护，也没有统一的审核和评分机制。安装第三方插件前应当审查源码，确认它会访问哪些文件、网络地址和配置。
 
-### 走一遍安装流程
+本节选择 `dsh-find-plugin`。该插件已发布到 npm，采用 MIT 许可证，源码只有几个文件，核心逻辑也只有几十行。它只注册一个供模型调用的工具，用于实时搜索 GitHub 上带有 `dsh-plugin` 标签的仓库。该插件不会读写本机文件，也不会修改配置之外的内容，适合作为第一个社区插件示例。
 
-dsh 提供了一条专门装插件的命令，帮你把依赖装进 profile、注册进插件树这两步一起做掉，不用手改 `package.json` 和 `cordis.patch.yml`：
+### 安装插件
+
+dsh 提供了专门的插件安装命令，可以同时将依赖安装到 profile 并注册到插件树，无需手动修改 `package.json` 和 `cordis.patch.yml`：
 
 ```sh
 dsh plugin --profile web add dsh-find-plugin
 ```
 
-这条命令在幕后就是进到 `~/.dsh/profiles/web/` 目录跑一次 `pnpm add`，装完之后打开这份 profile 的 `package.json` 能看到变化：
+该命令会在 `$DSH_HOME/profiles/web/` 目录中执行一次 `pnpm add`。安装完成后，打开该 profile 的 `package.json` 可以看到以下变化：
 
 ```json
 {
@@ -194,37 +199,37 @@ dsh plugin --profile web add dsh-find-plugin
 }
 ```
 
-`dsh-find-plugin` 除了进了依赖列表，还自动被加进了 `bundles` 数组。这是因为这个包自己声明了 `dsh.bundle.patch`，属于正规的插件包，会带着自己的一份 patch 层随 `bundles` 列表自动挂载，不需要像上一节的 MCP 服务器那样手动在 `cordis.patch.yml` 里插一行。
+`dsh-find-plugin` 会同时出现在依赖列表和 `bundles` 数组中。该包声明了 `dsh.bundle.patch`，其 patch 层会随 `bundles` 列表自动加载，无需像上一节的 MCP 服务器那样手动修改 `cordis.patch.yml`。
 
-这里有个容易踩的坑。`cordis.patch.yml` 改了会自动热更新，但 `package.json` 的依赖和 `bundles` 列表不在监听范围内，新装的插件不会立刻生效。装完命令马上试，dsh 还是老样子。
+这里有一点容易忽略。`cordis.patch.yml` 修改后会自动热更新，但 `package.json` 中的依赖和 `bundles` 列表不在监听范围内，因此新安装的插件不会立即生效。如果安装后直接测试，dsh 仍会使用原有的插件配置。
 
-![重启之前，dsh 不知道有这个新工具，只能退回搜网页和翻源码](assets/chapter13/13-3-01-before-restart-no-tool.png){width=88%}
+![重启之前，dsh 尚未加载新工具，只能搜索网页和查阅源码](assets/chapter13/13-3-01-before-restart-no-tool.png){width=88%}
 
-这一步能看到它没有调用任何新工具，退而求其次去搜了网页、翻了本机的 dsh 源码检查目录结构，说明这时候新插件确实还没接进工具注册表。回终端按 `Ctrl+C` 停掉 `dsh web`，重新跑一次 `npx -y @deepseek-ai/dsh web` 再打开页面。
+调用记录中没有出现新工具，dsh 改为搜索网页并查阅本地源码，说明插件尚未注册到工具列表。返回终端，按 `Ctrl+C` 停止 `dsh web`，重新运行 `npx -y @deepseek-ai/dsh web`，再打开页面。
 
-开一个新对话，打一句“我想要一个能帮我管理剪贴板历史的 dsh 插件，市面上有类似的吗，帮我搜一下”。
+新建对话，输入“我想要一个能帮我管理剪贴板历史的 dsh 插件，市面上有类似的吗，帮我搜一下”。
 
-![这次模型直接调用了新装插件带来的 find_dsh_plugin 工具](assets/chapter13/13-3-02-find-tool-call.png){width=88%}
+![这次模型直接调用了新安装插件提供的 find_dsh_plugin 工具](assets/chapter13/13-3-02-find-tool-call.png){width=88%}
 
-这次调用记录里出现了 `find_dsh_plugin`，这个工具此前在这台机器上根本不存在，是 `dsh-find-plugin` 这个插件唯一注册的工具。它内部实时查了 GitHub 上带 `dsh-plugin` 标签的仓库。
+重启后，调用记录中出现了 `find_dsh_plugin`。该工具由 `dsh-find-plugin` 注册，安装前不会出现在这台机器的工具列表中。它会实时搜索 GitHub 上带有 `dsh-plugin` 标签的仓库。
 
 ![带安装命令和安全提醒的搜索结果](assets/chapter13/13-3-03-find-result.png){width=88%}
 
-回答里给出了一个真实存在的候选插件、可以直接执行的安装命令，还主动提醒第三方插件装之前最好先过一遍源码、锁定到具体的 commit，跟前面调查生态时得到的结论一致。这条提醒来自 `find_dsh_plugin` 工具自己写在描述里的固定提示。
+回答列出了一个候选插件和可直接执行的安装命令，并提醒用户在安装前审查源码、锁定到具体的 commit。该提醒来自 `find_dsh_plugin` 工具描述中的固定提示。
 
-最后去设置页确认一遍。点开左下角“设置”，切到“插件”标签，再切到“插件列表”子标签，在搜索框里输入 `find`。
+最后在设置页确认插件状态。打开左下角“设置”，切换到“插件”标签，再进入“插件列表”，在搜索框中输入 `find`。
 
-![设置页的插件列表里能搜到新装的插件，状态是已启用](assets/chapter13/13-3-04-settings-plugin-list.png){width=88%}
+![设置页的插件列表中可以找到新安装的插件，状态为已启用](assets/chapter13/13-3-04-settings-plugin-list.png){width=88%}
 
-`find-plugin` 这一行状态是“已启用”，这就是这个第三方插件确实被 dsh 认下、正常挂载运行的证据，跟设置页里看自带插件走的是同一个入口。
+`find-plugin` 的状态显示为“已启用”，说明该第三方插件已经被 dsh 识别并成功加载。内置插件和第三方插件都可以从同一页面查看。
 
 ## 写一个自己的插件 {#sec-13-4}
 
-前三节都是接现成的东西。这一节自己写一个，照着 dsh 自带的 `tool-todo` 插件（不到 250 行，实现“待办事项”这一个工具）的样子，写一个小得多但真能用的版本。挑的例子是“随机做决定”，中午吃什么、两个方案选哪个这种纠结时刻，让 dsh 帮着掷一次骰子。全程不需要会 TypeScript，普通 JavaScript 就够。
+前三节使用的都是现有扩展，本节编写一个自定义插件。dsh 内置的 `tool-todo` 插件不到 250 行，只实现“待办事项”工具。本节参考它的结构，实现一个规模更小、可以实际运行的“随机做决定”插件，让 dsh 从用户提供的选项中随机选择一个。整个插件使用普通 JavaScript 编写，无需掌握 TypeScript。
 
 ### 写代码
 
-新建 `~/.dsh/profiles/web/plugins/tool-decide/package.json`：
+新建 `$DSH_HOME/profiles/web/plugins/tool-decide/package.json`：
 
 ```json
 {
@@ -238,21 +243,21 @@ dsh plugin --profile web add dsh-find-plugin
 再建同目录下的 `index.js`：
 
 ```js
-// tool-decide 插件，给 dsh 加一个"随机做决定"的工具。
+// tool-decide 插件，为 dsh 添加一个"随机做决定"工具。
 import { defineTool } from '@deepseek-ai/dsh-tools'
 
-// 插件名字，随便起，配置文件里的 name 字段要跟它对上。
+// 插件名称可以自行指定，配置文件中的 name 字段需要与它一致。
 export const name = 'tool-decide'
-// 声明这个插件要用到工具注册表服务，dsh 会先把 ctx.tools 准备好再启动这个插件。
+// 声明插件依赖工具注册表服务，dsh 会在 ctx.tools 可用后启动插件。
 export const inject = ['tools']
 
 export function apply(ctx) {
   ctx.tools.register(defineTool({
-    // 模型看到的工具名字。
+    // 提供给模型的工具名称。
     name: 'pick_one',
-    // 模型看到的工具说明，决定它什么时候会想到用这个工具。
+    // 提供给模型的工具说明，用于判断何时调用该工具。
     description: '当用户在几个选项里纠结、想随机选一个而不是要理性建议时，从给定的选项列表里随机选出一个。',
-    // 模型调用这个工具时要传的参数。
+    // 模型调用工具时需要传入的参数。
     parameters: {
       options: {
         type: 'array',
@@ -261,7 +266,7 @@ export function apply(ctx) {
         items: { type: 'string' },
       },
     },
-    // 工具执行完之后返回给模型的结果长什么样。
+    // 定义返回给模型的结果结构。
     output: {
       schema: {
         type: 'object',
@@ -272,7 +277,7 @@ export function apply(ctx) {
       },
       render: (_args, value) => [{ type: 'text', text: `随机选中：${value.picked}` }],
     },
-    // 真正执行的逻辑。
+    // 工具的执行逻辑。
     execute(args) {
       const options = args.options
       if (!Array.isArray(options) || options.length < 2) {
@@ -285,9 +290,9 @@ export function apply(ctx) {
 }
 ```
 
-跟 `tool-todo` 对比着看，结构是一样的。`name` 和 `inject` 两个导出告诉 dsh 这个插件叫什么、依赖哪些服务；`apply` 函数里用 `ctx.tools.register` 注册一个工具，`defineTool` 里的 `name`、`description`、`parameters` 这三样是给模型看的，模型只凭这三样决定要不要调、怎么调；`execute` 是真正跑的代码，跟模型之间完全隔着一层，模型看不到这段代码本身。
+与 `tool-todo` 对照可以发现，两者结构相同。`name` 和 `inject` 两个导出分别声明插件名称与依赖服务。`apply` 函数通过 `ctx.tools.register` 注册工具。`defineTool` 中的 `name`、`description` 和 `parameters` 供模型读取，用于判断是否调用工具以及如何传入参数。`execute` 包含实际执行逻辑，模型无法直接读取这段代码。
 
-`output.schema` 那几行第一次写很容易漏掉一处。`type: 'object'` 的 schema 必须显式写上 `additionalProperties: false` 或者 `true`，写漏了 dsh 启动时会直接拒绝加载，报错信息是这样：
+初次编写 `output.schema` 时，容易遗漏一个必要字段。`type: 'object'` 的 schema 必须显式设置 `additionalProperties: false` 或 `true`。如果省略该字段，dsh 会在启动时拒绝加载插件，并输出以下错误：
 
 ```text
 Error: dsh: plugin tree failed to load: failed to apply loader entry
@@ -295,11 +300,11 @@ tool-decide (tool-decide): unsupported JSON schema:
 schema.additionalProperties must be explicitly true or false
 ```
 
-这段报错是照着 `tool-todo` 的样子第一次省略这一行时，本机跑出来的真实输出，补上 `additionalProperties: false` 就好了。
+这段报错来自本地实际运行。补上 `additionalProperties: false` 后，插件即可正常加载。
 
-### 接进配置，重启，验证
+### 加入配置并重启验证
 
-在 profile 的 `package.json` 里把这个本地包加成一条依赖，跟第 2 章“翡翠绿主题”插件用的是同一个手法：
+在 profile 的 `package.json` 中将本地包声明为依赖，方法与第 2 章的“翡翠绿主题”插件相同：
 
 ```json
 {
@@ -309,7 +314,7 @@ schema.additionalProperties must be explicitly true or false
 }
 ```
 
-`cordis.patch.yml` 里插一行：
+在 `cordis.patch.yml` 中加入以下配置：
 
 ```yaml
 - insert:
@@ -317,14 +322,14 @@ schema.additionalProperties must be explicitly true or false
       name: 'tool-decide'
 ```
 
-跑一次 `pnpm install` 让 `file:` 依赖链接进 `node_modules`，然后重启 `dsh web`。这里有第二个容易踩的坑。`pnpm install` 把 `plugins/tool-decide/` 下的文件复制（严格说是硬链接）进了 `node_modules/tool-decide/`，之后如果回去改 `index.js` 里的代码，`node_modules` 里那份不会跟着自动更新，得再跑一次 `pnpm install` 才能把改动同步过去，改完代码不生效，先检查是不是漏了这一步。
+执行 `pnpm install`，将 `file:` 依赖链接到 `node_modules`，然后重启 `dsh web`。这里还有一个容易忽略的问题。`pnpm install` 会将 `plugins/tool-decide/` 中的文件同步到 `node_modules/tool-decide/`，通常采用硬链接。之后如果修改 `index.js`，`node_modules` 中的文件不会自动更新，需要再次执行 `pnpm install`。代码修改没有生效时，应先确认是否已经执行该命令。
 
-重启之后开一个新对话，打一句“中午不知道吃沙县小吃还是黄焖鸡米饭，帮我随机选一个”。
+重启后新建对话，输入“中午不知道吃沙县小吃还是黄焖鸡米饭，帮我随机选一个”。
 
-![dsh 调用了新写的 pick_one 工具并给出结果](assets/chapter13/13-4-01-pick-one-result.png){width=88%}
+![dsh 调用了自定义的 pick_one 工具并给出结果](assets/chapter13/13-4-01-pick-one-result.png){width=88%}
 
-调用记录里的 `pick_one · {"options": ["沙县小吃", "黄焖鸡米饭"]}` 就是刚才写的那个工具，参数是模型自己从这句话里提取出来的两个选项，执行完随机选中一个，写进最终回复。从写下第一行代码到这一刻，中间没有跳过任何步骤。
+调用记录中的 `pick_one · {"options": ["沙县小吃", "黄焖鸡米饭"]}` 来自前文实现的工具。模型从用户输入中提取两个选项作为参数，工具随机选择其中一个，再由模型写入最终回复。这说明自定义插件已经被 dsh 加载并正常调用。
 
-第 2 章用创造模式现场定义过一个改主题色的动态插件，跟这一节的做法是同一套能力的两种用法。动态插件写好当场审批、当场生效，但只活在这一次进程的内存里，适合“先试试看效果对不对”；写成配置里的一行、装进 `node_modules`，重启才生效，但只要这份配置还在，重启多少次都在，适合长期要用的工具，`pick_one` 用的就是这条路。
+第 2 章曾用创造模式定义一个修改主题色的动态插件，与本节使用的是同一套插件能力。动态插件经过审批后立即生效，但只在当前进程中保留，适合快速验证。配置式插件安装到 `node_modules` 后需要重启，之后会随 dsh 启动继续加载，更适合长期使用。`pick_one` 属于后一种方式。
 
-`cordis.patch.yml` 里刚才那三行，跟 dsh 自带的 `agent-loop`、`tool-todo` 那几行长得一模一样，都是一个 `id` 加一个 `name`，外加可选的 `config`。dsh 自己怎么跑起来的，和这一节自己加的这个小工具怎么跑起来的，配置上没有任何区别。
+本节在 `cordis.patch.yml` 中新增的配置，与 dsh 内置的 `agent-loop`、`tool-todo` 插件结构相同，都包含 `id`、`name` 和可选的 `config`。内置插件与本节新增的插件采用相同的配置和加载方式。
