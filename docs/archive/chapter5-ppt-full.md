@@ -327,4 +327,3 @@ slides/
 ![最终演示文稿中的 4 张代表性页面](../../book/assets/chapter4/4-4-04-slide-previews.png){width=90%}
 
 最后打开 `slides/output/从大语言模型到智能体.pptx`，确认文件能够正常播放，文字、图形和来源栏在 PowerPoint 或 Keynote 中显示完整。需要修改内容时，可以让 DSH 编辑对应的 `slide-01.js` 至 `slide-08.js`，再运行 `compile.js` 重新生成 PPTX。
-
