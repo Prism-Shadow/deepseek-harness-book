@@ -17,7 +17,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc poppler-utils fonts-noto-cjk
+          sudo apt-get install -y pandoc poppler-utils fonts-noto-cjk librsvg2-bin
 
       - uses: r-lib/actions/setup-tinytex@v2
 
