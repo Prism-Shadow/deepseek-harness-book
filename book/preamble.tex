@@ -286,7 +286,7 @@
   \noindent\DSHFishMark{12mm}\par
   \vspace{8mm}
   \noindent{\sffamily\bfseries\fontsize{9pt}{12pt}\selectfont
-    \color{DSHAccent}\textls[180]{CONTENTS}}\par
+    \color{DSHAccent}{\addfontfeatures{LetterSpace=18}CONTENTS}}\par
   \vspace{2mm}
   \noindent{\sffamily\DSHHeadingFont\bfseries\fontsize{28pt}{36pt}\selectfont
     \color{DSHInk}目录}\par
@@ -363,7 +363,7 @@
       \node[anchor=west,text=DSHInk,
         font=\sffamily\bfseries\fontsize{8.5pt}{11pt}\selectfont]
         at ($(current page.north west)+(36mm,-25mm)$)
-        {\textls[150]{DEEPSEEK HARNESS}};
+        {{\addfontfeatures{LetterSpace=15}DEEPSEEK HARNESS}};
       \draw[DSHRule,line width=.7pt]
         ($(current page.north west)+(22mm,-38mm)$) --
         ($(current page.north east)+(-22mm,-38mm)$);
