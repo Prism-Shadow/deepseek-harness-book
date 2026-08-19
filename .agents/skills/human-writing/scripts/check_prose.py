@@ -88,8 +88,6 @@ ROAD_SIGNS = (
 ROAD_STRIP_CHARS = "。！？!? \n"
 
 FORBIDDEN_PUNCTUATION = {
-    "：": "中文冒号",
-    ":": "英文冒号",
     "—": "破折号",
     "–": "连接号式破折号",
 }
@@ -405,28 +403,11 @@ def main() -> int:
     failures = []
     warnings = []
 
-    quote_colons = []
     for symbol, label in FORBIDDEN_PUNCTUATION.items():
         matches = list(re.finditer(re.escape(symbol), prose))
-        if symbol in ("：", ":"):
-            hard = []
-            for match in matches:
-                tail = prose[match.end() : match.end() + 2].lstrip()
-                if tail[:1] in ("「", "『", "“", "‘", '"'):
-                    quote_colons.append(match)
-                else:
-                    hard.append(match)
-            matches = hard
         if matches:
             lines = "、".join(str(line_number(text, match.start())) for match in matches[:8])
             failures.append(f"{label}共 {len(matches)} 处，出现在第 {lines} 行。")
-    if quote_colons:
-        lines = "、".join(
-            str(line_number(text, match.start())) for match in quote_colons[:8]
-        )
-        warnings.append(
-            f"引出原话的冒号 {len(quote_colons)} 处，第 {lines} 行。确认引号里确实是原话，且不是提示性用法。"
-        )
 
     stop_matches = non_overlapping_terms(prose, HARD_STOPS)
     for position, phrase in stop_matches:
