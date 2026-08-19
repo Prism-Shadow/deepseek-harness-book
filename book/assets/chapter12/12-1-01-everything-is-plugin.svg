@@ -12,5 +12,5 @@
   <g><rect x="1210" y="230" width="290" height="120" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/><text x="1355" y="278" text-anchor="middle" class="mix h">Sandbox</text><text x="1355" y="317" text-anchor="middle" class="zh p">执行隔离</text><path d="M1210 290L1052 393" class="line"/></g>
   <g><rect x="1210" y="410" width="290" height="120" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/><text x="1355" y="458" text-anchor="middle" class="mix h">Agent Loop</text><text x="1355" y="497" text-anchor="middle" class="zh p">决定下一步</text><path d="M1210 470H1052" class="line"/></g>
   <g><rect x="1210" y="590" width="290" height="120" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/><text x="1355" y="638" text-anchor="middle" class="mix h">Storage / UI</text><text x="1355" y="677" text-anchor="middle" class="zh p">存储与界面</text><path d="M1210 650L1052 522" class="line"/></g>
-  <text x="800" y="800" text-anchor="middle" class="zh sub">替换能力 = 换插件或改配置，而不是 fork 核心源码</text>
+  <text x="800" y="800" text-anchor="middle" class="zh sub">换插件或改配置即可替换能力，无需 fork 核心源码</text>
 </svg>

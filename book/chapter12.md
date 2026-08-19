@@ -1,18 +1,49 @@
 # dsh 的核心：cordis {#ch-12}
 
-模型决定 Agent 能想多远，harness 决定它能做什么。Cordis 是 dsh 的装配层：让模型、工具、沙箱、会话和 Agent Loop 都成为可替换的插件，并负责它们的挂载、卸载与依赖关系。
+模型决定 Agent 能想多远，harness 决定它能做什么。Cordis 位于 dsh 的装配层。模型、工具、沙箱、会话和 Agent Loop 都由插件提供，Cordis 管理它们的挂载、卸载与依赖关系。
 
 ![一图读懂 Cordis 的能力、问题、场景与未来](assets/chapter12/12-0-01-cordis-overview.svg)
 
 ## 一切皆插件：dsh 的模块化设计 {#sec-12-1}
 
-“一切皆插件”要按字面理解。模型适配器、工具注册表、会话日志、沙箱、存储、界面，甚至决定下一步的 Agent Loop，都以插件形式进入同一个 Cordis Context。Cordis 只负责装配，能力留在插件里。
+模型适配器、工具注册表、会话日志、沙箱、存储和界面都会进入同一个 Cordis Context。决定下一步动作的 Agent Loop 也在其中。Cordis 负责装配，具体能力留在插件里。
 
 ![dsh 的各项能力通过 Cordis Context 协作](assets/chapter12/12-1-01-everything-is-plugin.svg)
 
-这解决了传统扩展系统的一个限制：开发者不必等待核心项目预留扩展点，也不必 fork 一份源码。换模型、换沙箱或增加工具，都可以通过换插件或叠加配置完成。
+插件配置项会并发启动。`cordis.yml` 中排在前面的插件，不一定先执行。插件需要另一项能力时，应通过 `inject` 声明依赖，由 Cordis 决定启动时机。
 
-### 亲手看见插件树
+### 跑通官方最小插件
+
+官方教程的第一份插件只有一个命名导出和一个 `apply` 函数。
+
+```ts
+import type { Context } from '@deepseek-ai/cordis'
+
+export const name = 'hello'
+
+export function apply(ctx: Context) {
+  console.log('hello from my first plugin')
+}
+```
+
+`cordis.yml` 只负责选择这个模块。
+
+```yaml
+- name: './hello.ts'
+```
+
+我按官方 master 版教程实际运行了启动器。终端打印下面这一行，进程以状态码 0 退出。
+
+```console
+$ node --import tsx ../../vendor/cordis/bin.js
+hello from my first plugin
+```
+
+![官方最小插件从配置到输出的完整路径](assets/chapter12/12-1-04-official-loader-flow.svg)
+
+这里没有框架启动代码。启动器创建根 `Context`，Loader 读取配置并挂载 `hello.ts`，随后 Cordis 调用 `apply(ctx)`。插件描述自己的贡献，配置文件负责组合应用。
+
+### 从一个插件看到完整 dsh
 
 下面的命令不需要模型密钥。它会打印当前 profile 最终装配出的配置树：
 
@@ -20,77 +51,78 @@
 dsh --profile web --dump-config
 ```
 
-实际输出中，驱动整个循环的 `agent-loop` 和维护待办列表的 `tool-todo` 具有相同的配置形状。
+实际输出中，驱动循环的 `agent-loop` 和维护待办列表的 `tool-todo` 具有相同的配置形状。
 
 ![实际 dump-config 输出中 agent-loop 与 tool-todo 是平等插件](assets/chapter12/12-1-02-plugin-tree-proof.svg)
 
-配置树不是一份不可动的默认配置。dsh 从空列表开始，依次叠加组合包、profile 补丁、home 补丁和命令行补丁。后面的层可以替换前面的条目。
+dsh 从空列表开始，依次叠加组合包、profile 补丁、home 补丁和 `--patch` overlay。后应用的层按 `id` 覆盖前面的配置行。覆盖会替换整块 `config`，不会深度合并其中的键。
 
 ![dsh 从组合包到用户补丁的分层装配](assets/chapter12/12-1-03-composition-layers.svg)
 
-四种运行模式也是同一机制：Standard、Code、Minimal 和 Creator 只是四套不同的插件组合。切换模式，本质上是在给会话换一组能力。
+Standard、Code、Minimal 和 Creator 是四套插件组合。切换模式，相当于给会话换一组能力。
 
 ## cordis 的核心组成 {#sec-12-2}
 
-Cordis 可以压缩成五个概念。
+官方教程展开了六个彼此衔接的组成部分。
 
-![Cordis 的五个核心概念](assets/chapter12/12-2-01-five-concepts.svg)
+![Cordis 的六个核心组成](assets/chapter12/12-2-01-five-concepts.svg)
 
-- **Plugin** 用 `apply(ctx)` 贡献能力。
-- **Context** 用稳定的 `ctx.<key>` 保存服务。
-- **inject** 声明依赖，服务未就绪时插件不会启动。
-- **Event** 让插件协作；`waterfall` 事件还能拦截请求或工具执行。
-- **Effect** 记录注册动作及其清理函数，卸载时自动撤销。
+插件接受三种形态。最常用的是函数，也可以传入带 `apply` 方法的对象。需要公开服务时，再使用 `Service` 子类。
+
+Loader 把每个配置项挂载成一个 fiber。fiber 会经过 `PENDING`、`LOADING`、`ACTIVE`、`UNLOADING` 和 `DISPOSED` 等状态；加载或配置校验失败时进入 `FAILED`。
+
+服务以名称挂在 `ctx` 上。`inject` 声明硬依赖，服务未就绪时 fiber 留在 `PENDING`。提供方在运行中消失，消费方会先卸载；服务恢复后，消费方再重新加载。
+
+事件负责松耦合通信。Cordis 提供 `emit`、`parallel`、`serial`、`bail` 和 `waterfall` 五种分发模式。harness 使用 `waterfall` 包装模型请求与审批决定。观察型监听器必须调用 `next()`，否则会截断后续处理。
+
+effect 保存资源和对应的 disposer。`ctx.on()`、`ctx.plugin()`、服务注册和工具注册本身已经属于 effect；定时器、连接或 watcher 等外部资源才需要手动放进 `ctx.effect()`。
 
 ### 两种可组合性
 
-论文把动态组合拆成两个正交问题：组件退出后，做过的修改能否撤销；依赖出现、消失或换实现后，其他组件能否自动调整。
+论文把动态组合拆成两个问题。组件退出后，已经做过的修改要能撤销；依赖出现、消失或换实现后，相关组件要能跟着调整。
 
 ![时间可组合性与空间可组合性](assets/chapter12/12-2-02-spatiotemporal.svg)
 
-**时间可组合性**把副作用和逆操作放在一起。插件注册工具、监听器或服务时，Cordis 同时记下如何撤销；卸载时按相反顺序清理。
+**时间可组合性**把副作用和逆操作放在一起。卸载开始时，Cordis 按 effect 的注册顺序逆向启动 disposer。多个异步 disposer 可能并发运行；有严格先后关系的清理步骤应放进同一个 disposer，逐项等待。
 
-**空间可组合性**把依赖写进 `inject`。提供方出现，消费者激活；提供方要离开，消费者先停用并撤销自己的副作用，再允许提供方退出。
+**空间可组合性**把依赖写进 `inject`。提供方出现，消费者激活。提供方准备退出时，消费者先撤销自己的 effect，随后提供方才能完成卸载。
 
 ### 用 seam 替换能力
 
-dsh 把可替换能力称为 **seam**（接缝）。一条 seam 由接口定义、提供方和消费者组成。消费者只认稳定接口，不知道背后是本机、沙箱、远程服务，还是另一个 Agent 产品。
+dsh 把可替换能力称为 **seam**（接缝）。一条 seam 包含接口定义、提供方和消费者。消费者只认识稳定接口，无需知道背后运行的是本机进程、远程沙箱或另一个 Agent 产品。
 
 ![同一个能力 seam 可以接入不同提供方](assets/chapter12/12-2-03-capability-seam.svg)
 
-这带来几类直接场景：
+评测可以固定工具与循环，只替换 `llm` 服务。部署时也能让同一套 shell 消费方在本机后端和远程沙箱之间切换。
 
-- 固定工具和循环，只替换模型，用于可重复评测；
-- 把文件系统和进程后端一起换成远程沙箱；
-- 在同一子 Agent 接口后接入进程内 Agent、ACP、Codex 或 Claude Code；
-- 运行时更换存储、模型路由或权限策略，而不改消费方。
+子 Agent 接口采用同样的做法，后端可以接进程内 Agent、ACP、Codex 或 Claude Code。存储与权限策略也能沿各自的 seam 更换，消费方无需改动。
 
 ## cordis 的设计原理 {#sec-12-3}
 
-传统插件系统常把模块问题推给进程重启：插件卸载不干净，就重启整个宿主；依赖变化难处理，就拆成服务交给容器编排。Cordis 把治理粒度降回组件本身。
+传统插件系统常用进程重启处理卸载残留和依赖变化。Cordis 把治理粒度缩小到插件实例，并用 fiber 保存每个实例的运行状态。
 
 ![Cordis 从整机重启转向模块级恢复，同时保留系统边界](assets/chapter12/12-3-01-problem-scenes-boundary.svg)
 
-这里有两条重要边界。
+HMR 利用这套机制。旧插件先卸载，所属 effect 随之回卷；新代码随后加载，依赖它的插件自动重新求解。Loader 还会按稳定 `id` 比较新旧配置，只处理发生变化的配置项。
 
-第一，Cordis 只能撤销被 Context 纳入管理的副作用。已经发出的消息、写入外部系统的数据或完成的付款，不会因为插件卸载而自动消失；这类动作仍需延迟提交或补偿操作。
+`PENDING` 也是正常状态。依赖的服务暂时没有提供方时，插件可以安静等待。如果应用中没有其他活跃任务，Node 甚至会正常退出。新增插件毫无输出时，应先检查模块拼写和 fiber 状态。
 
-第二，依赖声明不是安全沙箱。恶意插件如果能直接访问 Node.js 或原生系统接口，仍可能绕过 Context；不可信代码需要进程、WebAssembly、虚拟机等隔离边界。
+这套机制有两条边界。
+
+Cordis 只能撤销由 Context 管理的副作用。已经发出的消息、写入外部系统的数据或完成的付款不会随插件卸载消失，这些动作仍需延迟提交或补偿操作。
+
+依赖声明也不承担安全隔离。恶意插件如果能直接访问 Node.js 或原生系统接口，仍可能绕过 Context。不可信代码需要进程、WebAssembly 或虚拟机等隔离边界。
 
 ### X 上的三种判断
 
-截至 2026 年 8 月 18 日，公开讨论主要集中在三个方向：
+截至 2026 年 8 月 19 日，公开讨论大致分成三类。Pi Agent 作者 Armin Ronacher 认为，dsh 虽不完美，却让他重新审视自己的 harness 设计，并称赞项目选择开源。
 
-- Pi Agent 作者 Armin Ronacher 认为，dsh 虽不完美，却是少见的、让他愿意重新审视自身 harness 设计的开源项目。
-- 早期体验者关注 Creator 模式展示出的自修改能力：Agent 能生成并挂载插件，但内存插件重启后消失，距离持续自演化还有一步。
-- 谨慎意见集中在 Node.js 工具链门槛、插件兼容、界面复杂度和安全治理；这些问题决定 Cordis 能否从开发者框架走向普通用户产品。
+早期体验者更关注 Creator 模式展示的自修改能力。Agent 已能生成并挂载插件，运行时实验默认不会跨重启保留，持续自演化仍有一段路。谨慎意见则集中在 Node.js 工具链门槛、插件兼容和安全治理。
 
-### 未来不是“插件更多”
+### 未来要验证什么
 
-Cordis 已在 Koishi 的 4000 多个社区插件中证明了动态装配可以支撑真实生态；dsh 则把这套机制带进 Agent harness。论文同时明确：**持续由 Agent 生成、替换和回滚自身组件，仍是未来验证方向，不是已经完成的结论。**
+Cordis 已在 Koishi 的 4000 多个社区插件中支撑真实生态。dsh 把同一机制带进 Agent harness。论文把持续生成、替换和回滚自身组件列为后续验证方向，尚未把它当成已经完成的能力。
 
 ![从 Koishi 生产验证到自演化 harness 的下一步](assets/chapter12/12-3-02-community-future.svg)
 
-接下来的关键，不只是让 Agent “会改自己”，而是回答五个问题：外部动作如何补偿，不可信插件如何隔离，依赖接口如何做版本兼容，频繁重组的运行成本多高，以及谁来批准和审计长期自演化。
-
-> 本章资料截至 2026 年 8 月 18 日。dsh 仍处于 Developer Preview，插件 API 可能发生破坏性变化。核心事实以 [DeepSeek Harness 官方仓库](https://github.com/deepseek-ai/deepseek-harness)、[Cordis 仓库](https://github.com/cordiverse/cordis) 和论文 [A Programming Paradigm for Spatiotemporal Composability](https://github.com/cordiverse/paper) 为准。
+下一步要先处理外部动作补偿和不可信代码隔离，再评估接口兼容与频繁重组的运行成本。长期自演化还需要明确的批准与审计机制。

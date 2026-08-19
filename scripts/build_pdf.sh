@@ -10,6 +10,7 @@ BUILD_DIR="$ROOT_DIR/tmp/pdfs/elegant-build"
 OUTPUT_PDF="$OUTPUT_DIR/DSH-Book-样章.pdf"
 OUTLINE_TEX="$BUILD_DIR/planned-outline.tex"
 BOOK_MARKDOWN="$BUILD_DIR/book.md"
+SVG_BUILD_DIR="$BUILD_DIR/svg-assets"
 
 if ! command -v pandoc >/dev/null 2>&1; then
   echo "缺少 pandoc。macOS 可运行：brew install pandoc" >&2
@@ -84,6 +85,12 @@ python3 "$SCRIPT_DIR/prepare_book.py" \
   --book-dir "$BOOK_DIR" \
   --outline "$BOOK_DIR/outline.md" \
   --output "$BOOK_MARKDOWN"
+
+rm -rf "$SVG_BUILD_DIR"
+python3 "$SCRIPT_DIR/prepare_svg_assets.py" \
+  --markdown "$BOOK_MARKDOWN" \
+  --book-dir "$BOOK_DIR" \
+  --output-dir "$SVG_BUILD_DIR"
 
 python3 "$SCRIPT_DIR/generate_outline_tex.py" \
   --outline "$BOOK_DIR/outline.md" \

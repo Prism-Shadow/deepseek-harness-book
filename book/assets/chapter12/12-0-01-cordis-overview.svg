@@ -8,7 +8,7 @@
   </style></defs>
   <rect width="1600" height="900" fill="#fff"/>
   <text x="100" y="92" class="mix t">一图读懂 Cordis</text>
-  <text x="100" y="137" class="zh sub">让运行中的系统能安全地换零件，而不是整机重启</text>
+  <text x="100" y="137" class="zh sub">让运行中的系统安全换零件，无需整机重启</text>
   <rect x="100" y="205" width="665" height="245" rx="26" fill="#315EF5"/>
   <text x="145" y="255" class="mix hip">01 · CORE</text><text x="145" y="313" class="zh hi">核心能力</text>
   <text x="145" y="365" class="zh hip">可撤销副作用 + 响应式依赖</text><text x="145" y="405" class="zh hip">插件可挂载、卸载、替换与重组</text>
@@ -21,5 +21,5 @@
   <rect x="835" y="510" width="665" height="245" rx="26" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
   <text x="880" y="560" class="mix num">04 · FUTURE</text><text x="880" y="618" class="zh h">未来发展</text>
   <text x="880" y="670" class="zh p">从人装插件，走向 Agent 修改自身 harness</text><text x="880" y="710" class="zh p">仍需验证安全、兼容、成本与治理</text>
-  <text x="100" y="838" class="zh sub">关键词：时空可组合性（Spatiotemporal Composability）</text>
+  <text x="100" y="838" class="zh sub">关键词 · 时空可组合性（Spatiotemporal Composability）</text>
 </svg>
