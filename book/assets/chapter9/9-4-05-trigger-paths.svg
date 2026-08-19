@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">同一个晨报脚本的两条触发路径</title>
+  <desc id="desc">schedule 提醒在 dsh web 会话内每天触发晨报脚本，cron 加 headless 模式作为无人值守的可选路径，脚本产出只含数据事实的每日晨报。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#315EF5"/>
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8E99AA"/>
+    </marker>
+    <style>
+      .zh { font-family: SimSun, "Songti SC", "Noto Serif CJK SC", serif; }
+      .mixed { font-family: "Times New Roman", SimSun, "Songti SC", "Noto Serif CJK SC", serif; }
+      .title { font-size: 50px; font-weight: 700; fill: #273142; }
+      .subtitle { font-size: 25px; fill: #5C667A; }
+      .node-title { font-size: 31px; font-weight: 700; fill: #273142; }
+      .node-copy { font-size: 24px; fill: #526071; }
+      .inverse-title { font-size: 31px; font-weight: 700; fill: #FFFFFF; }
+      .inverse-copy { font-size: 24px; fill: #FFFFFF; }
+      .tag { font-size: 22px; fill: #315EF5; }
+      .note { font-size: 24px; fill: #5C667A; }
+      .line { fill: none; stroke: #315EF5; stroke-width: 4; marker-end: url(#arrow); }
+      .line-dashed { fill: none; stroke: #8E99AA; stroke-width: 4; stroke-dasharray: 12 10; marker-end: url(#arrow-gray); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+
+  <text x="100" y="92" class="zh title">同一个晨报脚本，两种闹钟</text>
+  <text x="100" y="136" class="zh subtitle">主线用 dsh 自带的 schedule 提醒，无人值守时换系统 cron 调用 headless 模式</text>
+
+  <!-- 左：schedule 提醒（主线） -->
+  <rect x="100" y="260" width="380" height="180" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="290" y="310" text-anchor="middle" class="mixed tag">dsh web 会话内</text>
+  <text x="290" y="360" text-anchor="middle" class="mixed node-title">schedule 提醒</text>
+  <text x="290" y="406" text-anchor="middle" class="zh node-copy">每 24 小时触发一次</text>
+
+  <!-- 左：cron 路径（可选） -->
+  <rect x="100" y="540" width="380" height="180" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="290" y="590" text-anchor="middle" class="zh tag">无人值守可选</text>
+  <text x="290" y="640" text-anchor="middle" class="mixed node-title">cron 定时任务</text>
+  <text x="290" y="686" text-anchor="middle" class="mixed node-copy">交易日早上调用 headless 模式</text>
+
+  <!-- 中：晨报脚本（核心） -->
+  <rect x="660" y="380" width="340" height="220" rx="24" fill="#315EF5"/>
+  <text x="830" y="438" text-anchor="middle" class="zh inverse-copy">固化的例行动作</text>
+  <text x="830" y="490" text-anchor="middle" class="mixed inverse-title">daily_report.py</text>
+  <text x="830" y="542" text-anchor="middle" class="zh inverse-copy">更新行情、重算信号、写晨报</text>
+
+  <!-- 右：每日晨报 -->
+  <rect x="1180" y="400" width="320" height="180" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="1340" y="450" text-anchor="middle" class="mixed tag">reports/</text>
+  <text x="1340" y="500" text-anchor="middle" class="zh node-title">每日晨报</text>
+  <text x="1340" y="546" text-anchor="middle" class="zh node-copy">只含数据事实，不含建议</text>
+
+  <!-- 连线 -->
+  <path class="line" d="M 480 350 C 560 350 590 420 652 448"/>
+  <path class="line-dashed" d="M 480 630 C 560 630 590 560 652 532"/>
+  <path class="line" d="M 1000 490 L 1172 490"/>
+
+  <text x="800" y="800" text-anchor="middle" class="zh note">虚线为可选路径，机器不开 dsh web 时由 cron 代为触发，两条路跑的是同一个脚本</text>
+</svg>

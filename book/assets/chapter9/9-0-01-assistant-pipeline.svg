@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">从主观判断到每日晨报的四步流程</title>
+  <desc id="desc">一句没法检验的行情感觉，经过接入行情、定成规则、历史检验、定时晨报四步，变成落在工作区里的可核对产物。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#315EF5"/>
+    </marker>
+    <style>
+      .zh { font-family: SimSun, "Songti SC", "Noto Serif CJK SC", serif; }
+      .mixed { font-family: "Times New Roman", SimSun, "Songti SC", "Noto Serif CJK SC", serif; }
+      .title { font-size: 50px; font-weight: 700; fill: #273142; }
+      .subtitle { font-size: 25px; fill: #5C667A; }
+      .node-title { font-size: 31px; font-weight: 700; fill: #273142; }
+      .node-copy { font-size: 24px; fill: #526071; }
+      .inverse-title { font-size: 31px; font-weight: 700; fill: #FFFFFF; }
+      .inverse-copy { font-size: 24px; fill: #FFFFFF; }
+      .tag { font-size: 22px; fill: #315EF5; }
+      .note { font-size: 24px; fill: #5C667A; }
+      .line { fill: none; stroke: #315EF5; stroke-width: 4; marker-end: url(#arrow); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+
+  <text x="100" y="92" class="zh title">从主观判断到每日晨报</text>
+  <text x="100" y="136" class="zh subtitle">四步把一句没法检验的感觉，变成可核对、可自动执行的流程</text>
+
+  <!-- 节点 1：主观判断 -->
+  <rect x="100" y="350" width="240" height="200" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="220" y="400" text-anchor="middle" class="zh tag">起点</text>
+  <text x="220" y="452" text-anchor="middle" class="zh node-title">主观判断</text>
+  <text x="220" y="500" text-anchor="middle" class="zh node-copy">“涨多了、趋势还在”</text>
+
+  <!-- 节点 2：接入行情 -->
+  <rect x="390" y="350" width="240" height="200" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="510" y="400" text-anchor="middle" class="mixed tag">9.1</text>
+  <text x="510" y="452" text-anchor="middle" class="zh node-title">接入行情</text>
+  <text x="510" y="500" text-anchor="middle" class="mixed node-copy">index_daily.csv</text>
+
+  <!-- 节点 3：定成规则（核心） -->
+  <rect x="680" y="350" width="240" height="200" rx="24" fill="#315EF5"/>
+  <text x="800" y="400" text-anchor="middle" class="mixed inverse-copy">9.2</text>
+  <text x="800" y="452" text-anchor="middle" class="zh inverse-title">定成规则</text>
+  <text x="800" y="500" text-anchor="middle" class="mixed inverse-copy">规则定义.md</text>
+
+  <!-- 节点 4：历史检验 -->
+  <rect x="970" y="350" width="240" height="200" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="1090" y="400" text-anchor="middle" class="mixed tag">9.3</text>
+  <text x="1090" y="452" text-anchor="middle" class="zh node-title">历史检验</text>
+  <text x="1090" y="500" text-anchor="middle" class="mixed node-copy">回测报告.md</text>
+
+  <!-- 节点 5：定时晨报 -->
+  <rect x="1260" y="350" width="240" height="200" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="1380" y="400" text-anchor="middle" class="mixed tag">9.4</text>
+  <text x="1380" y="452" text-anchor="middle" class="zh node-title">定时晨报</text>
+  <text x="1380" y="500" text-anchor="middle" class="mixed node-copy">reports/ 每日一份</text>
+
+  <!-- 主路径箭头 -->
+  <path class="line" d="M 340 450 L 382 450"/>
+  <path class="line" d="M 630 450 L 672 450"/>
+  <path class="line" d="M 920 450 L 962 450"/>
+  <path class="line" d="M 1210 450 L 1252 450"/>
+
+  <text x="800" y="700" text-anchor="middle" class="zh note">每一步的产物都落在工作区里，随时可以打开核对、重跑检验</text>
+</svg>
