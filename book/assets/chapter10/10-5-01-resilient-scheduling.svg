@@ -7,53 +7,51 @@
       .zh { font-family: "Songti SC", SimSun, serif; fill: #273142; }
       .en { font-family: "Times New Roman", serif; fill: #667085; }
       .title { font-size: 48px; font-weight: 700; }
-      .node { font-size: 29px; font-weight: 700; }
+      .node { font-size: 27px; font-weight: 700; }
       .small { font-size: 22px; }
       .tag { font-size: 20px; font-weight: 700; }
-      .zh.inverse, .en.inverse { fill: #FFFFFF; }
+      .inverse { fill: #FFFFFF; }
     </style>
   </defs>
   <rect width="1600" height="900" fill="#FFFFFF"/>
-  <text x="90" y="105" class="zh title">中断之后，任务如何安全继续</text>
-  <text x="92" y="150" class="en small">Resilient scheduling prevents concurrent takeover.</text>
+  <text x="90" y="105" class="zh title">成员结束后，任务怎样继续</text>
+  <text x="92" y="150" class="en small">A settled member does not automatically mean a completed task.</text>
 
-  <g>
-    <rect x="80" y="270" width="280" height="190" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
-    <text x="115" y="320" class="en tag">attempt 1</text>
-    <text x="220" y="378" text-anchor="middle" class="zh node">开发成员执行</text>
-    <text x="220" y="420" text-anchor="middle" class="zh small">任务已认领</text>
+  <rect x="75" y="255" width="300" height="200" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="110" y="305" class="en tag">attempt 1</text>
+  <text x="225" y="360" text-anchor="middle" class="zh node">四名成员并行审查</text>
+  <text x="225" y="405" text-anchor="middle" class="zh small">任务已认领并运行</text>
 
-    <rect x="470" y="270" width="280" height="190" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3" stroke-dasharray="12 10"/>
-    <text x="505" y="320" class="en tag">interrupted</text>
-    <text x="610" y="378" text-anchor="middle" class="zh node">执行未及时落地</text>
-    <text x="610" y="420" text-anchor="middle" class="zh small">任务仍未完成</text>
+  <rect x="475" y="255" width="300" height="200" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3" stroke-dasharray="12 10"/>
+  <text x="510" y="305" class="en tag">settled</text>
+  <text x="625" y="360" text-anchor="middle" class="zh node">成员会话已经结束</text>
+  <text x="625" y="405" text-anchor="middle" class="zh small">任务终态仍未写入</text>
 
-    <rect x="860" y="270" width="280" height="190" rx="24" fill="#F3F4F6" stroke="#315EF5" stroke-width="3"/>
-    <text x="895" y="320" class="en tag">reassign</text>
-    <text x="1000" y="378" text-anchor="middle" class="zh node">撤销旧尝试</text>
-    <text x="1000" y="420" text-anchor="middle" class="zh small">等待旧成员停止</text>
+  <rect x="875" y="255" width="300" height="200" rx="24" fill="#F3F4F6" stroke="#315EF5" stroke-width="3"/>
+  <text x="910" y="305" class="en tag">reassign</text>
+  <text x="1025" y="360" text-anchor="middle" class="zh node">撤销旧尝试</text>
+  <text x="1025" y="405" text-anchor="middle" class="zh small">生成新的 attempt</text>
 
-    <rect x="1250" y="270" width="280" height="190" rx="24" fill="#315EF5" stroke="#2148CC" stroke-width="3"/>
-    <text x="1285" y="320" class="en tag inverse">attempt 2</text>
-    <text x="1390" y="378" text-anchor="middle" class="zh node inverse">队长接管完成</text>
-    <text x="1390" y="420" text-anchor="middle" class="zh small inverse">新尝试独占写入</text>
+  <rect x="1275" y="255" width="250" height="200" rx="24" fill="#315EF5" stroke="#2148CC" stroke-width="3"/>
+  <text x="1310" y="305" class="en tag inverse">attempt 2</text>
+  <text x="1400" y="360" text-anchor="middle" class="zh node inverse">队长接管</text>
+  <text x="1400" y="405" text-anchor="middle" class="zh small inverse">五项任务完成</text>
 
-    <path d="M360 365 H450" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)"/>
-    <path d="M750 365 H840" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)"/>
-    <path d="M1140 365 H1230" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)"/>
+  <g fill="none" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)">
+    <path d="M375 355 H455"/>
+    <path d="M775 355 H855"/>
+    <path d="M1175 355 H1255"/>
   </g>
 
-  <g>
-    <rect x="175" y="590" width="500" height="165" rx="24" fill="#FFFFFF" stroke="#9AA7B8" stroke-width="3"/>
-    <text x="215" y="642" class="zh node">磁盘状态是真相源</text>
-    <text x="215" y="692" class="en small">.agent-teams/archive/.../team.json</text>
-    <text x="215" y="728" class="zh small">成员、依赖、尝试次数均可追踪</text>
+  <rect x="150" y="590" width="535" height="170" rx="24" fill="#FFFFFF" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="190" y="642" class="zh node">归档文件先记录过程证据</text>
+  <text x="190" y="690" class="en small">.agent-teams/archive/.../team.json</text>
+  <text x="190" y="728" class="zh small">核对并复制后，再决定是否清理</text>
 
-    <rect x="925" y="590" width="500" height="165" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
-    <text x="965" y="642" class="zh node">下游任务自动就绪</text>
-    <text x="965" y="692" class="zh small">开发完成后，测试成员认领任务</text>
-    <text x="965" y="728" class="zh small">最终测试全部通过</text>
+  <rect x="915" y="590" width="535" height="170" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="955" y="642" class="zh node">人再核对队长报告</text>
+  <text x="955" y="690" class="zh small">修正提交号与时间，补查遗漏风险</text>
+  <text x="955" y="728" class="zh small">模型交付不是审查终点</text>
 
-    <path d="M675 672 H905" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)"/>
-  </g>
+  <path d="M685 675 H895" fill="none" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)"/>
 </svg>
