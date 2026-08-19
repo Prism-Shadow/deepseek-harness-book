@@ -16,7 +16,7 @@
 
 ![付费功能改造前的阻塞卡片没有显示等待原因](assets/chapter10/10-1-01-paid-report-board-before.png)
 
-起始项目位于 `demo/chapter10/starter/`。在仓库根目录运行下面的命令，可以先看到问题对应的测试结果。
+起始项目位于 `demo/chapter10/starter/`。在仓库根目录运行下面的命令，可以先看到问题对应的测试结果：
 
 ```bash
 cd demo/chapter10/starter
@@ -74,7 +74,7 @@ npm test
 
 ![AgentTeams 与 DeepSeek Harness 的集成位置](assets/chapter10/10-2-01-agent-teams-integration.png)
 
-先把插件安装到 Web profile。
+先把插件安装到 Web profile：
 
 ```bash
 dsh plugin --profile web add @nanmicoder/dsh-agent-teams
@@ -86,7 +86,7 @@ dsh web
 
 ![AgentTeams 已在 dsh 中启用](assets/chapter10/10-2-02-agent-teams-enabled.png)
 
-接着点击“添加工作区”，选择 `demo/chapter10/starter/`，新建会话并发送下面的提示词。
+接着点击“添加工作区”，选择 `demo/chapter10/starter/`，新建会话并发送下面的提示词：
 
 ```text
 我一个人经营“AI 简历诊所”，正在上线付费版简历报告。我用这块
@@ -141,13 +141,13 @@ dsh web
 
 这张依赖图就是一个小型 AI Native 组织的工作约定。产品 Agent 不需要管理开发 Agent，测试 Agent 也不需要反复询问代码是否写完。每个角色交付自己的结果，任务状态决定下一步由谁开始。经营者查看队长汇总和依赖图，就能掌握整个团队。
 
-运行中的权威状态保存在下面的位置。
+运行中的权威状态保存在下面的位置：
 
 ```text
 .agent-teams/blocked-card-deps/team.json
 ```
 
-团队结束后，记录会进入归档目录。
+团队结束后，记录会进入归档目录：
 
 ```text
 .agent-teams/archive/blocked-card-deps/team.json
@@ -181,7 +181,7 @@ Web 面板读取这些磁盘状态。即使会话变长或 dsh 重启，成员�
 
 队长先调用 `agent_teams_reassign_task` 撤销旧尝试，等待旧成员停止，再由队长接管。直接并发修改会让旧成员与新执行者同时写文件，重新分配可以先切断旧尝试的更新权限。
 
-归档状态记录了这次变化。
+归档状态记录了这次变化：
 
 ```json
 {
@@ -197,7 +197,7 @@ Web 面板读取这些磁盘状态。即使会话变长或 dsh 重启，成员�
 
 ![中断后的安全接管流程](assets/chapter10/10-5-01-resilient-scheduling.png)
 
-开发任务完成后，测试任务才进入就绪状态。本章保存的完成项目位于 `demo/chapter10/result/`，可以在仓库根目录复查。
+开发任务完成后，测试任务才进入就绪状态。本章保存的完成项目位于 `demo/chapter10/result/`，可以在仓库根目录复查：
 
 ```bash
 cd demo/chapter10/result

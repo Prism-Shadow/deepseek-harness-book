@@ -76,7 +76,7 @@ API 密钥、`tech-editor` preset 和主题插件都保存在 `$DSH_HOME`。这�
 
 Web 档案位于 `$DSH_HOME/profiles/web/`。在其中新建 `plugins/emerald-accent/`，准备 `package.json`、`index.js` 和 `client.js`。
 
-`package.json` 声明插件的服务端入口和浏览器端入口。
+`package.json` 声明插件的服务端入口和浏览器端入口：
 
 ```json
 {
@@ -101,7 +101,7 @@ Web 档案位于 `$DSH_HOME/profiles/web/`。在其中新建 `plugins/emerald-ac
 
 这个插件不需要服务端逻辑，`index.js` 只有一行，内容是 `export function apply() {}`。
 
-主题覆盖写在 `client.js` 中。代码仍然使用上一节验证过的颜色值。
+主题覆盖写在 `client.js` 中。代码仍然使用上一节验证过的颜色值：
 
 ```js
 window.__ModuleLoader__.load({
@@ -125,7 +125,7 @@ window.__ModuleLoader__.load({
 
 在 `profiles/web/package.json` 的 `dependencies` 中登记本地插件，键值为 `"emerald-accent": "file:./plugins/emerald-accent"`。
 
-把加载项写入 `cordis.patch.yml`。`insert` 表示向现有组装清单中新增一项。
+把加载项写入 `cordis.patch.yml`。`insert` 表示向现有组装清单中新增一项：
 
 ```yaml
 - insert:
