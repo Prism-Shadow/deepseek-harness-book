@@ -6,6 +6,7 @@
 \usepackage{needspace}
 \usepackage{ragged2e}
 \usepackage{fvextra}
+\usepackage{float}
 \usepackage{tikz}
 \usepackage{tcolorbox}
 \tcbuselibrary{breakable,skins}
@@ -235,7 +236,7 @@
 }
 \@ifundefined{Shaded}{}{%
   \renewenvironment{Shaded}
-    {\Needspace{5\baselineskip}\begin{dshcodebox}}
+    {\Needspace{2\baselineskip}\begin{dshcodebox}}
     {\end{dshcodebox}}%
 }
 \makeatother
