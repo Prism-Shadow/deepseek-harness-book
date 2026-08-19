@@ -8,7 +8,7 @@
 
 ### 不教它的样子
 
-工作区里放着这样一份草稿，`本周工作草记.md`。
+工作区里放着这样一份草稿，`本周工作草记.md`：
 
 ```md
 周一到周五的一些记录，随手记的，还没整理：
@@ -32,7 +32,7 @@
 
 Skill 就是一个带约定格式的 Markdown 文件，放在 dsh 会扫描的目录里就能被发现。项目内的 `.dsh/skills/skill-name/SKILL.md` 只对这个项目生效，适合跟着代码库一起分享给团队；`~/.dsh/skills/skill-name/SKILL.md` 是用户级的，对这台机器上所有项目都生效，适合自己一个人反复用的方法，`skill-name` 换成自己起的名字就行。这次的周报格式跟这个工作区强相关，用项目级。
 
-在工作区里新建 `.dsh/skills/weekly-report/SKILL.md`。
+在工作区里新建 `.dsh/skills/weekly-report/SKILL.md`：
 
 ```md
 ---
@@ -84,7 +84,7 @@ whenToUse: 用户提到周报，或者给了一份本周的工作草记要求整
 
 这次对话开头多了一条“上下文注入 · skill-catalog”，这是 dsh 把当前能用的 Skill 名字和一句话说明报给模型看的目录，模型看到跟任务匹配就会主动调用。往下能看到一行“Skill · weekly-report”，这就是它真的加载了这份格式说明。加载之后它没有直接开写，先跑了一条命令确认今天的日期，因为草记里没写明确的周五日期，按 Skill 里的规则该用今天顶上；接着把内容写进了 `周报-2026-08-17.md`，文件名和上次的 `本周周报.md` 不一样，跟 Skill 里规定的命名规则对上了。
 
-打开这份文件核对内容。
+打开这份文件核对内容：
 
 ```md
 # 周报 2026-08-17
@@ -114,7 +114,7 @@ whenToUse: 用户提到周报，或者给了一份本周的工作草记要求整
 
 dsh 自带的工具就那么多，读写文件、跑命令、搜网页。MCP（Model Context Protocol）是一套开放协议，谁都能按它写一个独立的服务进程，把一组工具通过这个协议暴露出来，dsh 接上之后，这些工具会跟自带工具一样出现在模型面前，模型分不出哪个是原生的、哪个是接进来的。这一节接一个官方维护、免费、不用申请任何密钥的 MCP 服务器，官方的文件系统服务 `@modelcontextprotocol/server-filesystem`，让它读一个当前对话本来碰不到的目录。
 
-先准备一份不在当前工作区里的调研笔记，放在 `~/dsh-mcp-notes/`。
+先准备一份不在当前工作区里的调研笔记，放在 `~/dsh-mcp-notes/`：
 
 ```md
 # 数据库偶尔断连排查.md
@@ -126,7 +126,7 @@ dsh 自带的工具就那么多，读写文件、跑命令、搜网页。MCP（M
 下一步：把连接池的 idleTimeout 调到比 wait_timeout 短，观察两天。
 ```
 
-接入 MCP 服务器的配置写在当前 profile 的 `cordis.patch.yml` 里，也就是启动 `dsh web` 用的那份，路径是 `~/.dsh/profiles/web/cordis.patch.yml`。打开它，往里插一行。
+接入 MCP 服务器的配置写在当前 profile 的 `cordis.patch.yml` 里，也就是启动 `dsh web` 用的那份，路径是 `~/.dsh/profiles/web/cordis.patch.yml`。打开它，往里插一行：
 
 ```yaml
 - insert:
@@ -169,13 +169,13 @@ dsh 自带的工具就那么多，读写文件、跑命令、搜网页。MCP（M
 
 ### 走一遍安装流程
 
-dsh 提供了一条专门装插件的命令，帮你把依赖装进 profile、注册进插件树这两步一起做掉，不用手改 `package.json` 和 `cordis.patch.yml`。
+dsh 提供了一条专门装插件的命令，帮你把依赖装进 profile、注册进插件树这两步一起做掉，不用手改 `package.json` 和 `cordis.patch.yml`：
 
 ```sh
 dsh plugin --profile web add dsh-find-plugin
 ```
 
-这条命令在幕后就是进到 `~/.dsh/profiles/web/` 目录跑一次 `pnpm add`，装完之后打开这份 profile 的 `package.json` 能看到变化。
+这条命令在幕后就是进到 `~/.dsh/profiles/web/` 目录跑一次 `pnpm add`，装完之后打开这份 profile 的 `package.json` 能看到变化：
 
 ```json
 {
@@ -224,7 +224,7 @@ dsh plugin --profile web add dsh-find-plugin
 
 ### 写代码
 
-新建 `~/.dsh/profiles/web/plugins/tool-decide/package.json`。
+新建 `~/.dsh/profiles/web/plugins/tool-decide/package.json`：
 
 ```json
 {
@@ -235,7 +235,7 @@ dsh plugin --profile web add dsh-find-plugin
 }
 ```
 
-再建同目录下的 `index.js`。
+再建同目录下的 `index.js`：
 
 ```js
 // tool-decide 插件，给 dsh 加一个"随机做决定"的工具。
@@ -287,7 +287,7 @@ export function apply(ctx) {
 
 跟 `tool-todo` 对比着看，结构是一样的。`name` 和 `inject` 两个导出告诉 dsh 这个插件叫什么、依赖哪些服务；`apply` 函数里用 `ctx.tools.register` 注册一个工具，`defineTool` 里的 `name`、`description`、`parameters` 这三样是给模型看的，模型只凭这三样决定要不要调、怎么调；`execute` 是真正跑的代码，跟模型之间完全隔着一层，模型看不到这段代码本身。
 
-`output.schema` 那几行第一次写很容易漏掉一处。`type: 'object'` 的 schema 必须显式写上 `additionalProperties: false` 或者 `true`，写漏了 dsh 启动时会直接拒绝加载，报错信息是这样。
+`output.schema` 那几行第一次写很容易漏掉一处。`type: 'object'` 的 schema 必须显式写上 `additionalProperties: false` 或者 `true`，写漏了 dsh 启动时会直接拒绝加载，报错信息是这样：
 
 ```text
 Error: dsh: plugin tree failed to load: failed to apply loader entry
@@ -299,7 +299,7 @@ schema.additionalProperties must be explicitly true or false
 
 ### 接进配置，重启，验证
 
-在 profile 的 `package.json` 里把这个本地包加成一条依赖，跟第 2 章“翡翠绿主题”插件用的是同一个手法。
+在 profile 的 `package.json` 里把这个本地包加成一条依赖，跟第 2 章“翡翠绿主题”插件用的是同一个手法：
 
 ```json
 {
@@ -309,7 +309,7 @@ schema.additionalProperties must be explicitly true or false
 }
 ```
 
-`cordis.patch.yml` 里插一行。
+`cordis.patch.yml` 里插一行：
 
 ```yaml
 - insert:

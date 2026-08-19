@@ -68,7 +68,7 @@ npx -y @deepseek-ai/dsh web
 
 ![展开 Write 记录后，可以看到 about-dsh.md 的完整写入差异](assets/chapter1/1-3-01-tool-detail-write.png){width=82%}
 
-文件开头如下。
+文件开头如下：
 
 ```md
 # 关于 dsh
