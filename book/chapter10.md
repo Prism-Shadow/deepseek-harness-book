@@ -62,15 +62,15 @@ npm test
 
 ## 在 dsh 中组建 AI 研发团队 {#sec-10-2}
 
-在这个案例里，DSH 与 [`dsh-agent-teams`](https://github.com/NanmiCoder/dsh-agent-teams) 分别承担不同工作。
+在这个案例里，dsh 与 [`dsh-agent-teams`](https://github.com/NanmiCoder/dsh-agent-teams) 分别承担不同工作。
 
 | 参与者或工具 | 承担的责任 | 在本章中的动作 |
 |---|---|---|
 | OPC 经营者 | 确认问题、限定改动范围、决定是否接受结果 | 提出目标，不增加依赖，要求测试通过 |
-| DSH | 提供工作区、模型会话和工具执行环境 | 让队长与成员读取并修改当前项目 |
+| dsh | 提供工作区、模型会话和工具执行环境 | 让队长与成员读取并修改当前项目 |
 | `dsh-agent-teams` | 组织成员、任务依赖、消息和持久状态 | 创建四个角色，调度就绪任务，记录执行结果 |
 
-当前 DSH 会话担任队长。插件创建可继续执行的子 Agent，把任务状态写入工作区的 `.agent-teams/` 目录，并调度依赖已经满足的任务。经营者仍然只面对一个队长会话，无需分别追问四个角色。
+当前 dsh 会话担任队长。插件创建可继续执行的子 Agent，把任务状态写入工作区的 `.agent-teams/` 目录，并调度依赖已经满足的任务。经营者仍然只面对一个队长会话，无需分别追问四个角色。
 
 ![AgentTeams 与 DeepSeek Harness 的集成位置](assets/chapter10/10-2-01-agent-teams-integration.png)
 
@@ -82,9 +82,9 @@ dsh --profile web --dump-config
 dsh web
 ```
 
-进入“设置 → 插件”，确认 `agent-teams` 已挂载并启用。安装或升级插件后，重启 DSH，再刷新 Web 页面。
+进入“设置 → 插件”，确认 `agent-teams` 已挂载并启用。安装或升级插件后，重启 dsh，再刷新 Web 页面。
 
-![AgentTeams 已在 DSH 中启用](assets/chapter10/10-2-02-agent-teams-enabled.png)
+![AgentTeams 已在 dsh 中启用](assets/chapter10/10-2-02-agent-teams-enabled.png)
 
 接着点击“添加工作区”，选择 `demo/chapter10/starter/`，新建会话并发送下面的提示词。
 
@@ -153,7 +153,7 @@ dsh web
 .agent-teams/archive/blocked-card-deps/team.json
 ```
 
-Web 面板读取这些磁盘状态。即使会话变长或 DSH 重启，成员、负责人和任务依赖仍有记录可查。
+Web 面板读取这些磁盘状态。即使会话变长或 dsh 重启，成员、负责人和任务依赖仍有记录可查。
 
 ## 让团队协作完成功能 {#sec-10-4}
 
