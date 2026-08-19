@@ -10,10 +10,6 @@
 
 如果终端找不到 `node`，或者版本不符合要求，请从 [Node.js 官网](https://nodejs.org/)安装 LTS 版本。安装完成后重新打开终端，再运行一次 `node -v`。
 
-```{=latex}
-\Needspace{16\baselineskip}
-```
-
 ### 启动 dsh
 
 ```sh

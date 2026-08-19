@@ -135,6 +135,18 @@ def validate_images(path: Path) -> None:
             raise SystemExit(f"{path}: 图片不存在: {target}")
 
 
+def has_body_content(path: Path) -> bool:
+    """Return whether a chapter contains anything beyond its heading skeleton."""
+    for line in path.read_text(encoding="utf-8").splitlines():
+        stripped = line.lstrip()
+        if stripped.startswith(("```", "~~~")):
+            return True
+        if not stripped or split_heading(line):
+            continue
+        return True
+    return False
+
+
 def validate_chapter(number: int, path: Path, plans: list[ChapterPlan]) -> None:
     if number > len(plans):
         raise SystemExit(f"{path}: 第 {number} 章未出现在 outline.md")
@@ -195,7 +207,11 @@ def assemble(book_dir: Path, outline: Path, output: Path) -> list[Path]:
 
     parts = [introduction.read_text(encoding="utf-8").rstrip()]
     active_part = ""
-    for number, path in chapters:
+    renderable_chapters = [
+        (number, path) for number, path in chapters if has_body_content(path)
+    ]
+
+    for number, path in renderable_chapters:
         plan = plans[number - 1]
         if plan.part_title != active_part:
             active_part = plan.part_title
@@ -215,7 +231,7 @@ def assemble(book_dir: Path, outline: Path, output: Path) -> list[Path]:
 
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text("\n".join(parts) + "\n", encoding="utf-8")
-    return [introduction, *(path for _number, path in chapters)]
+    return [introduction, *(path for _number, path in renderable_chapters)]
 
 
 def main() -> None:

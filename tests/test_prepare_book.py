@@ -37,11 +37,11 @@ class PrepareBookTest(unittest.TestCase):
             encoding="utf-8",
         )
         (self.book / "chapter1.md").write_text(
-            "# 初识 DSH {#ch-1}\n\n## 安装 DSH {#sec-1-1}\n",
+            "# 初识 DSH {#ch-1}\n\n## 安装 DSH {#sec-1-1}\n\n正文。\n",
             encoding="utf-8",
         )
         (self.book / "chapter2.md").write_text(
-            "# 工作原理 {#ch-2}\n\n## 消息与会话 {#sec-2-1}\n",
+            "# 工作原理 {#ch-2}\n\n## 消息与会话 {#sec-2-1}\n\n正文。\n",
             encoding="utf-8",
         )
 
@@ -60,6 +60,17 @@ class PrepareBookTest(unittest.TestCase):
         self.assertIn(r"\part{使用 DSH}", rendered)
         self.assertIn(r"\part{理解 DSH}", rendered)
         self.assertLess(rendered.index("# 初识 DSH"), rendered.index("# 工作原理"))
+
+    def test_assembly_skips_heading_only_chapter(self) -> None:
+        (self.book / "chapter2.md").write_text(
+            "# 工作原理 {#ch-2}\n\n## 消息与会话 {#sec-2-1}\n",
+            encoding="utf-8",
+        )
+        output = Path(self.temp.name) / "book.md"
+        sources = assemble(self.book, self.book / "outline.md", output)
+        rendered = output.read_text(encoding="utf-8")
+        self.assertEqual([path.name for path in sources], ["introduction.md", "chapter1.md"])
+        self.assertNotIn("# 工作原理", rendered)
 
     def test_wrong_section_id_fails(self) -> None:
         (self.book / "chapter2.md").write_text(
