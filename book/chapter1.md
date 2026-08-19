@@ -58,6 +58,8 @@ npx -y @deepseek-ai/dsh web
 
 要求已经足够明确，dsh 直接调用 `Write` 创建文件。写入完成后，它在回复中概括了三段内容，并在“产物”区域列出 `about-dsh.md`。
 
+![dsh 创建 about-dsh.md 后，在回复中列出文件和内容概况](assets/chapter1/1-2-02-task-result.png){width=86%}
+
 回复只能说明任务已经结束。文件是否真的出现、写入内容是否符合要求，还要继续查看工具记录或直接打开文件。
 
 ## 分析 dsh 的执行轨迹 {#sec-1-3}
