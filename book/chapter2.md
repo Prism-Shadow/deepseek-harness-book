@@ -18,13 +18,13 @@ dsh 可以为不同任务保存不同的助手配置。这里创建一名“技�
 
 > 帮我基于 standard 创建一个新的 agent preset，id 用 tech-editor。它是一名技术文档编辑，审阅文档时先检查事实是否准确、结构是否清楚、语言是否自然。默认只给出有依据的修改建议，不主动改文件；只有收到明确的修改要求后才写入。preset 的显示名称叫“技术编辑”，描述写清楚它适合审阅 README、教程和项目文档。完成后告诉我改了哪些文件。
 
-创造模式先检查 preset 服务提供的接口，然后临时加载一个探针插件。借助这个插件，它读取现有列表，将 `standard` 复制为 `tech-editor`，再修改名称、描述和 persona。写入完成后，它运行挂载校验，最后移除探针插件。整个任务共经历十六个步骤。
+收到指令后，创造模式先查看 preset 服务提供了哪些操作，并临时加载一个探针插件。它从现有列表中找到 `standard`，复制出 `tech-editor`，随后写入新的名称、描述和 persona。挂载校验通过后，探针插件也被移除。消息流保留了整个过程，共十六个步骤。
 
 ![技术编辑创建完成，消息流显示挂载校验和改动文件](assets/chapter2/2-1-05-tech-editor-created.png){width=84%}
 
-两个配置文件保存在 `$DSH_HOME/.agent-presets/tech-editor/`。`preset.yml` 存放“技术编辑”这个显示名称和下拉框中的简介。`agent.cordis.yml` 是完整的组装清单，它沿用了标准模式的工具，同时把 persona 改成技术文档审阅规则。
+新 preset 保存在 `$DSH_HOME/.agent-presets/tech-editor/`，目录中有两个配置文件。`preset.yml` 决定它在模式下拉框中的名称和简介，`agent.cordis.yml` 决定它由哪些能力组成。后者继续使用标准模式的工具和工作流程，只把 persona 换成刚才指定的审阅规则。
 
-回复中的 `mounted OK` 表示 dsh 已经成功加载这份配置。文件写在 `$DSH_HOME` 下，不会改动 deepseek-harness 源码仓库。
+截图末尾的 `mounted OK` 是挂载校验结果，表示 dsh 已经找到并加载 `tech-editor`。这些配置都保存在 `$DSH_HOME` 下，deepseek-harness 源码仓库没有变化。
 
 ### 检查新 preset
 
