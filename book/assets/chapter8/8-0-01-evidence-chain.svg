@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" font-family="Noto Serif CJK SC, Songti SC, SimSun, serif">
+  <defs>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#315EF5"/>
+    </marker>
+    <marker id="arrowGray" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 Z" fill="#9AA7B8"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="#FFFFFF"/>
+
+  <text x="800" y="96" text-anchor="middle" font-size="48" font-weight="bold" fill="#273142">求职材料的证据链</text>
+
+  <!-- 岗位调研（外部输入，灰色） -->
+  <rect x="680" y="170" width="240" height="130" rx="10" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
+  <text x="800" y="224" text-anchor="middle" font-size="30" font-weight="bold" fill="#273142">岗位调研</text>
+  <text x="800" y="266" text-anchor="middle" font-size="23" fill="#273142">联网收集真实 JD</text>
+  <line x1="800" y1="300" x2="800" y2="382" stroke="#9AA7B8" stroke-width="2.5" marker-end="url(#arrowGray)"/>
+
+  <!-- 主链五节点 -->
+  <rect x="60" y="390" width="240" height="170" rx="10" fill="#315EF5"/>
+  <text x="180" y="462" text-anchor="middle" font-size="30" font-weight="bold" fill="#FFFFFF">求职材料包</text>
+  <text x="180" y="506" text-anchor="middle" font-size="23" fill="#FFFFFF">五份原始文件</text>
+
+  <rect x="370" y="390" width="240" height="170" rx="10" fill="#EEF2FF" stroke="#315EF5" stroke-width="2.5"/>
+  <text x="490" y="462" text-anchor="middle" font-size="30" font-weight="bold" fill="#273142">能力档案</text>
+  <text x="490" y="506" text-anchor="middle" font-size="23" fill="#273142">每条能力注明出处</text>
+
+  <rect x="680" y="390" width="240" height="170" rx="10" fill="#EEF2FF" stroke="#315EF5" stroke-width="2.5"/>
+  <text x="800" y="462" text-anchor="middle" font-size="30" font-weight="bold" fill="#273142">差距表</text>
+  <text x="800" y="506" text-anchor="middle" font-size="23" fill="#273142">岗位要求对照证据</text>
+
+  <rect x="990" y="390" width="240" height="170" rx="10" fill="#EEF2FF" stroke="#315EF5" stroke-width="2.5"/>
+  <text x="1110" y="462" text-anchor="middle" font-size="30" font-weight="bold" fill="#273142">新简历</text>
+  <text x="1110" y="506" text-anchor="middle" font-size="23" fill="#273142">只重组已有事实</text>
+
+  <rect x="1300" y="390" width="240" height="170" rx="10" fill="#EEF2FF" stroke="#315EF5" stroke-width="2.5"/>
+  <text x="1420" y="462" text-anchor="middle" font-size="30" font-weight="bold" fill="#273142">复盘报告</text>
+  <text x="1420" y="506" text-anchor="middle" font-size="23" fill="#273142">标出撑不住的回答</text>
+
+  <!-- 主链箭头与节号 -->
+  <line x1="300" y1="475" x2="362" y2="475" stroke="#315EF5" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <text x="331" y="448" text-anchor="middle" font-size="23" fill="#315EF5">8.1</text>
+  <line x1="610" y1="475" x2="672" y2="475" stroke="#315EF5" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <text x="641" y="448" text-anchor="middle" font-size="23" fill="#315EF5">8.2</text>
+  <line x1="920" y1="475" x2="982" y2="475" stroke="#315EF5" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <text x="951" y="448" text-anchor="middle" font-size="23" fill="#315EF5">8.3</text>
+  <line x1="1230" y1="475" x2="1292" y2="475" stroke="#315EF5" stroke-width="3" marker-end="url(#arrowBlue)"/>
+  <text x="1261" y="448" text-anchor="middle" font-size="23" fill="#315EF5">8.4</text>
+
+  <!-- 回溯核对（虚线回退路径） -->
+  <path d="M1420,560 L1420,660 L180,660 L180,572" fill="none" stroke="#9AA7B8" stroke-width="2.5" stroke-dasharray="10,8" marker-end="url(#arrowGray)"/>
+  <text x="800" y="726" text-anchor="middle" font-size="26" fill="#273142">每份产物都能逐级回指出处，链条断在哪里，哪里就有编造</text>
+</svg>
