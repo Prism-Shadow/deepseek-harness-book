@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#315EF5"/>
+    </marker>
+    <marker id="arrow-gray" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#657386"/>
+    </marker>
+    <style>
+      .title { font: 600 42px "Noto Sans CJK SC", "Source Han Sans SC", sans-serif; fill: #273142; }
+      .lane { font: 600 30px "Noto Sans CJK SC", "Source Han Sans SC", sans-serif; fill: #273142; }
+      .node-title { font: 600 28px "Noto Sans CJK SC", "Source Han Sans SC", sans-serif; fill: #273142; text-anchor: middle; }
+      .node-body { font: 400 22px "Noto Sans CJK SC", "Source Han Sans SC", sans-serif; fill: #657386; text-anchor: middle; }
+      .node-title-invert { font: 600 28px "Noto Sans CJK SC", "Source Han Sans SC", sans-serif; fill: #ffffff; text-anchor: middle; }
+      .node-body-invert { font: 400 22px "Noto Sans CJK SC", "Source Han Sans SC", sans-serif; fill: #ffffff; text-anchor: middle; }
+      .loop-label { font: 400 22px "Noto Sans CJK SC", "Source Han Sans SC", sans-serif; fill: #657386; text-anchor: middle; }
+      .arrow { fill: none; stroke: #657386; stroke-width: 3; marker-end: url(#arrow-gray); }
+      .arrow-blue { fill: none; stroke: #315EF5; stroke-width: 4; marker-end: url(#arrow-blue); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#ffffff"/>
+  <text x="70" y="66" class="title">打砖块游戏中的两层循环</text>
+
+  <rect x="70" y="108" width="10" height="42" rx="5" fill="#315EF5"/>
+  <text x="100" y="141" class="lane">外层：dsh 改进策略，每个候选版本评测一次</text>
+
+  <g>
+    <rect x="60" y="185" width="205" height="132" rx="18" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
+    <text x="162.5" y="239" class="node-title">轨迹与得分</text>
+    <text x="162.5" y="278" class="node-body">保存客观结果</text>
+
+    <rect x="315" y="185" width="205" height="132" rx="18" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
+    <text x="417.5" y="239" class="node-title">分析失败</text>
+    <text x="417.5" y="278" class="node-body">定位具体问题</text>
+
+    <rect x="570" y="185" width="205" height="132" rx="18" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
+    <text x="672.5" y="239" class="node-title">提出假设</text>
+    <text x="672.5" y="278" class="node-body">一次验证一项</text>
+
+    <rect x="825" y="185" width="205" height="132" rx="18" fill="#315EF5"/>
+    <text x="927.5" y="239" class="node-title-invert">修改策略</text>
+    <text x="927.5" y="278" class="node-body-invert">编辑 policy.py</text>
+
+    <rect x="1080" y="185" width="205" height="132" rx="18" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="1182.5" y="239" class="node-title">固定评测</text>
+    <text x="1182.5" y="278" class="node-body">运行完整回合</text>
+
+    <rect x="1335" y="185" width="205" height="132" rx="18" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
+    <text x="1437.5" y="239" class="node-title">选择版本</text>
+    <text x="1437.5" y="278" class="node-body">保留或回退</text>
+
+    <path d="M 265 251 H 303" class="arrow"/>
+    <path d="M 520 251 H 558" class="arrow"/>
+    <path d="M 775 251 H 813" class="arrow"/>
+    <path d="M 1030 251 H 1068" class="arrow-blue"/>
+    <path d="M 1285 251 H 1323" class="arrow"/>
+    <path d="M 1438 317 V 370 H 163 V 329" class="arrow"/>
+    <text x="800" y="401" class="loop-label">未达到预算时，带着新证据进入下一轮</text>
+  </g>
+
+  <line x1="70" y1="447" x2="1530" y2="447" stroke="#D7DDE6" stroke-width="2"/>
+
+  <rect x="70" y="488" width="10" height="42" rx="5" fill="#315EF5"/>
+  <text x="100" y="521" class="lane">内层：策略控制游戏，每个环境步执行一次</text>
+
+  <g>
+    <rect x="115" y="595" width="250" height="136" rx="18" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
+    <text x="240" y="650" class="node-title">游戏状态</text>
+    <text x="240" y="691" class="node-body">球、挡板、砖块</text>
+
+    <rect x="475" y="595" width="250" height="136" rx="18" fill="#315EF5"/>
+    <text x="600" y="650" class="node-title-invert">策略选择动作</text>
+    <text x="600" y="691" class="node-body-invert">policy.py</text>
+
+    <rect x="835" y="595" width="250" height="136" rx="18" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
+    <text x="960" y="650" class="node-title">执行动作</text>
+    <text x="960" y="691" class="node-body">向左、向右、发球</text>
+
+    <rect x="1195" y="595" width="250" height="136" rx="18" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="1320" y="650" class="node-title">游戏反馈</text>
+    <text x="1320" y="691" class="node-body">得分与下一状态</text>
+
+    <path d="M 365 663 H 463" class="arrow"/>
+    <path d="M 725 663 H 823" class="arrow-blue"/>
+    <path d="M 1085 663 H 1183" class="arrow"/>
+    <path d="M 1320 731 V 795 H 240 V 743" class="arrow"/>
+    <text x="780" y="833" class="loop-label">持续运行，直到回合结束或达到环境步数上限</text>
+  </g>
+</svg>
