@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#315EF5"/>
+    </marker>
+    <style>
+      .cn { font-family: SimSun, "Songti SC", serif; fill: #273142; }
+      .title { font-size: 52px; font-weight: 700; }
+      .column { font-size: 28px; font-weight: 700; }
+      .node-title { font-size: 30px; font-weight: 700; }
+      .desc { font-size: 23px; }
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+
+  <text x="100" y="108" class="cn title">多人部署的四个安全入口</text>
+  <rect x="100" y="136" width="108" height="6" rx="3" fill="#315EF5"/>
+  <text x="100" y="198" class="cn column">待确认入口</text>
+  <text x="900" y="198" class="cn column" fill="#315EF5">建议控制</text>
+
+  <g>
+    <rect x="100" y="230" width="560" height="120" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="140" y="278" class="cn node-title">模型地址</text>
+    <text x="140" y="320" class="cn desc">可能带出服务器密钥或访问内网</text>
+    <path d="M690 290 H850" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+    <rect x="900" y="230" width="600" height="120" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="940" y="278" class="cn node-title">不自动携带密钥</text>
+    <text x="940" y="320" class="cn desc">阻断内网与跨主机跳转</text>
+  </g>
+
+  <g>
+    <rect x="100" y="380" width="560" height="120" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="140" y="428" class="cn node-title">MCP 测试</text>
+    <text x="140" y="470" class="cn desc">项目成员可能触发本地命令</text>
+    <path d="M690 440 H850" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+    <rect x="900" y="380" width="600" height="120" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="940" y="428" class="cn node-title">限制为负责人或管理员</text>
+    <text x="940" y="470" class="cn desc">命令放入低权限隔离环境</text>
+  </g>
+
+  <g>
+    <rect x="100" y="530" width="560" height="120" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="140" y="578" class="cn node-title">大请求</text>
+    <text x="140" y="620" class="cn desc">公开接口可能占用过多内存</text>
+    <path d="M690 590 H850" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+    <rect x="900" y="530" width="600" height="120" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="940" y="578" class="cn node-title">公开接口使用小上限</text>
+    <text x="940" y="620" class="cn desc">同时限制请求频率与并发</text>
+  </g>
+
+  <g>
+    <rect x="100" y="680" width="560" height="120" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="140" y="728" class="cn node-title">初始密码</text>
+    <text x="140" y="770" class="cn desc">共享系统账号时可能被读取</text>
+    <path d="M690 740 H850" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+    <rect x="900" y="680" width="600" height="120" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="940" y="728" class="cn node-title">只显示一次</text>
+    <text x="940" y="770" class="cn desc">或保存到系统钥匙串</text>
+  </g>
+</svg>
