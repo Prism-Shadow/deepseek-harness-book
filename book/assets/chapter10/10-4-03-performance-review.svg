@@ -24,7 +24,7 @@
     <line x1="180" y1="326" x2="560" y2="326" stroke="#FFFFFF" stroke-width="2" opacity="0.55"/>
     <text x="370" y="400" text-anchor="middle" class="en metric white">308 KB → 69 KB</text>
     <text x="370" y="474" text-anchor="middle" class="en metric white">11 MB → 3.3 MB</text>
-    <text x="370" y="528" text-anchor="middle" class="cn desc white">数据来自 #300 提交记录</text>
+    <text x="370" y="528" text-anchor="middle" class="cn desc white">数据来自项目提交记录</text>
   </g>
 
   <path d="M670 390 H770" fill="none" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow-blue)"/>
