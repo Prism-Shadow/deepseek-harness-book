@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#315EF5"/>
+    </marker>
+    <style>
+      .cn { font-family: SimSun, "Songti SC", serif; fill: #273142; }
+      .en { font-family: "Times New Roman", serif; }
+      .title { font-size: 52px; font-weight: 700; }
+      .node-title { font-size: 30px; font-weight: 700; }
+      .desc { font-size: 23px; }
+      .white { fill: #FFFFFF; }
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+
+  <text x="100" y="108" class="cn title">适合并行审查的 OPC 任务</text>
+  <rect x="100" y="136" width="108" height="6" rx="3" fill="#315EF5"/>
+
+  <path d="M500 255 H565 Q600 255 600 290 V355 Q600 390 635 390" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <path d="M500 405 H635" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <path d="M500 555 H635" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <path d="M500 705 H565 Q600 705 600 670 V605 Q600 570 635 570" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+
+  <g>
+    <rect x="100" y="200" width="400" height="110" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="140" y="246" class="cn node-title">发布审查</text>
+    <text x="140" y="284" class="cn desc">功能、Bug、安全</text>
+  </g>
+  <g>
+    <rect x="100" y="350" width="400" height="110" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="140" y="396" class="cn node-title">大改版</text>
+    <text x="140" y="434" class="cn desc">按模块交叉检查</text>
+  </g>
+  <g>
+    <rect x="100" y="500" width="400" height="110" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="140" y="546" class="cn node-title">故障调查</text>
+    <text x="140" y="584" class="cn desc">日志、改动、配置</text>
+  </g>
+  <g>
+    <rect x="100" y="650" width="400" height="110" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="140" y="696" class="cn node-title">多服务联动</text>
+    <text x="140" y="734" class="cn desc">各仓库与接口</text>
+  </g>
+
+  <g>
+    <rect x="635" y="320" width="380" height="320" rx="28" fill="#315EF5"/>
+    <text x="825" y="404" text-anchor="middle" class="en node-title white">dsh + AgentTeams</text>
+    <line x1="710" y1="438" x2="940" y2="438" stroke="#FFFFFF" stroke-width="2" opacity="0.55"/>
+    <text x="825" y="500" text-anchor="middle" class="cn desc white">准备仓库与工具</text>
+    <text x="825" y="548" text-anchor="middle" class="cn desc white">分工、等待、汇总</text>
+  </g>
+
+  <path d="M1045 480 H1110" fill="none" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow-blue)"/>
+  <g>
+    <rect x="1160" y="300" width="340" height="170" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="1330" y="370" text-anchor="middle" class="cn node-title">统一报告</text>
+    <text x="1330" y="418" text-anchor="middle" class="cn desc">结论与证据</text>
+  </g>
+  <path d="M1330 495 V535" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <g>
+    <rect x="1160" y="575" width="340" height="170" rx="24" fill="#FFFFFF" stroke="#315EF5" stroke-width="4"/>
+    <text x="1330" y="645" text-anchor="middle" class="cn node-title">人工拍板</text>
+    <text x="1330" y="693" text-anchor="middle" class="cn desc">线上、密钥与删除操作</text>
+  </g>
+</svg>

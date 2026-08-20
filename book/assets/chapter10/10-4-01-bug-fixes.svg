@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+  <defs>
+    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#315EF5"/>
+    </marker>
+    <style>
+      .cn { font-family: SimSun, "Songti SC", serif; fill: #273142; }
+      .en { font-family: "Times New Roman", serif; }
+      .title { font-size: 52px; font-weight: 700; }
+      .node-title { font-size: 32px; font-weight: 700; }
+      .desc { font-size: 24px; }
+      .white { fill: #FFFFFF; }
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+
+  <text x="100" y="108" class="cn title">长任务连续性修复</text>
+  <rect x="100" y="136" width="108" height="6" rx="3" fill="#315EF5"/>
+
+  <path d="M470 285 H555 Q585 285 585 315 V390 Q585 420 615 420" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <path d="M470 475 H615" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <path d="M470 665 H555 Q585 665 585 635 V560 Q585 530 615 530" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+
+  <path d="M985 420 H1035 Q1065 420 1065 390 V315 Q1065 285 1095 285" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <path d="M985 475 H1095" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <path d="M985 530 H1035 Q1065 530 1065 560 V635 Q1065 665 1095 665" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+
+  <g>
+    <rect x="100" y="220" width="370" height="130" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="140" y="272" class="cn node-title">运行记录</text>
+    <text x="140" y="316" class="cn desc">并发写入可能损坏</text>
+  </g>
+  <g>
+    <rect x="100" y="410" width="370" height="130" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="140" y="462" class="cn node-title">追问消息</text>
+    <text x="140" y="506" class="cn desc">忙碌结束时可能丢失</text>
+  </g>
+  <g>
+    <rect x="100" y="600" width="370" height="130" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="140" y="652" class="cn node-title">上下文整理</text>
+    <text x="140" y="696" class="cn desc">中断后状态不完整</text>
+  </g>
+
+  <g>
+    <rect x="615" y="350" width="370" height="250" rx="26" fill="#315EF5"/>
+    <text x="800" y="422" text-anchor="middle" class="cn node-title white">连续性修复</text>
+    <line x1="690" y1="454" x2="910" y2="454" stroke="#FFFFFF" stroke-width="2" opacity="0.55"/>
+    <text x="800" y="505" text-anchor="middle" class="cn desc white">串行写入 · 消息排队</text>
+    <text x="800" y="548" text-anchor="middle" class="cn desc white">保留原对话 · 恢复状态</text>
+  </g>
+
+  <g>
+    <rect x="1095" y="220" width="405" height="130" rx="22" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="1135" y="272" class="cn node-title">记录可续写</text>
+    <text x="1135" y="316" class="cn desc">残尾会在续写前清理</text>
+  </g>
+  <g>
+    <rect x="1095" y="410" width="405" height="130" rx="22" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="1135" y="462" class="cn node-title">追问可排队</text>
+    <text x="1135" y="506" class="cn desc">思考强度随消息保存</text>
+  </g>
+  <g>
+    <rect x="1095" y="600" width="405" height="130" rx="22" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="1135" y="652" class="cn node-title">会话可恢复</text>
+    <text x="1135" y="696" class="cn desc">重启后仍能继续整理</text>
+  </g>
+</svg>
