@@ -92,6 +92,8 @@ cd260a784d8cd6277f61a613f8beb273eb292971，截止提交是
 完成后归档团队。
 ```
 
+这份提示词也保存在 [`demo/chapter10/repository-review-prompt.md`](../demo/chapter10/repository-review-prompt.md)，可以直接复制使用。
+
 队长创建团队后，依次添加四名成员并发送任务。会话顶部会出现“4 个子代理”，右侧的 AgentTeams 面板则像一张实时值班表，谁在做什么、完成了多少都能直接看到。归档记录中保留了这 4 名成员。
 
 ![AgentTeams 归档中保留的四名审查成员与 5/5 总进度](assets/chapter10/10-2-02-agent-teams-members.png){width=54%}

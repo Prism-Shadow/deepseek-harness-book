@@ -1,7 +1,0 @@
-{
-  "name": "chapter10-task-board",
-  "private": true,
-  "scripts": {
-    "test": "node --test"
-  }
-}
