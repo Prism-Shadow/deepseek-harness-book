@@ -20,11 +20,22 @@
 https://open.feishu.cn/app
 ```
 
-创建一个企业自建应用，并添加“机器人”能力。接着在“权限管理”中开通以下权限：
+创建一个企业自建应用，并添加“机器人”能力。接着进入“权限管理”，单击“批量开通权限”，粘贴以下 JSON：
 
-- `im:message.p2p_msg:readonly`：接收用户发给机器人的单聊消息；
-- `im:message.group_at_msg:readonly`：接收群聊中 @机器人的消息；
-- `im:message:send_as_bot`：让机器人发送回复。
+```json
+{
+  "scopes": {
+    "tenant": [
+      "im:message.group_at_msg:readonly",
+      "im:message.p2p_msg:readonly",
+      "im:message:send_as_bot"
+    ],
+    "user": []
+  }
+}
+```
+
+确认导入后，应用便可以接收单聊消息、接收群聊中 @机器人的消息，并以机器人身份发送回复。
 
 进入“事件与回调”，选择使用长连接接收事件，并添加 `im.message.receive_v1`。保存设置后创建应用版本，将应用发布到当前测试企业。应用尚未发布时，新权限和事件订阅不会在机器人中生效。
 
