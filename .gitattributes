@@ -1,0 +1,9 @@
+# Normalize shell scripts to LF so they run on Linux/CI (WSL, GitHub Actions).
+*.sh text eol=lf
+# Keep source and documentation files as UTF-8 text with LF line endings.
+*.md text eol=lf
+*.py text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.txt text eol=lf

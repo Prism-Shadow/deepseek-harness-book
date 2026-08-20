@@ -4,6 +4,7 @@ deepseek-harness/
 output/pdf/*.pdf
 output/rendered/
 tmp/
+svg-inkscape/
 __pycache__/
 *.pyc
 node_modules/
