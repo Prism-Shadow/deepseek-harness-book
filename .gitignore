@@ -1,5 +1,6 @@
 .DS_Store
 deepseek-harness/
+/demo/
 output/pdf/*.pdf
 output/rendered/
 tmp/
