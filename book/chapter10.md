@@ -54,7 +54,7 @@ git diff --shortstat "$review_base..$review_head"
 
 dsh 是这支临时团队的工作台，负责打开仓库、运行模型和调用工具。AgentTeams 在上面加了一块团队看板，用来安排成员、分配任务、设置先后关系和保存进度。OPC 创始人使用的主会话担任队长，其余成员在各自会话里工作。
 
-![DeepSeek Harness 与 AgentTeams 的集成关系](assets/chapter10/10-2-01-agent-teams-integration.svg){width=92%}
+![DeepSeek Harness 与 AgentTeams 的集成关系](assets/chapter10/10-2-01-agent-teams-integration.svg){.book-technical-figure width=72%}
 
 先安装插件并检查配置。安装或升级后要重启 dsh，已经打开的进程不会自动加载新版本。本次执行使用 headless 模式，也就是先在命令行里运行，不必一直开着浏览器。任务结束后，再到 Web 界面查看保存下来的团队记录。
 
@@ -121,7 +121,7 @@ dsh web
 | `t4` 性能审查 | `performance-reviewer` | 无 | 已优化项、候选瓶颈与实测建议 |
 | `t5` 交叉核对 | 队长 | `t1`、`t2`、`t3`、`t4` | 一份可复查的最终报告 |
 
-![四项并行审查完成后解锁队长汇总任务](assets/chapter10/10-3-01-task-dependency-dag.svg){width=92%}
+![四项并行审查完成后解锁队长汇总任务](assets/chapter10/10-3-01-task-dependency-dag.svg){.book-technical-figure width=72%}
 
 `t1` 到 `t4` 没有相互依赖，四条连线共同汇入 `t5`；只有四项都完成，队长交叉核对才具备完整输入。
 
@@ -194,7 +194,7 @@ for (const task of team.tasks) {
 
 只看代码，团队还发现了四个需要继续确认的入口。
 
-![模型密钥、MCP 权限、大请求和初始密码都需要守住](assets/chapter10/10-4-02-security-review.svg){width=94%}
+![模型密钥、MCP 权限、大请求和初始密码都需要守住](assets/chapter10/10-4-02-security-review.svg){.book-technical-figure width=72%}
 
 模型地址和 MCP 权限应当先处理。新地址不能自动带上服务器密钥，也要阻断内网和跨主机跳转；本地 MCP 测试只交给负责人或管理员，并放进低权限隔离环境。登录等公开接口要用更小的请求上限，初始密码则只显示一次或存进钥匙串。
 
@@ -204,7 +204,7 @@ for (const task of team.tasks) {
 
 网页中的代码高亮明显变轻。项目提交记录中的测量显示，首次打开代码块要下载的数据从约 308 KB 降到 69 KB，整个网页程序也从约 11 MB 缩到 3.3 MB。本次没有重新测量。
 
-![网页体积已经减小，长期扫描和多人上传仍需压测](assets/chapter10/10-4-03-performance-review.svg){width=94%}
+![网页体积已经减小，长期扫描和多人上传仍需压测](assets/chapter10/10-4-03-performance-review.svg){.book-technical-figure width=72%}
 
 还要压测两处：长期运行后扫描日期目录的耗时，以及多人同时上传大附件时的内存和响应时间。
 
@@ -225,7 +225,7 @@ git rev-list --count \
 
 能分头查、最后又要合成一份结论的任务，最适合这套组合。dsh 为成员准备仓库和工具，AgentTeams 负责分工、等待和汇总。
 
-![多个 Agent 分头检查，最后由人统一拍板](assets/chapter10/10-5-01-opc-scenarios.svg){width=94%}
+![多个 Agent 分头检查，最后由人统一拍板](assets/chapter10/10-5-01-opc-scenarios.svg){.book-technical-figure width=72%}
 
 发布审查、大改版、线上故障和多服务联动最典型，组件升级与上线测试也适用。查资料、读源码和运行测试可以同时做；修改同一份文件时，交给一个成员收尾。
 

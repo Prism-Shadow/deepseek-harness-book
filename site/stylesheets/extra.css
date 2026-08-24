@@ -394,6 +394,11 @@ input {
 }
 
 @media screen and (max-width: 44rem) {
+  .md-typeset img.book-technical-figure {
+    height: auto !important;
+    width: 100% !important;
+  }
+
   .md-typeset .book-figure-grid,
   .diagram-branches {
     grid-template-columns: 1fr;
