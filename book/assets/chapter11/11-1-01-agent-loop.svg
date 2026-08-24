@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="title desc">
+  <title id="title">模型与工具在 agent loop 中循环交接</title>
+  <desc id="desc">用户输入进入模型请求。模型可以直接回复，也可以申请工具调用；工具结果返回后，agent loop 再次请求模型。</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#315EF5"/>
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#7B8798"/>
+    </marker>
+    <style>
+      .zh{font-family:SimSun,"Songti SC",serif}.mix{font-family:"Times New Roman",SimSun,"Songti SC",serif}
+      .title{font-size:50px;font-weight:700;fill:#273142}.sub{font-size:25px;fill:#5C667A}
+      .node{font-size:30px;font-weight:700;fill:#273142}.desc{font-size:23px;fill:#526071}
+      .white{fill:#FFFFFF}.line{fill:none;stroke:#315EF5;stroke-width:4;marker-end:url(#arrow-blue)}
+      .muted{fill:none;stroke:#7B8798;stroke-width:4;marker-end:url(#arrow-gray)}
+      .label{font-size:22px;fill:#526071}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="100" y="94" class="mix title">模型与工具如何循环交接</text>
+  <text x="100" y="140" class="zh sub">agent loop 根据每次结果，决定是否继续请求模型</text>
+
+  <path d="M340 380H455" class="line"/>
+  <path d="M765 380H900" class="line"/>
+  <path d="M1180 380H1280" class="line"/>
+  <path d="M610 470V585" class="muted"/>
+  <path d="M1410 455V710Q1410 760 1360 760H850Q800 760 800 710V500Q800 450 765 450" class="line"/>
+  <text x="970" y="798" text-anchor="middle" class="zh label">工具结果写回会话，带着新结果再次请求</text>
+
+  <g>
+    <rect x="80" y="305" width="260" height="150" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="210" y="368" text-anchor="middle" class="zh node">用户输入</text>
+    <text x="210" y="413" text-anchor="middle" class="zh desc">开始一个 turn</text>
+  </g>
+  <g>
+    <rect x="455" y="290" width="310" height="180" rx="26" fill="#315EF5"/>
+    <text x="610" y="362" text-anchor="middle" class="zh node white">模型请求</text>
+    <text x="610" y="410" text-anchor="middle" class="mix desc white">agent loop 组装上下文</text>
+  </g>
+  <g>
+    <rect x="900" y="305" width="280" height="150" rx="22" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="1040" y="368" text-anchor="middle" class="zh node">申请调用工具</text>
+    <text x="1040" y="413" text-anchor="middle" class="zh desc">给出工具名和参数</text>
+  </g>
+  <g>
+    <rect x="1280" y="305" width="240" height="150" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="1400" y="366" text-anchor="middle" class="zh node">执行工具</text>
+    <text x="1400" y="411" text-anchor="middle" class="zh desc">返回结果</text>
+  </g>
+  <g>
+    <rect x="455" y="585" width="310" height="120" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="610" y="635" text-anchor="middle" class="zh node">直接回复</text>
+    <text x="610" y="676" text-anchor="middle" class="zh desc">当前 turn 结束</text>
+  </g>
+</svg>

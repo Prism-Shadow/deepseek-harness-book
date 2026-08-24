@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="title desc">
+  <title id="title">一次模型请求中的主要上下文</title>
+  <desc id="desc">一次模型请求包含相对稳定的 system prompt 和工具描述，以及随任务推进增长的消息历史。权限状态和插件注入信息作为已记录的状态进入消息历史。</desc>
+  <defs>
+    <style>
+      .zh{font-family:SimSun,"Songti SC",serif}.mix{font-family:"Times New Roman",SimSun,"Songti SC",serif}
+      .title{font-size:50px;font-weight:700;fill:#273142}.sub{font-size:25px;fill:#5C667A}
+      .head{font-size:31px;font-weight:700;fill:#273142}.body{font-size:23px;fill:#526071}
+      .small{font-size:21px;fill:#5C667A}.white{fill:#FFFFFF}.tag{font-size:22px;font-weight:700;fill:#315EF5}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="100" y="94" class="zh title">一次模型请求里有什么</text>
+  <text x="100" y="140" class="zh sub">请求前缀尽量稳定，消息历史则随任务持续增长</text>
+
+  <rect x="170" y="200" width="1110" height="625" rx="30" fill="#FAFBFC" stroke="#C8CED8" stroke-width="3"/>
+  <text x="225" y="252" class="mix head">下一次 Model Request</text>
+
+  <g>
+    <rect x="225" y="285" width="1000" height="115" rx="20" fill="#315EF5"/>
+    <text x="275" y="333" class="mix head white">system prompt</text>
+    <text x="275" y="372" class="zh body white">dsh 的身份、基本行为与工作方式</text>
+  </g>
+  <g>
+    <rect x="225" y="420" width="1000" height="115" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="275" y="468" class="zh head">工具描述</text>
+    <text x="275" y="507" class="zh body">工具名称、用途、参数格式与当前可用范围</text>
+  </g>
+  <g>
+    <rect x="225" y="555" width="1000" height="220" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="275" y="604" class="zh head">消息历史</text>
+    <text x="275" y="644" class="zh body">用户消息 · 模型回复 · 工具结果</text>
+    <rect x="275" y="678" width="895" height="62" rx="15" fill="#FFFFFF" stroke="#C8CED8" stroke-width="2" stroke-dasharray="10 7"/>
+    <text x="722" y="717" text-anchor="middle" class="zh small">权限状态、插件环境信息等已记录的可变状态</text>
+  </g>
+
+  <g>
+    <path d="M1320 286H1360V535H1320" fill="none" stroke="#315EF5" stroke-width="4"/>
+    <rect x="1385" y="353" width="150" height="94" rx="18" fill="#EEF2FF" stroke="#315EF5" stroke-width="2"/>
+    <text x="1460" y="392" text-anchor="middle" class="zh tag">相对稳定</text>
+    <text x="1460" y="424" text-anchor="middle" class="zh small">利于前缀复用</text>
+  </g>
+  <g>
+    <path d="M1320 555H1360V775H1320" fill="none" stroke="#7B8798" stroke-width="4"/>
+    <rect x="1385" y="617" width="150" height="96" rx="18" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
+    <text x="1460" y="657" text-anchor="middle" class="zh head" style="font-size:24px">随任务增长</text>
+    <text x="1460" y="691" text-anchor="middle" class="zh small">占用逐步上升</text>
+  </g>
+</svg>

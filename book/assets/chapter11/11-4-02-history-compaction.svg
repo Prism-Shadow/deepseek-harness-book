@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="title desc">
+  <title id="title">用摘要替代较早历史，同时保留近期消息原文</title>
+  <desc id="desc">压缩前，surface 包含多条早期消息和多条近期消息。压缩后，早期消息被一条摘要替代，近期消息保留原文。原始会话日志不会被删除。</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" fill="#315EF5"/></marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7B8798"/></marker>
+    <style>
+      .zh{font-family:SimSun,"Songti SC",serif}.mix{font-family:"Times New Roman",SimSun,"Songti SC",serif}
+      .title{font-size:50px;font-weight:700;fill:#273142}.sub{font-size:25px;fill:#5C667A}
+      .row{font-size:31px;font-weight:700;fill:#273142}.node{font-size:26px;font-weight:700;fill:#273142}
+      .body{font-size:22px;fill:#526071}.white{fill:#FFFFFF}.line{fill:none;stroke:#315EF5;stroke-width:4;marker-end:url(#arrow-blue)}
+      .muted{fill:none;stroke:#7B8798;stroke-width:4;marker-end:url(#arrow-gray)}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="100" y="94" class="zh title">历史压缩改变了什么</text>
+  <text x="100" y="140" class="zh sub">较早历史收成一条摘要，近期原文继续保留</text>
+
+  <text x="95" y="333" class="zh row">压缩前</text>
+  <text x="95" y="628" class="zh row">压缩后</text>
+
+  <g>
+    <rect x="300" y="230" width="170" height="150" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="385" y="294" text-anchor="middle" class="zh node">早期消息 1</text><text x="385" y="339" text-anchor="middle" class="zh body">用户与模型</text>
+    <rect x="490" y="230" width="170" height="150" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="575" y="294" text-anchor="middle" class="zh node">早期消息 2</text><text x="575" y="339" text-anchor="middle" class="zh body">工具调用结果</text>
+    <rect x="680" y="230" width="170" height="150" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="765" y="294" text-anchor="middle" class="zh node">早期消息 3</text><text x="765" y="339" text-anchor="middle" class="zh body">过程与状态</text>
+  </g>
+  <text x="885" y="317" class="mix row">...</text>
+  <g>
+    <rect x="960" y="230" width="230" height="150" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="1075" y="294" text-anchor="middle" class="zh node">近期消息 A</text><text x="1075" y="339" text-anchor="middle" class="zh body">保留原文</text>
+    <rect x="1210" y="230" width="230" height="150" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="1325" y="294" text-anchor="middle" class="zh node">近期消息 B</text><text x="1325" y="339" text-anchor="middle" class="zh body">保留原文</text>
+  </g>
+
+  <path d="M575 380V515" class="line"/>
+  <text x="600" y="466" class="zh body">概括较早历史</text>
+  <path d="M1200 380V515" class="muted"/>
+  <text x="1225" y="466" class="zh body">原文向后保留</text>
+
+  <g>
+    <rect x="300" y="515" width="550" height="170" rx="26" fill="#315EF5"/>
+    <text x="575" y="584" text-anchor="middle" class="zh node white">早期内容摘要</text>
+    <text x="575" y="632" text-anchor="middle" class="zh body white">一条摘要替代多条早期消息</text>
+  </g>
+  <g>
+    <rect x="960" y="525" width="230" height="150" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="1075" y="589" text-anchor="middle" class="zh node">近期消息 A</text><text x="1075" y="634" text-anchor="middle" class="zh body">保留原文</text>
+    <rect x="1210" y="525" width="230" height="150" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="1325" y="589" text-anchor="middle" class="zh node">近期消息 B</text><text x="1325" y="634" text-anchor="middle" class="zh body">保留原文</text>
+  </g>
+
+  <rect x="150" y="760" width="1300" height="72" rx="18" fill="#F8F9FB" stroke="#D8DDE5" stroke-width="2"/>
+  <text x="800" y="806" text-anchor="middle" class="zh body">surface 变短，但原始事件仍然保留在会话日志中</text>
+</svg>

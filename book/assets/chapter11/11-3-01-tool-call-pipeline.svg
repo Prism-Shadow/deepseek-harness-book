@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="title desc">
+  <title id="title">dsh 处理一次工具调用的过程</title>
+  <desc id="desc">模型给出工具名和参数后，dsh 先记录调用，再经过权限、hook 和用户确认。放行后执行工具，拒绝时生成拒绝结果；两条路径都会记录 tool/result 并返回下一次模型请求。</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" fill="#315EF5"/></marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7B8798"/></marker>
+    <style>
+      .zh{font-family:SimSun,"Songti SC",serif}.mix{font-family:"Times New Roman",SimSun,"Songti SC",serif}.mono{font-family:Menlo,Consolas,monospace}
+      .title{font-size:50px;font-weight:700;fill:#273142}.sub{font-size:25px;fill:#5C667A}
+      .node{font-size:29px;font-weight:700;fill:#273142}.desc{font-size:22px;fill:#526071}.code{font-size:21px;fill:#526071}
+      .white{fill:#FFFFFF}.line{fill:none;stroke:#315EF5;stroke-width:4;marker-end:url(#arrow-blue)}
+      .muted{fill:none;stroke:#7B8798;stroke-width:4;stroke-dasharray:11 9;marker-end:url(#arrow-gray)}
+      .label{font-size:22px;fill:#526071}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="100" y="94" class="zh title">一次工具调用如何被执行</text>
+  <text x="100" y="140" class="zh sub">放行和拒绝都会留下可回放的结果，再交还给模型</text>
+
+  <path d="M350 340H430" class="line"/><path d="M700 340H780" class="line"/><path d="M1050 340H1130" class="line"/>
+  <path d="M965 430V560H1130" class="muted"/>
+  <path d="M1315 430V490Q1315 520 1285 520H1035Q1005 520 1005 550V615H1050" class="line"/>
+  <path d="M1130 615H1050" class="muted"/>
+  <path d="M780 615H680" class="line"/>
+  <text x="1082" y="315" text-anchor="middle" class="zh label">放行</text>
+  <text x="986" y="518" class="zh label">拒绝</text>
+
+  <g>
+    <rect x="70" y="265" width="280" height="150" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="210" y="326" text-anchor="middle" class="zh node">模型给出调用</text>
+    <text x="210" y="372" text-anchor="middle" class="zh desc">工具名 + 参数</text>
+  </g>
+  <g>
+    <rect x="430" y="265" width="270" height="150" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="565" y="326" text-anchor="middle" class="zh node">记录调用</text>
+    <text x="565" y="373" text-anchor="middle" class="mono code">tool/call</text>
+  </g>
+  <g>
+    <rect x="780" y="250" width="270" height="180" rx="26" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="915" y="314" text-anchor="middle" class="zh node">调用检查</text>
+    <text x="915" y="359" text-anchor="middle" class="mix desc">权限规则 · hook</text>
+    <text x="915" y="398" text-anchor="middle" class="zh desc">必要时询问用户</text>
+  </g>
+  <g>
+    <rect x="1130" y="250" width="370" height="180" rx="26" fill="#315EF5"/>
+    <text x="1315" y="316" text-anchor="middle" class="zh node white">执行工具</text>
+    <text x="1315" y="362" text-anchor="middle" class="zh desc white">按工具自身的沙箱</text>
+    <text x="1315" y="401" text-anchor="middle" class="zh desc white">与访问约束运行</text>
+  </g>
+  <g>
+    <rect x="1130" y="550" width="370" height="130" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="1315" y="606" text-anchor="middle" class="zh node">生成拒绝结果</text>
+    <text x="1315" y="648" text-anchor="middle" class="zh desc">包含拒绝原因</text>
+  </g>
+  <g>
+    <rect x="780" y="550" width="270" height="130" rx="22" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="915" y="606" text-anchor="middle" class="zh node">记录结果</text>
+    <text x="915" y="648" text-anchor="middle" class="mono code">tool/result</text>
+  </g>
+  <g>
+    <rect x="360" y="550" width="320" height="130" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="520" y="606" text-anchor="middle" class="zh node">下一次模型请求</text>
+    <text x="520" y="648" text-anchor="middle" class="zh desc">根据结果继续任务</text>
+  </g>
+
+  <rect x="115" y="760" width="1370" height="70" rx="18" fill="#F8F9FB" stroke="#D8DDE5" stroke-width="2"/>
+  <text x="800" y="805" text-anchor="middle" class="zh desc">模型提出调用 ≠ 自动获得访问权；权限判定与工具执行约束分属两个环节</text>
+</svg>

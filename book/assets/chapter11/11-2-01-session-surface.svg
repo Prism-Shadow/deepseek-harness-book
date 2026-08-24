@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="title desc">
+  <title id="title">dsh 从会话日志中整理下一次模型请求所需的历史</title>
+  <desc id="desc">只追加的会话日志保留完整事件。dsh 从日志整理当前 surface，再构造下一次模型请求。</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#315EF5"/>
+    </marker>
+    <style>
+      .zh{font-family:SimSun,"Songti SC",serif}.mix{font-family:"Times New Roman",SimSun,"Songti SC",serif}.mono{font-family:Menlo,Consolas,monospace}
+      .title{font-size:50px;font-weight:700;fill:#273142}.sub{font-size:25px;fill:#5C667A}
+      .head{font-size:31px;font-weight:700;fill:#273142}.body{font-size:22px;fill:#526071}
+      .chip{font-size:19px;fill:#445064}.white{fill:#FFFFFF}.line{stroke:#315EF5;stroke-width:4;fill:none;marker-end:url(#arrow)}
+    </style>
+  </defs>
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="100" y="94" class="mix title">会话日志如何变成模型历史</text>
+  <text x="100" y="140" class="zh sub">日志保留完整运行记录，surface 只承载继续会话所需的状态</text>
+
+  <g>
+    <rect x="150" y="200" width="1300" height="205" rx="26" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+    <text x="205" y="255" class="zh head">只追加的会话事件日志</text>
+    <text x="1395" y="253" text-anchor="end" class="mix body">session.jsonl</text>
+    <g class="mono chip">
+      <rect x="205" y="290" width="160" height="46" rx="12" fill="#FFFFFF" stroke="#C8CED8" stroke-width="2"/><text x="285" y="320" text-anchor="middle">turn/start</text>
+      <rect x="382" y="290" width="160" height="46" rx="12" fill="#FFFFFF" stroke="#C8CED8" stroke-width="2"/><text x="462" y="320" text-anchor="middle">step/start</text>
+      <rect x="559" y="290" width="190" height="46" rx="12" fill="#FFFFFF" stroke="#C8CED8" stroke-width="2"/><text x="654" y="320" text-anchor="middle">user/message</text>
+      <rect x="766" y="290" width="225" height="46" rx="12" fill="#FFFFFF" stroke="#C8CED8" stroke-width="2"/><text x="878" y="320" text-anchor="middle">assistant/chunk*</text>
+      <rect x="1008" y="290" width="245" height="46" rx="12" fill="#FFFFFF" stroke="#C8CED8" stroke-width="2"/><text x="1130" y="320" text-anchor="middle">assistant/message</text>
+      <rect x="1270" y="290" width="125" height="46" rx="12" fill="#FFFFFF" stroke="#C8CED8" stroke-width="2"/><text x="1332" y="320" text-anchor="middle">...</text>
+    </g>
+    <text x="800" y="377" text-anchor="middle" class="zh body">turn / step 边界、流式片段、完整回复、工具调用与结果都在这里</text>
+  </g>
+
+  <path d="M800 405V472" class="line"/>
+  <text x="825" y="452" class="zh body">投影</text>
+
+  <g>
+    <rect x="300" y="475" width="1000" height="190" rx="26" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+    <text x="355" y="530" class="mix head">当前 surface</text>
+    <g class="zh body">
+      <rect x="355" y="564" width="205" height="58" rx="16" fill="#FFFFFF" stroke="#AAB8F7" stroke-width="2"/><text x="458" y="600" text-anchor="middle">用户消息</text>
+      <rect x="585" y="564" width="235" height="58" rx="16" fill="#FFFFFF" stroke="#AAB8F7" stroke-width="2"/><text x="702" y="600" text-anchor="middle">assistant 消息</text>
+      <rect x="845" y="564" width="205" height="58" rx="16" fill="#FFFFFF" stroke="#AAB8F7" stroke-width="2"/><text x="948" y="600" text-anchor="middle">工具结果</text>
+      <rect x="1075" y="564" width="170" height="58" rx="16" fill="#FFFFFF" stroke="#AAB8F7" stroke-width="2"/><text x="1160" y="600" text-anchor="middle">记录的状态</text>
+    </g>
+  </g>
+
+  <path d="M800 665V724" class="line"/>
+  <text x="825" y="705" class="mix body">deriveMessages()</text>
+  <g>
+    <rect x="510" y="725" width="580" height="120" rx="24" fill="#315EF5"/>
+    <text x="800" y="777" text-anchor="middle" class="zh head white">下一次模型请求</text>
+    <text x="800" y="819" text-anchor="middle" class="zh body white">只携带模型需要继续看到的消息历史</text>
+  </g>
+</svg>

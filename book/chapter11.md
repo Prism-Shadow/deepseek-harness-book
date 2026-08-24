@@ -1,6 +1,6 @@
 # Harness 的工作原理 {#ch-11}
 
-前几章已经用 dsh 完成了文件操作、多 Agent 协作等任务。本章暂时不再增加新的用法，而是打开 dsh 的内部工作过程，看看一次任务究竟怎样运行：模型如何在 Agent Loop 中反复调用工具，会话怎样被记录和恢复，工具调用如何经过权限检查，以及越来越长的上下文怎样被控制在模型窗口以内。理解这些机制以后，再看界面上的轮次、步骤、Session log、token 和上下文占用，就能知道它们分别在记录什么。
+前几章已经用 dsh 完成了文件操作、多 Agent 协作等任务。本章暂时不再增加新的用法，而是打开 dsh 的内部工作过程，看看一次任务究竟怎样运行：模型如何在 agent loop 中反复调用工具，会话怎样被记录和恢复，工具调用如何经过权限检查，以及越来越长的上下文怎样被控制在模型窗口以内。理解这些机制以后，再看界面上的轮次、步骤、Session log、token 和上下文占用，就能知道它们分别在记录什么。
 
 ## 从聊天助手到 Harness {#sec-11-1}
 
@@ -8,36 +8,15 @@
 
 模型之外，负责组织这些执行过程的运行框架就是 Harness。它维护任务状态、组装模型请求、执行工具，并根据执行结果继续推动模型，直到任务结束。
 
-在 dsh 的工作流程里，模型负责判断下一步，Agent Loop 负责推动任务继续。每一步开始时，Agent Loop 根据当前会话组装模型请求。模型可以直接回复，也可以申请调用工具。工具执行完成后，结果被写回会话，Agent Loop 再次请求模型。这个过程不断重复，直到模型给出最终回复。图 \ref{fig-11-1} 展示了这套循环。
+在 dsh 的工作流程里，模型负责判断下一步，agent loop 负责推动任务继续。每一步开始时，agent loop 根据当前会话组装模型请求。模型可以直接回复，也可以申请调用工具。工具执行完成后，结果被写回会话，agent loop 再次请求模型。这个过程不断重复，直到模型给出最终回复。图 \ref{fig-11-1} 展示了这套循环。
 
-```{=latex}
-\begin{center}
-\begin{minipage}{\linewidth}
-\centering
-\begin{tikzpicture}[node distance=9mm and 12mm, every node/.style={align=center, font=\sffamily\footnotesize}]
-  \node[dshnode] (user) {用户输入};
-  \node[dshaccentnode, right=of user] (model) {模型请求};
-  \node[dshnodeflat, below=of model] (answer) {直接回复};
-  \node[dshseam, right=of model] (call) {申请调用工具};
-  \node[dshnode, right=of call] (result) {执行工具\\返回结果};
-  \draw[dsharrow] (user) -- (model);
-  \draw[dsharrow] (model) -- (answer);
-  \draw[dsharrow] (model) -- (call);
-  \draw[dsharrow] (call) -- (result);
-  \draw[dsharrow] (result.south) to[out=-90, in=-90]
-    node[dshlabel, below=0.5mm] {带着新结果再次请求} (model.south east);
-\end{tikzpicture}
-\captionof{figure}{模型与工具在 Agent Loop 中循环交接}
-\label{fig-11-1}
-\end{minipage}
-\end{center}
-```
+![模型与工具在 agent loop 中循环交接](assets/chapter11/11-1-01-agent-loop.png){#fig-11-1 width=94%}
 
-turn 和 step 记录的是两个不同层次。一个**轮次**（turn）对应 dsh 对一条用户消息的完整处理：用户发出消息时开始，任务结束时结束。一个**步骤**（step）对应其中的一次模型请求，以及这次请求触发的工具调用。因此，一个 turn 通常包含一个或多个 step。
+turn 和 step 记录的是两个不同层次。一个**轮次**（turn）对应 dsh 对一条用户消息的完整处理：用户发出消息时开始，任务结束时结束。一个**步骤**（step）对应其中的一次模型请求，以及这次请求可能触发的工具调用。因此，一个 turn 通常包含一个或多个 step。
 
 第 1 章那次“你好”只请求了一次模型，也没有调用工具，所以显示“1 轮 · 1 步”。如果用户要求整理文件，仍然只算一个 turn，但模型可能先查看目录，再读取文件，最后修改文件。每次根据新的工具结果重新请求模型，都会产生新的 step，因此界面可能显示“1 轮 · 多步”。
 
-多 Agent 任务也服从同样的结构。第 3 章用过的多 Agent 调研，在主 Agent 看来可以表现为一次工具调用；工具内部再运行自己的 Agent Loop，完成任务后把最终结果返回给主 Agent。
+多 Agent 任务也服从同样的结构。第 3 章用过的多 Agent 调研，在主 Agent 看来可以表现为一次工具调用；工具内部再运行自己的 agent loop，完成任务后把最终结果返回给主 Agent。
 
 > **深入一点。** turn 和 step 的边界并不完全重合。用户消息进入处理流程后，dsh 会先记录 `turn/start`；正式请求模型时才产生 `step/start`。如果插件在 `agent/pre-step` 阶段终止任务，这次处理仍然有 turn，但没有 step。界面的“轮”采用更接近实际模型执行的统计口径，只统计至少完成过一个 step 的 turn。
 >
@@ -59,30 +38,9 @@ dsh 会从日志中整理出当前的 **surface**。可以把 surface 理解为�
 
 图 \ref{fig-11-2} 展示了这两个层次之间的关系。
 
-```{=latex}
-\begin{center}
-\begin{minipage}{\linewidth}
-\centering
-\begin{tikzpicture}[node distance=11mm, every node/.style={align=center, font=\sffamily\footnotesize}]
-  \node[dshnodeflat, minimum width=112mm] (log)
-    {只追加的会话事件日志\\[0.5mm]
-     \scriptsize\ttfamily turn/start\quad step/start\quad user/message\quad assistant/chunk*\\
-     \scriptsize\ttfamily assistant/message\quad tool/call\quad tool/result\quad step/end\quad turn/end};
-  \node[dshseam, below=of log, minimum width=84mm] (surface)
-    {当前 surface\\\footnotesize 用户消息 · assistant 消息 · 工具结果\\
-     \footnotesize 注入并记录的状态等};
-  \node[dshaccentnode, below=of surface, minimum width=55mm] (messages)
-    {下一次模型请求\\\footnotesize deriveMessages()};
-  \draw[dsharrow] (log) -- (surface);
-  \draw[dsharrow] (surface) -- (messages);
-\end{tikzpicture}
-\captionof{figure}{dsh 从会话日志中整理下一次模型请求所需的历史}
-\label{fig-11-2}
-\end{minipage}
-\end{center}
-```
+![dsh 从会话日志中整理下一次模型请求所需的历史](assets/chapter11/11-2-01-session-surface.png){#fig-11-2 width=94%}
 
-会话继续时，新内容会追加到 surface，日志把这种更新记录为 `append`。如果对话过长，需要用摘要替代一段较早的消息，则会记录一次 `replace`。这里替换的只是后续模型看到的 surface，原始事件仍然保留在会话日志中，因此重新回放或导出会话时不会丢失之前的执行记录。
+会话继续时，新内容会通过 `append` 加入 surface。surface 也可以通过 `replace` 更新已有内容，例如后面会看到的历史压缩。无论哪种操作，原始事件仍然保留在会话日志中，因此 surface 的变化不会破坏完整的运行记录。
 
 这也解释了 dsh 会话机制中的一条重要规则：**模型能够看到的内容，应当已经被记录下来。** 只有这样，进程退出后重新恢复会话时，dsh 才能重新构造模型此前看到的历史，而不是依赖只存在于内存中的临时状态。
 
@@ -100,37 +58,13 @@ dsh 会从日志中整理出当前的 **surface**。可以把 surface 理解为�
 
 无论执行成功、失败还是被拒绝，dsh 最终都会整理出一条工具结果并写入会话日志。下一次请求模型时，这条结果会进入消息历史，因此模型可以根据执行结果继续任务；如果调用被拒绝，也可以读取拒绝原因并调整后续行动。图 \ref{fig-11-3} 展示了这条完整路径。
 
-```{=latex}
-\begin{center}
-\begin{minipage}{\linewidth}
-\centering
-\begin{tikzpicture}[node distance=10mm and 14mm, every node/.style={align=center, font=\sffamily\footnotesize}]
-  \node[dshnode] (call) {模型给出\\工具名和参数};
-  \node[dshnodeflat, right=of call] (log1) {记录调用\\tool/call};
-  \node[dshseam, right=of log1] (gate) {权限与 hook\\用户确认};
-  \node[dshaccentnode, below=of gate] (exec) {按工具自身的\\执行约束运行};
-  \node[dshnodeflat, left=of exec] (log2) {记录结果\\tool/result};
-  \node[dshnode, left=of log2] (back) {下一次\\模型请求};
-  \node[dshnodeflat, right=of exec] (deny) {生成拒绝结果};
-  \draw[dsharrow] (call) -- (log1);
-  \draw[dsharrow] (log1) -- (gate);
-  \draw[dsharrow] (gate) -- node[dshlabel, right] {放行} (exec);
-  \draw[dshmutedarrow] (gate) -- node[dshlabel, right] {拒绝} (deny);
-  \draw[dsharrow] (exec) -- (log2);
-  \draw[dshmutedarrow] (deny.south) -- ++(0,-6mm) -| (log2.south);
-  \draw[dsharrow] (log2) -- (back);
-\end{tikzpicture}
-\captionof{figure}{dsh 处理一次工具调用的过程}
-\label{fig-11-3}
-\end{minipage}
-\end{center}
-```
+![dsh 处理一次工具调用的过程](assets/chapter11/11-3-01-tool-call-pipeline.png){#fig-11-3 width=94%}
 
 不同工具还会受到各自的执行约束。文件和 Shell 工具会应用相应的沙箱与访问规则，其他工具则按照各自定义的权限运行。也就是说，模型提出工具调用，并不意味着它自动获得了工具能够触及的全部资源。
 
-输入框旁的权限模式可以直接观察这种限制。例如，在 **Workspace Write** 下，文件工具可以修改当前工作区和指定的临时目录；如果操作需要访问其他位置，dsh 会先询问用户。切换到 **Read Only** 后，同样的写文件请求会被拒绝。拒绝本身仍然会形成工具结果并返回给模型，因此不会打断前面介绍的 Agent Loop。
+输入框旁的权限模式可以直接观察这种限制。例如，在 **Workspace Write** 下，文件工具可以修改当前工作区和指定的临时目录；如果操作需要访问其他位置，dsh 会先询问用户。切换到 **Read Only** 后，同样的写文件请求会被拒绝。拒绝本身仍然会形成工具结果并返回给模型，因此不会打断前面介绍的 agent loop。
 
-> **深入一点。** 模型一次回复中也可能提出多个工具调用。dsh 默认按照安全的执行方式处理它们；只有工具明确允许本次调用并发时，相关调用才会同时运行，否则仍然依次执行。
+> **深入一点。** 模型一次回复中也可能提出多个工具调用。dsh 默认依次执行；只有工具明确允许本次调用并发时，相关调用才会同时运行。
 >
 > dsh 还会检查模型是否反复提交完全相同的工具调用。如果同一个工具以相同参数连续出现，在第 3、5、8 次时，dsh 会在后续模型请求中加入提醒，让模型重新判断是否有必要继续。这个提醒不会直接取消调用，工具仍然需要经过正常的权限检查和执行流程。
 
@@ -150,30 +84,7 @@ system prompt 位于最前面，用来说明 dsh 的身份、基本行为和工�
 
 图 \ref{fig-11-4} 展示了这些内容在一次模型请求中的关系。
 
-```{=latex}
-\begin{center}
-\begin{minipage}{\linewidth}
-\centering
-\begin{tikzpicture}[node distance=2.5mm, every node/.style={align=left, font=\sffamily\footnotesize}]
-  \node[dshnode, minimum width=82mm, anchor=west] (sys) at (0,0)
-    {系统说明\quad dsh 的身份与工作方式};
-  \node[dshnodeflat, minimum width=82mm, anchor=west, below=of sys] (tools)
-    {工具描述\quad 名称、用途和参数格式};
-  \node[dshnode, minimum width=82mm, anchor=west, below=of tools] (history)
-    {消息历史\quad 用户消息、模型回复、工具结果};
-  \node[dshnodeflat, minimum width=64mm, anchor=west, below=of history,
-    xshift=9mm] (context)
-    {其中还可以包含\quad 权限状态和插件注入的信息};
-  \draw[dshmutedarrow] ([xshift=2mm]sys.east) -- ++(11mm,0)
-    node[dshlabel, right] {相对稳定};
-  \draw[dshmutedarrow] ([xshift=2mm]history.east) -- ++(11mm,0)
-    node[dshlabel, right] {随任务推进增长};
-\end{tikzpicture}
-\captionof{figure}{一次模型请求中的主要上下文}
-\label{fig-11-4}
-\end{minipage}
-\end{center}
-```
+![一次模型请求中的主要上下文](assets/chapter11/11-4-01-request-context.png){#fig-11-4 width=94%}
 
 ### 如何统计 token 数
 
@@ -181,12 +92,14 @@ system prompt 位于最前面，用来说明 dsh 的身份、基本行为和工�
 
 对于文本块，dsh 使用下面的公式快速估算：
 
-[
+```{=latex}
+\[
 t(\text{文本})=
 \left\lceil
 \dfrac{\text{字符数}}{4}
 \right\rceil+4
-]
+\]
+```
 
 也就是每 4 个字符粗略折算成 1 个 token，再加上 4 个 token 的块开销。工具调用还会分别估算工具名和 JSON 参数，工具结果则估算其中包含的内容块；每条消息的 `role` 等结构信息也会产生额外开销。
 
@@ -207,27 +120,29 @@ t(\text{文本})=
 
 ### 如何计算缓存命中率
 
-除了普通输入 token，模型服务商还可能提供**前缀缓存**。如果相邻两次请求的开头存在一段完全相同的内容，服务商就可能直接复用这部分计算，而不必重新处理整个前缀。
+除了普通输入 token，模型服务商还可能提供**前缀缓存**。如果后续请求与已经缓存的请求共享一段相同前缀，服务商就可能复用这部分计算。
 
 统计行中的缓存命中率按照下面的方式计算：
 
-[
+```{=latex}
+\[
 \text{命中率}=
 \dfrac{\text{缓存读取 token 数}}
 {\text{未缓存输入 token 数}
 +\text{缓存读取 token 数}
 +\text{缓存写入 token 数}}
-]
+\]
+```
 
 这里的缓存属于模型服务商，与上一节介绍的 dsh 会话日志是两套不同的机制。会话日志解决的是“怎样记录和恢复任务”，前缀缓存解决的是“相同的模型输入怎样减少重复计算”。
 
-前面图 \ref{fig-11-4} 中的请求结构正好有利于这种缓存。system prompt 和工具描述通常比较稳定，消息历史也主要随着任务推进向后增长，因此连续请求往往共享很长的开头。第一次请求还没有可以复用的旧前缀，缓存命中率可能为 0%；后续请求继续沿用相同前缀时，就可能出现更多缓存读取。
+前面图 \ref{fig-11-4} 中的请求结构正好有利于这种缓存。system prompt 和工具描述通常比较稳定，消息历史也主要随着任务推进向后增长，因此连续请求往往共享很长的开头。一个前缀第一次出现时通常还没有可复用的缓存，因此命中率可能为 0%；后续请求继续沿用这段前缀时，就可能产生更多缓存读取。
 
 统计行显示的是整个任务执行至今的累计命中率，因此其中也包含第一次建立缓存时产生的成本。切换模型、改变可用工具，或者压缩并替换较早的消息历史，都可能改变请求前缀，使之后的缓存命中率下降。
 
 ### 上下文过长时的处理
 
-把模型的上下文窗口记为 (W)。本章所用版本将 DeepSeek-V4-Flash 和 DeepSeek-V4-Pro 的上下文窗口登记为 1,000,000 token，也就是说，一次请求中的 system prompt、工具描述、消息历史和预留输出空间都必须受到这个窗口限制。“最大输出”则是另一项限制，它只约束模型一次最多生成多少 token。
+把模型的上下文窗口记为 \(W\)。本章所用版本将 DeepSeek-V4-Flash 和 DeepSeek-V4-Pro 的上下文窗口登记为 1,000,000 token，也就是说，一次请求中的 system prompt、工具描述、消息历史和预留输出空间都必须受到这个窗口限制。“最大输出”则是另一项限制，它只约束模型一次最多生成多少 token。
 
 当上下文不断增长时，dsh 不会立刻摘要整个会话，而是按照从局部到整体的顺序逐步缩短内容。
 
@@ -237,25 +152,7 @@ t(\text{文本})=
 
 如果这样仍然无法腾出足够空间，才进入第三层：**历史摘要**。dsh 让模型概括一段较早的消息，用一条摘要替代这些内容，同时保留较近期的消息原文。图 \ref{fig-11-5} 用一个简化的例子表示这种变化。
 
-```{=latex}
-\begin{center}
-\begin{minipage}{\linewidth}
-\centering
-\begin{tikzpicture}[node distance=7mm and 9mm, every node/.style={align=center, font=\sffamily\footnotesize}]
-  \node[dshlabel, anchor=east] (before) {压缩前};
-  \node[dshnodeflat, right=5mm of before] (early) {多条早期消息};
-  \node[dshnodeflat, right=7mm of early] (recent) {多条近期消息};
-  \node[dshlabel, anchor=east, below=14mm of before] (after) {压缩后};
-  \node[dshaccentnode, right=5mm of after] (summary) {早期内容摘要};
-  \node[dshnodeflat, right=7mm of summary] (recent2) {多条近期消息};
-  \draw[dsharrow] (early.south) -- (summary.north);
-  \draw[dshmutedarrow] (recent.south) -- (recent2.north);
-\end{tikzpicture}
-\captionof{figure}{用摘要替代较早历史，同时保留近期消息原文}
-\label{fig-11-5}
-\end{minipage}
-\end{center}
-```
+![用摘要替代较早历史，同时保留近期消息原文](assets/chapter11/11-4-02-history-compaction.png){#fig-11-5 width=94%}
 
 这三层处理都只改变模型后续看到的内容，不会删除会话日志中的原始记录。spill 文件仍保存完整工具输出，已经写入的 `tool/result` 和旧消息也仍然存在。因此，上下文变短并不意味着会话历史本身被删除。
 
@@ -265,8 +162,8 @@ t(\text{文本})=
 | -------------------- | --------------------------------------------------------- |
 | 工具结果 spill       | 文本超过 50,000 个 UTF-8 字节                             |
 | 较早工具结果裁剪     | 文本超过 8192 个 Unicode 码点；保留前 4096 个和后 1024 个 |
-| 历史摘要触发         | 上下文占用达到约 (0.8W)                                   |
-| 摘要后保留的近期原文 | 约 (0.16W)                                                |
+| 历史摘要触发         | 上下文占用达到约 \(0.8W\)                                   |
+| 摘要后保留的近期原文 | 约 \(0.16W\)                                                |
 
 除了自动处理，用户也可以主动压缩历史。在一个已经积累较多消息的会话中执行 `/compact`，dsh 会尝试把可压缩的较早历史整理成摘要。压缩完成后，界面会显示本次处理了多少条历史；下一次模型请求中的上下文占用也会相应下降。
 
@@ -277,3 +174,5 @@ t(\text{文本})=
 > 遇到这种情况，dsh 会在当前 step 中再次尝试压缩。如果压缩确实缩短了上下文，就使用新的历史重新请求模型，而不会重新开始 turn 或 step；如果仍然无法释放足够空间，原来的错误才会返回。
 
 **亲手验证。** 找一个历史较长的 Web 会话，在输入框中执行 `/compact`。压缩成功后导出 Session log，搜索 `compaction/start`、`compaction/summary` 和 `compaction/end`，可以看到一次压缩的完整记录。随后观察上下文占用面板，预计用量应当下降。如果界面提示 `No compactable history yet.`，说明当前还没有足够的旧历史可供压缩，可以继续对话后再试。
+
+回看本章，一次 dsh 任务并不是模型单独完成的。Harness 用 agent loop 推动模型和工具反复交接，用会话日志保存执行过程，用权限机制约束工具行为，再通过 surface、token 估算和历史压缩控制模型实际看到的上下文。界面上的轮次、步骤、Session log、token 和上下文占用，正是这套运行机制在用户侧留下的不同视图。
