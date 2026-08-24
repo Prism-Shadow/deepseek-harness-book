@@ -5,6 +5,7 @@ output/pdf/*.pdf
 output/html/
 output/rendered/
 tmp/
+svg-inkscape/
 __pycache__/
 *.pyc
 node_modules/

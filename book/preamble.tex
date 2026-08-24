@@ -3,6 +3,11 @@
 % planned outline rendered from book/outline.md.
 
 \usepackage{microtype}
+% XeTeX does not support microtype's letterspacing (\textls). Fall back to
+% plain text so the same preamble builds under XeLaTeX (used by build_pdf.sh).
+\ifdefined\XeTeXversion
+  \renewcommand{\textls}[2][0]{#2}
+\fi
 \usepackage{needspace}
 \usepackage{ragged2e}
 \usepackage{fvextra}
