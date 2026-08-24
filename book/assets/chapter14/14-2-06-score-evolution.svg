@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="800" viewBox="0 0 1600 800">
+  <rect width="1600" height="800" fill="#ffffff"/>
+  <g font-family="Noto Sans CJK SC, Source Han Sans SC, sans-serif" fill="#273142">
+    <text x="800" y="62" text-anchor="middle" font-size="34" font-weight="600">概念图实验的总分变化</text>
+    <text x="72" y="385" text-anchor="middle" font-size="24" transform="rotate(-90 72 385)">总分</text>
+    <text x="820" y="760" text-anchor="middle" font-size="24">轮次</text>
+  </g>
+
+  <g stroke="#D9DEE7" stroke-width="2">
+    <line x1="160" y1="120" x2="1480" y2="120"/>
+    <line x1="160" y1="226" x2="1480" y2="226"/>
+    <line x1="160" y1="332" x2="1480" y2="332"/>
+    <line x1="160" y1="438" x2="1480" y2="438"/>
+    <line x1="160" y1="544" x2="1480" y2="544"/>
+    <line x1="160" y1="650" x2="1480" y2="650"/>
+  </g>
+
+  <g font-family="Noto Sans CJK SC, Source Han Sans SC, sans-serif" font-size="22" fill="#667085" text-anchor="end">
+    <text x="136" y="128">100</text>
+    <text x="136" y="234">80</text>
+    <text x="136" y="340">60</text>
+    <text x="136" y="446">40</text>
+    <text x="136" y="552">20</text>
+    <text x="136" y="658">0</text>
+  </g>
+
+  <polyline points="160,545.4 306.7,474.3 453.3,455.2 600,286.6 746.7,266.2 893.3,301.7 1040,268.2 1186.7,256.7 1333.3,253.5 1480,256.4"
+    fill="none" stroke="#315EF5" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g fill="#ffffff" stroke="#315EF5" stroke-width="5">
+    <circle cx="160" cy="545.4" r="9"/>
+    <circle cx="306.7" cy="474.3" r="9"/>
+    <circle cx="453.3" cy="455.2" r="9"/>
+    <circle cx="600" cy="286.6" r="9"/>
+    <circle cx="746.7" cy="266.2" r="9"/>
+    <circle cx="893.3" cy="301.7" r="9"/>
+    <circle cx="1040" cy="268.2" r="9"/>
+    <circle cx="1186.7" cy="256.7" r="9"/>
+    <circle cx="1333.3" cy="253.5" r="11" fill="#315EF5"/>
+    <circle cx="1480" cy="256.4" r="9"/>
+  </g>
+
+  <g font-family="Noto Sans CJK SC, Source Han Sans SC, sans-serif" font-size="20" fill="#667085" text-anchor="middle">
+    <text x="160" y="700">00</text>
+    <text x="306.7" y="700">01</text>
+    <text x="453.3" y="700">02</text>
+    <text x="600" y="700">03</text>
+    <text x="746.7" y="700">04</text>
+    <text x="893.3" y="700">05</text>
+    <text x="1040" y="700">06</text>
+    <text x="1186.7" y="700">07</text>
+    <text x="1333.3" y="700">08</text>
+    <text x="1480" y="700">09</text>
+  </g>
+
+  <g font-family="Noto Sans CJK SC, Source Han Sans SC, sans-serif">
+    <g transform="translate(180 568)">
+      <rect x="0" y="0" width="192" height="50" rx="12" fill="#F3F4F6"/>
+      <text x="96" y="33" text-anchor="middle" font-size="21" fill="#273142">橘猫 19.73</text>
+      <line x1="0" y1="8" x2="-20" y2="-22.6" stroke="#9AA7B8" stroke-width="2"/>
+    </g>
+    <g transform="translate(198 380)">
+      <rect x="0" y="0" width="218" height="58" rx="12" fill="#EEF2FF" stroke="#315EF5" stroke-width="2"/>
+      <text x="109" y="37" text-anchor="middle" font-size="22" fill="#273142">橘色狗 33.16</text>
+      <line x1="108.7" y1="58" x2="108.7" y2="94.3" stroke="#315EF5" stroke-width="2"/>
+    </g>
+    <g transform="translate(486 176)">
+      <rect x="0" y="0" width="228" height="58" rx="12" fill="#EEF2FF" stroke="#315EF5" stroke-width="2"/>
+      <text x="114" y="37" text-anchor="middle" font-size="22" fill="#273142">白色狗 68.57</text>
+      <line x1="114" y1="58" x2="114" y2="99" stroke="#315EF5" stroke-width="2"/>
+    </g>
+    <g transform="translate(1218 157)">
+      <rect x="0" y="0" width="230" height="58" rx="12" fill="#315EF5"/>
+      <text x="115" y="37" text-anchor="middle" font-size="22" fill="#ffffff">最高分 74.81</text>
+      <line x1="115" y1="58" x2="115" y2="85" stroke="#315EF5" stroke-width="2"/>
+    </g>
+  </g>
+</svg>
