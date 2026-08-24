@@ -1,6 +1,8 @@
 .DS_Store
 deepseek-harness/
-/demo/
+/demo/*
+!/demo/chapter8-job-hunt/
+!/demo/chapter9-a-share-research/
 output/pdf/*.pdf
 output/html/
 output/site/
