@@ -6,6 +6,22 @@ DeepSeek Harness 中文实战书稿与配套素材。
 
 完整目录见 [`book/outline.md`](book/outline.md)。
 
+## 在线阅读
+
+网站使用 `book/*.md` 作为唯一正文源，并通过 Material for MkDocs 生成：
+
+<https://prism-shadow.github.io/dsh-book/>
+
+本地预览时，在仓库根目录运行：
+
+```bash
+python3 scripts/prepare_site.py
+python3 -m pip install -r requirements-site.txt
+mkdocs serve
+```
+
+网页构建只复制原始 PNG、JPEG 和 SVG 文件，不会重新编码或压缩图片。书稿中的 PDF 专用 LaTeX 块会在生成网页临时稿时转换，不会修改 `book/` 中的正文。
+
 ## 仓库结构
 
 ```text
@@ -39,3 +55,5 @@ output/pdf/         本地构建产物
 脚本会校验目录和章节标题，汇总 Markdown，并使用 Pandoc 与 XeLaTeX 生成 `output/pdf/DSH-Book-样章.pdf`。本机需要安装 Pandoc、XeLaTeX 和脚本提示的 TeX 组件。
 
 每次推送和拉取请求都会触发 GitHub Actions。流水线会检查 Python 与 Shell 脚本、运行测试、构建 PDF，并上传 `dsh-book-pdf` 构建产物。
+
+推送到 `main` 的书稿或网站文件还会触发 GitHub Pages 工作流，自动更新在线版本。

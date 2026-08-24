@@ -1,0 +1,214 @@
+:root {
+  --dsh-accent: #2455a4;
+  --dsh-accent-strong: #173a75;
+  --dsh-accent-soft: #eaf2ff;
+  --dsh-rule: #ccd7e8;
+  --dsh-muted: #5e6b7d;
+  --dsh-code: #f5f7fa;
+}
+
+[data-md-color-scheme="slate"] {
+  --dsh-accent: #70a7ff;
+  --dsh-accent-strong: #9fc5ff;
+  --dsh-accent-soft: #1a2941;
+  --dsh-rule: #40516a;
+  --dsh-muted: #b1bed0;
+  --dsh-code: #1c2533;
+}
+
+body,
+input {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+.md-grid {
+  max-width: 78rem;
+}
+
+.md-typeset {
+  font-size: 0.78rem;
+  line-height: 1.82;
+}
+
+.md-typeset h1 {
+  color: var(--md-typeset-color);
+  font-weight: 720;
+  letter-spacing: -0.02em;
+}
+
+.md-typeset h2 {
+  border-bottom: 1px solid var(--dsh-rule);
+  padding-bottom: 0.35rem;
+}
+
+.md-typeset img {
+  display: block;
+  height: auto;
+  margin: 1.1rem auto 0.45rem;
+  max-width: 100%;
+}
+
+.md-typeset figure.book-figure,
+.md-typeset figure.book-diagram {
+  margin: 1.6rem auto;
+  max-width: 100%;
+  text-align: center;
+}
+
+.md-typeset .book-figure-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.md-typeset .book-figure-grid figcaption {
+  grid-column: 1 / -1;
+}
+
+.md-typeset .book-figure-grid img {
+  margin: 0;
+  width: 100%;
+}
+
+.md-typeset figcaption {
+  color: var(--dsh-muted);
+  font-size: 0.68rem;
+  line-height: 1.55;
+  margin-top: 0.65rem;
+}
+
+.book-diagram {
+  background: linear-gradient(145deg, var(--dsh-code), transparent);
+  border: 1px solid var(--dsh-rule);
+  border-radius: 0.8rem;
+  padding: 1.2rem;
+}
+
+.diagram-flow {
+  align-items: center;
+  display: flex;
+  gap: 0.55rem;
+  justify-content: center;
+}
+
+.diagram-flow-row {
+  flex-wrap: wrap;
+}
+
+.diagram-flow-vertical,
+.diagram-stack,
+.diagram-context {
+  flex-direction: column;
+}
+
+.diagram-stack,
+.diagram-context {
+  align-items: center;
+  display: flex;
+  gap: 0.45rem;
+}
+
+.diagram-node {
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--dsh-accent);
+  border-radius: 0.55rem;
+  color: var(--md-typeset-color);
+  min-width: 8.6rem;
+  padding: 0.65rem 0.85rem;
+  text-align: center;
+}
+
+.diagram-node small {
+  color: var(--dsh-muted);
+  display: block;
+  margin-top: 0.2rem;
+}
+
+.diagram-node code {
+  white-space: normal;
+}
+
+.diagram-node-accent {
+  background: var(--dsh-accent-strong);
+  border-color: var(--dsh-accent-strong);
+  color: white;
+}
+
+.diagram-node-flat {
+  background: var(--dsh-code);
+  border-color: var(--dsh-rule);
+}
+
+.diagram-node-seam {
+  background: var(--dsh-accent-soft);
+  border-style: dashed;
+}
+
+.diagram-node-wide {
+  max-width: 42rem;
+  width: min(100%, 42rem);
+}
+
+.diagram-arrow {
+  color: var(--dsh-accent);
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.diagram-loop,
+.diagram-note,
+.diagram-context-label {
+  color: var(--dsh-muted);
+  font-size: 0.68rem;
+}
+
+.diagram-note {
+  margin-top: 0.8rem;
+}
+
+.diagram-branches {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 0.25rem;
+  width: 100%;
+}
+
+.diagram-context-label {
+  display: flex;
+  justify-content: space-between;
+  max-width: 30rem;
+  width: 100%;
+}
+
+.diagram-compare {
+  align-items: center;
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: auto repeat(2, minmax(0, 1fr));
+}
+
+.diagram-compare-label {
+  color: var(--dsh-muted);
+  font-weight: 700;
+}
+
+@media screen and (max-width: 44rem) {
+  .md-typeset .book-figure-grid,
+  .diagram-branches {
+    grid-template-columns: 1fr;
+  }
+
+  .diagram-compare {
+    grid-template-columns: 1fr;
+  }
+
+  .diagram-flow-row {
+    flex-direction: column;
+  }
+
+  .diagram-flow-row .diagram-arrow {
+    transform: rotate(90deg);
+  }
+}

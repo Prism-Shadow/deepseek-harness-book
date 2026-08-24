@@ -3,6 +3,8 @@ deepseek-harness/
 /demo/
 output/pdf/*.pdf
 output/html/
+output/site/
+output/site-src/
 output/rendered/
 tmp/
 svg-inkscape/
