@@ -18,16 +18,14 @@ Excel 工作簿不仅保存单元格中的文字和数字，还包含公式、�
 
 在 `product_launch_cost_review` 工作区中新建会话。
 
-<span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
-
-```text
-请将下面的 Excel Skill 安装到当前工作区的
-.agents/skills/minimax-xlsx：
-
-https://github.com/MiniMax-AI/skills/tree/main/skills/minimax-xlsx
-
-安装完成后检查文件是否齐全，并告诉我安装位置。先不要处理表格。
-```
+> <span class="prompt-title">提示词内容：</span>
+>
+> 请将下面的 Excel Skill 安装到当前工作区的
+> .agents/skills/minimax-xlsx：
+>
+> https://github.com/MiniMax-AI/skills/tree/main/skills/minimax-xlsx
+>
+> 安装完成后检查文件是否齐全，并告诉我安装位置。先不要处理表格。
 
 dsh 会把 Skill 下载到当前工作区，并检查其中的说明、脚本和模板。安装完成后，可以让 dsh 尝试加载 `minimax-xlsx`。出现 Skill 调用记录，并返回完整的技能指令，说明 dsh 已经发现它，如图 4-1 所示。
 
@@ -37,26 +35,24 @@ dsh 会把 Skill 下载到当前工作区，并检查其中的说明、脚本和
 
 继续使用当前会话。
 
-<span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
-
-```text
-请使用已安装的 minimax-xlsx Skill，整理
-4-1-excel/source/产品发布会费用明细.xlsx。
-
-要求：
-1. 保留原始文件，不要覆盖，
-2. 统一日期和费用类别，
-3. 删除完全重复的记录，
-4. 保留场地押金退回这笔负数记录，
-5. 标出类别缺失、凭证缺失等需要人工确认的问题，
-6. 生成“整理后明细”“费用汇总”和“异常记录”三个工作表，
-7. 在汇总表中统计总费用及各类别费用，
-8. 调整列宽、表头、金额格式和重点数据的样式，
-9. 将结果保存为
-4-1-excel/output/产品发布会费用整理结果.xlsx。
-
-完成后说明发现了哪些问题、做了哪些修改，并给出整理后的费用总额。
-```
+> <span class="prompt-title">提示词内容：</span>
+>
+> 请使用已安装的 minimax-xlsx Skill，整理
+> 4-1-excel/source/产品发布会费用明细.xlsx。
+>
+> 要求：
+> 1. 保留原始文件，不要覆盖，
+> 2. 统一日期和费用类别，
+> 3. 删除完全重复的记录，
+> 4. 保留场地押金退回这笔负数记录，
+> 5. 标出类别缺失、凭证缺失等需要人工确认的问题，
+> 6. 生成“整理后明细”“费用汇总”和“异常记录”三个工作表，
+> 7. 在汇总表中统计总费用及各类别费用，
+> 8. 调整列宽、表头、金额格式和重点数据的样式，
+> 9. 将结果保存为
+> 4-1-excel/output/产品发布会费用整理结果.xlsx。
+>
+> 完成后说明发现了哪些问题、做了哪些修改，并给出整理后的费用总额。
 
 整理过程中，dsh 先读取工作簿，检查日期、类别、空白字段和重复记录，再创建新的工作簿并验证其中的公式。完成后，它会在回复中列出发现的问题，如图 4-2 所示。
 
@@ -85,17 +81,15 @@ dsh 可以完成批量检查和格式整理，但不应自行补造缺失的业�
 
 在 `product_launch_cost_review` 工作区中新建会话。
 
-<span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
-
-```text
-请将下面的 Word Skill 安装到当前工作区的
-.agents/skills/minimax-docx：
-
-https://github.com/MiniMax-AI/skills/tree/main/skills/minimax-docx
-
-安装完成后检查 SKILL.md、scripts 和 references 是否齐全，
-并告诉我安装位置。先不要生成报告。
-```
+> <span class="prompt-title">提示词内容：</span>
+>
+> 请将下面的 Word Skill 安装到当前工作区的
+> .agents/skills/minimax-docx：
+>
+> https://github.com/MiniMax-AI/skills/tree/main/skills/minimax-docx
+>
+> 安装完成后检查 SKILL.md、scripts 和 references 是否齐全，
+> 并告诉我安装位置。先不要生成报告。
 
 dsh 会将 Skill 安装到 `.agents/skills/minimax-docx`，并核对其中的文件，如图 4-3 所示。
 
@@ -105,28 +99,26 @@ dsh 会将 Skill 安装到 `.agents/skills/minimax-docx`，并核对其中的文
 
 安装完成后，单击 `New Session` 新建会话。
 
-<span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
-
-```text
-请使用 minimax-docx Skill，读取：
-
-4-1-excel/output/产品发布会费用整理结果.xlsx
-4-2-word/source/报告写作要求.md
-
-生成一份《产品发布会费用复盘报告》。
-
-要求：
-1. 金额和异常事项以 Excel 为准，不补造数据，
-2. 包含项目概况、预算执行、分类费用分析、异常事项和后续建议，
-3. 使用表格展示主要费用数据，
-4. 采用简洁、正式的办公报告风格，
-5. 检查标题层级、分页、表格宽度和中文排版，
-6. 将文件保存为
-4-2-word/output/产品发布会费用复盘报告.docx，
-7. 生成页面预览并检查排版。
-
-完成后说明生成了哪些文件，以及报告中的主要结论。
-```
+> <span class="prompt-title">提示词内容：</span>
+>
+> 请使用 minimax-docx Skill，读取：
+>
+> 4-1-excel/output/产品发布会费用整理结果.xlsx
+> 4-2-word/source/报告写作要求.md
+>
+> 生成一份《产品发布会费用复盘报告》。
+>
+> 要求：
+> 1. 金额和异常事项以 Excel 为准，不补造数据，
+> 2. 包含项目概况、预算执行、分类费用分析、异常事项和后续建议，
+> 3. 使用表格展示主要费用数据，
+> 4. 采用简洁、正式的办公报告风格，
+> 5. 检查标题层级、分页、表格宽度和中文排版，
+> 6. 将文件保存为
+> 4-2-word/output/产品发布会费用复盘报告.docx，
+> 7. 生成页面预览并检查排版。
+>
+> 完成后说明生成了哪些文件，以及报告中的主要结论。
 
 dsh 读取两个文件后，生成报告正文和页面预览，并检查标题层级、表格宽度和分页情况。完成后的回复会列出文件位置和检查结果，如图 4-4 所示。
 
@@ -173,15 +165,13 @@ https://open.bigmodel.cn/usercenter/apikeys
 
 可以使用上一节生成的 Word 页面预览检查配置。在新会话中发送以下内容。
 
-<span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
-
-```text
-请使用 ModLens 阅读下面这张页面预览：
-
-4-2-word/output/preview/预览-第1页.png
-
-只根据图片内容，告诉我页面标题、费用预算、实际总费用和预算执行率。
-```
+> <span class="prompt-title">提示词内容：</span>
+>
+> 请使用 ModLens 阅读下面这张页面预览：
+>
+> 4-2-word/output/preview/预览-第1页.png
+>
+> 只根据图片内容，告诉我页面标题、费用预算、实际总费用和预算执行率。
 
 ![dsh 通过 ModLens 读取 Word 页面预览](assets/chapter4/4-3-modlens-test.png){width=60%}
 
@@ -195,17 +185,15 @@ https://open.bigmodel.cn/usercenter/apikeys
 
 在 `product_launch_cost_review` 工作区中新建会话。
 
-<span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
-
-```text
-请将下面的 PPT Skill 安装到当前工作区的
-.agents/skills/pptx-generator：
-
-https://github.com/MiniMax-AI/skills/tree/main/skills/pptx-generator
-
-安装完成后检查 SKILL.md 和 references 是否齐全，
-并告诉我安装位置。先不要生成演示文稿。
-```
+> <span class="prompt-title">提示词内容：</span>
+>
+> 请将下面的 PPT Skill 安装到当前工作区的
+> .agents/skills/pptx-generator：
+>
+> https://github.com/MiniMax-AI/skills/tree/main/skills/pptx-generator
+>
+> 安装完成后检查 SKILL.md 和 references 是否齐全，
+> 并告诉我安装位置。先不要生成演示文稿。
 
 安装结果如图 4-7 所示。`pptx-generator` 中包含页面设计、PptxGenJS、编辑方法和质量检查等参考资料。
 
@@ -215,31 +203,29 @@ https://github.com/MiniMax-AI/skills/tree/main/skills/pptx-generator
 
 安装完成后，单击 `New Session` 新建会话。
 
-<span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
-
-```text
-请使用 pptx-generator Skill，读取：
-
-4-1-excel/output/产品发布会费用整理结果.xlsx
-4-2-word/output/产品发布会费用复盘报告.docx
-4-3-ppt/source/演示文稿制作要求.md
-
-生成一套《产品发布会费用复盘》演示文稿。
-
-要求：
-1. 严格按照制作要求生成 6 页、16:9 的幻灯片，
-2. 金额、比例和异常事项必须与 Excel、Word 报告一致，
-3. 采用深蓝、浅蓝为主，橙色突出异常事项，
-4. 使用大数字、图表和简短列表，避免大段文字，
-5. 生成可以继续编辑的 PPTX，并保留生成源文件，
-6. 生成每页预览，使用 ModLens 检查文字溢出、重叠、对齐和风格一致性，
-7. 发现问题后直接修正并重新检查，
-8. 将最终文件保存为：
-4-3-ppt/output/产品发布会费用复盘.pptx。
-
-缺少运行依赖时请自行安装。完成后说明生成了哪些文件，
-以及检查和修改了哪些问题。
-```
+> <span class="prompt-title">提示词内容：</span>
+>
+> 请使用 pptx-generator Skill，读取：
+>
+> 4-1-excel/output/产品发布会费用整理结果.xlsx
+> 4-2-word/output/产品发布会费用复盘报告.docx
+> 4-3-ppt/source/演示文稿制作要求.md
+>
+> 生成一套《产品发布会费用复盘》演示文稿。
+>
+> 要求：
+> 1. 严格按照制作要求生成 6 页、16:9 的幻灯片，
+> 2. 金额、比例和异常事项必须与 Excel、Word 报告一致，
+> 3. 采用深蓝、浅蓝为主，橙色突出异常事项，
+> 4. 使用大数字、图表和简短列表，避免大段文字，
+> 5. 生成可以继续编辑的 PPTX，并保留生成源文件，
+> 6. 生成每页预览，使用 ModLens 检查文字溢出、重叠、对齐和风格一致性，
+> 7. 发现问题后直接修正并重新检查，
+> 8. 将最终文件保存为：
+> 4-3-ppt/output/产品发布会费用复盘.pptx。
+>
+> 缺少运行依赖时请自行安装。完成后说明生成了哪些文件，
+> 以及检查和修改了哪些问题。
 
 dsh 生成 PPTX、每页预览和对应的 JavaScript 源文件，并使用 ModLens 检查全部页面。完成后的回复会列出交付文件和 6 页内容，如图 4-8 所示。
 
@@ -267,20 +253,18 @@ dsh 生成 PPTX、每页预览和对应的 JavaScript 源文件，并使用 ModL
 
 在 `product_launch_cost_review` 工作区中新建会话。
 
-<span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
-
-```text
-请读取 4-4-pdf/source 中的全部 PDF，使用视觉能力逐页识别内容，并完成以下工作：
-
-1. 提取文件名称、资料类型、供应商、日期、金额和对应记录编号，
-2. 按资料类型分类整理，
-3. 检查重复文件、内容重复、缺页、旋转和识别困难等问题，
-4. 与 4-1-excel/output/产品发布会费用整理结果.xlsx 核对，找出缺少凭证的费用记录，
-5. 将汇总表保存为 4-4-pdf/output/PDF资料汇总.xlsx，
-6. 将核查结论保存为 4-4-pdf/output/PDF资料核查报告.md。
-
-保留原始 PDF。无法确认的内容请标记为“待人工核对”，不要猜测。
-```
+> <span class="prompt-title">提示词内容：</span>
+>
+> 请读取 4-4-pdf/source 中的全部 PDF，使用视觉能力逐页识别内容，并完成以下工作：
+>
+> 1. 提取文件名称、资料类型、供应商、日期、金额和对应记录编号，
+> 2. 按资料类型分类整理，
+> 3. 检查重复文件、内容重复、缺页、旋转和识别困难等问题，
+> 4. 与 4-1-excel/output/产品发布会费用整理结果.xlsx 核对，找出缺少凭证的费用记录，
+> 5. 将汇总表保存为 4-4-pdf/output/PDF资料汇总.xlsx，
+> 6. 将核查结论保存为 4-4-pdf/output/PDF资料核查报告.md。
+>
+> 保留原始 PDF。无法确认的内容请标记为“待人工核对”，不要猜测。
 
 dsh 会逐页读取 PDF，提取单据中的字段，再通过文件校验值、页面内容和印刷页码检查重复及缺页情况。完成后，它会生成 Excel 汇总表和 Markdown 核查报告，并在回复中列出主要问题，如图 4-11 所示。
 
@@ -292,13 +276,11 @@ dsh 会逐页读取 PDF，提取单据中的字段，再通过文件校验值、
 
 PDF 的页面旋转属性为 0°，只表示页面坐标没有设置旋转，画面中的扫描内容仍可能是横向的。继续使用当前会话。
 
-<span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
-
-```text
-请重新检查 06_嘉宾差旅费用确认单_远行商旅.pdf。该文件的页面内容横转了 90°，PDF 页面旋转属性为 0°，不代表画面方向正常。
-
-请使用视觉能力复核，并更新 PDF资料核查报告.md 和 PDF资料汇总.xlsx 中的旋转检查结果。其他正确结论保持不变。
-```
+> <span class="prompt-title">提示词内容：</span>
+>
+> 请重新检查 06_嘉宾差旅费用确认单_远行商旅.pdf。该文件的页面内容横转了 90°，PDF 页面旋转属性为 0°，不代表画面方向正常。
+>
+> 请使用视觉能力复核，并更新 PDF资料核查报告.md 和 PDF资料汇总.xlsx 中的旋转检查结果。其他正确结论保持不变。
 
 dsh 重新使用 ModLens 检查页面，并结合 OCR 文本框方向确认画面内容逆时针横转了 90°。随后，它更新了两份交付文件中的问题说明，同时保留原有的金额和凭证核对结果，如图 4-12 所示。
 

@@ -69,7 +69,7 @@ Plugin          加载          Fiber
 
 ### 看看 dsh 是怎样组装出来的
 
-下面的命令不需要模型密钥。它会打印 Web profile 最终生成的配置树：
+下面的命令会打印 Web profile 最终生成的配置树：
 
 ```bash
 npx -y @deepseek-ai/dsh --profile web --dump-config
@@ -77,17 +77,17 @@ npx -y @deepseek-ai/dsh --profile web --dump-config
 
 输出中可以找到 `agent-loop` 和 `tool-todo`。前者负责驱动 Agent Loop，后者提供待办事项工具。两者职责差别很大，但在最终配置中都表现为插件配置项，都有自己的 `id`、`name` 和 `config`。
 
-![实际 dump-config 输出中 agent-loop 与 tool-todo 是平等插件](assets/chapter12/12-1-02-plugin-tree-proof.svg)
+![实际 dump-config 输出中 agent-loop 与 tool-todo 是平等插件](assets/chapter12/12-1-02-plugin-tree-proof.svg){width=88%}
 
 这是前面配置组合机制在 Web profile 中的实际结果。模型适配器、工具、会话、沙箱和 Agent Loop 等能力，也都通过插件进入 Cordis 运行时。
 
-![dsh 的各项能力通过 Cordis Context 协作](assets/chapter12/12-1-01-everything-is-plugin.svg)
+![dsh 的各项能力通过 Cordis Context 协作](assets/chapter12/12-1-01-everything-is-plugin.svg){width=88%}
 
 图中的 `Context` 表示插件共同使用的运行环境，箭头表示协作关系，不代表实际加载顺序。
 
 下面把 Web profile 形成最终配置的过程对应到前面的 profile、bundle 和 patch：
 
-![dsh 从组合包到用户补丁的分层装配](assets/chapter12/12-1-03-composition-layers.svg)
+![dsh 从组合包到用户补丁的分层装配](assets/chapter12/12-1-03-composition-layers.svg){width=88%}
 
 **亲手验证。** 将 `--profile web` 换成自己正在使用的 profile，再执行一次 `--dump-config`。搜索模型适配器、`agent-loop` 和常用工具的名称，观察它们最终对应哪些插件配置项。如果预期的插件没有出现，可以先从 profile、bundle 和后续 patch 的组合关系开始排查。
 
@@ -135,7 +135,7 @@ hello from my first plugin
 
 这行输出说明 `hello.ts` 已经被加载，`apply()` 也已经执行。
 
-![官方最小插件从配置到输出的完整路径](assets/chapter12/12-1-04-official-loader-flow.svg)
+![官方最小插件从配置到输出的完整路径](assets/chapter12/12-1-04-official-loader-flow.svg){width=82%}
 
 这里先记住一条主线：**配置选择 Plugin，加载产生 Fiber，`apply(ctx)` 在这个运行实例中执行。** 同一个 Plugin 可以被多次加载，每次都会产生自己的 Fiber。
 
@@ -350,7 +350,7 @@ consumer: LOADING → ACTIVE
 
 消费方依赖的是 Service 的能力约定，具体实现可以由不同插件提供。这条稳定的能力边界可以看作一条 **seam（替换缝）**：只要新的提供方保持接口兼容，消费方就不需要修改。
 
-![同一个能力 seam 可以接入不同提供方](assets/chapter12/12-2-03-capability-seam.svg)
+![同一个能力 seam 可以接入不同提供方](assets/chapter12/12-2-03-capability-seam.svg){width=88%}
 
 dsh 因此可以在本机、沙箱和远程实现之间替换能力提供方，而不必让上层插件随之修改。
 
@@ -519,7 +519,7 @@ ACTIVE
 
 Effect 可以理解为插件“做了什么”，退出时需要撤销；Service 与 `inject` 描述插件“需要什么”，依赖变化时重新计算运行关系。下面的图把两者概括为时间可组合性和空间可组合性。
 
-![时间可组合性与空间可组合性](assets/chapter12/12-2-02-spatiotemporal.svg)
+![时间可组合性与空间可组合性](assets/chapter12/12-2-02-spatiotemporal.svg){width=88%}
 
 这些机制让很多变化可以在插件级处理，无需重启整个进程。Cordis 只能自动撤销纳入其生命周期管理的资源；外部写入和安全隔离等问题，仍需要事务、补偿或独立沙箱处理。
 

@@ -49,6 +49,16 @@ input {
   max-width: 100%;
 }
 
+.md-typeset .prompt-title {
+  color: #e45c5c;
+  font-size: 1.1em;
+  font-weight: 600;
+}
+
+.md-typeset blockquote:has(.prompt-title) p:not(:first-child) {
+  white-space: pre-line;
+}
+
 .md-typeset figure.book-figure,
 .md-typeset figure.book-diagram {
   margin: 1.6rem auto;

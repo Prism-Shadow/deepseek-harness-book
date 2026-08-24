@@ -50,7 +50,7 @@ dsh 启动后，还需要为它配置可调用的模型。本章使用 DeepSeek 
 
 本章选择 DeepSeek-V4-Flash，并将推理等级设置为 Max，然后发送：
 
-> <span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
+> <span class="prompt-title">提示词内容：</span>
 >
 > 你好，请用一句话介绍你自己
 
@@ -70,7 +70,7 @@ dsh 启动后，还需要为它配置可调用的模型。本章使用 DeepSeek 
 
 在刚才的会话中发送：
 
-> <span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
+> <span class="prompt-title">提示词内容：</span>
 >
 > 帮我在这个文件夹里新建一个 about-dsh.md，写清楚 dsh 是什么、能做什么，两三段就行，不用太长。全文统一写作小写 dsh。
 

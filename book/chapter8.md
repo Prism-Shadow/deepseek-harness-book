@@ -10,7 +10,7 @@
 
 新建名为 `job-hunt` 的文件夹，把它添加为工作区，再打开一个标准模式会话。本章只需要读取文件、联网调研和生成文档，不必使用创造模式。确认当前会话使用的是 `job-hunt` 工作区后，发送下面这段提示词。dsh 把工作经历需要补充的细节排在清单最前面，后面再询问目标岗位和校园经历。图 8-1 截取了清单的第一项，其中把“兼职”误称为“实习经历”，后续整理材料时要改回“兼职”。
 
-> \textcolor[HTML]{E45C5C}{\large\textbf{提示词内容：}}
+> <span class="prompt-title">提示词内容：</span>
 >
 > 我是 2027 届市场营销专业本科生，暑假在一家宠物短视频公司做了两个月兼职，现在准备秋招，目标是互联网公司的内容运营岗。接下来想让你帮我盘点能力、调研岗位、写简历、模拟面试。先别开始做，列出你需要我提供哪些材料，按重要性排。
 
@@ -30,7 +30,7 @@
 \Needspace{22\baselineskip}
 ```
 
-> \textcolor[HTML]{E45C5C}{\large\textbf{提示词内容：}}
+> <span class="prompt-title">提示词内容：</span>
 >
 > 我已经把兼职期间的笔记放在工作区，文件名是“parttime-notes.md”。
 >
@@ -54,7 +54,7 @@
 
 发现这类问题时，直接指出事实边界，让 dsh 覆盖原文件。
 
-> \textcolor[HTML]{E45C5C}{\large\textbf{提示词内容：}}
+> <span class="prompt-title">提示词内容：</span>
 >
 > 请修正“能力档案.md”。“14 条脚本、9 条发布”不能写成过稿率。爆款视频发布后的近万涨粉属于账号数据，账号整体增长属于团队成果。同步修正总览、分项和成果清单，覆盖原文件。
 
@@ -72,7 +72,7 @@
 
 继续在当前工作区发送下面的要求。
 
-> \textcolor[HTML]{E45C5C}{\large\textbf{提示词内容：}}
+> <span class="prompt-title">提示词内容：</span>
 >
 > 先进入岗位调研。
 >
@@ -112,7 +112,7 @@
 
 接下来让 dsh 把岗位要求和现有证据放到同一张表里。
 
-> \textcolor[HTML]{E45C5C}{\large\textbf{提示词内容：}}
+> <span class="prompt-title">提示词内容：</span>
 >
 > 读取“能力档案.md”和“岗位调研.md”，生成“差距表.md”。
 >
@@ -140,7 +140,7 @@
 
 ### 选择一份具体 JD
 
-> \textcolor[HTML]{E45C5C}{\large\textbf{提示词内容：}}
+> <span class="prompt-title">提示词内容：</span>
 >
 > 结合“能力档案.md”、“岗位调研.md”和“差距表.md”，选一份和我经历最匹配的内容运营 JD，保存为“目标JD.md”。优先选择当前可投的岗位，没有合适的就选一份作为简历练习并说明状态。
 >
@@ -162,7 +162,7 @@ dsh 最后选择了转载页面中的快手媒体号运营实习岗位。该页�
 
 保留初版，再把修改稿另存为“resume-new.md”，后面还要用它更换模板。
 
-> \textcolor[HTML]{E45C5C}{\large\textbf{提示词内容：}}
+> <span class="prompt-title">提示词内容：</span>
 >
 > 我检查了初版 PDF。请保留初版文件，把优化结果另存为“resume-new.md”和“resume-new.pdf”。
 >
@@ -176,7 +176,7 @@ dsh 最后选择了转载页面中的快手媒体号运营实习岗位。该页�
 \Needspace{14\baselineskip}
 ```
 
-> \textcolor[HTML]{E45C5C}{\large\textbf{提示词内容：}}
+> <span class="prompt-title">提示词内容：</span>
 >
 > 现在的简历排版还是不好看，而且姓名重复了。不要继续使用原来的 PDF 生成脚本。请安装并使用 RenderCV，把“resume-new.md”中的现有内容套入简历模板，分别使用 classic、moderncv、harvard 三种样式，各生成一份一页 A4 的 PDF，放入“resume-options”文件夹。使用本机可用的中文字体，姓名只出现一次，不要修改或补充简历内容。完成后列出三份 PDF 文件。
 
@@ -190,7 +190,7 @@ dsh 最后选择了转载页面中的快手媒体号运营实习岗位。该页�
 \Needspace{18\baselineskip}
 ```
 
-> \textcolor[HTML]{E45C5C}{\large\textbf{提示词内容：}}
+> <span class="prompt-title">提示词内容：</span>
 >
 > 请读取“目标JD.md”、“能力档案.md”和“差距表.md”，基于 classic 版简历做针对目标岗位的优化。
 >
@@ -230,13 +230,13 @@ dsh 将“面试题清单.md”中的六个考察维度整理成图 8-9，底部
 \Needspace{8\baselineskip}
 ```
 
-> \textcolor[HTML]{E45C5C}{\large\textbf{提示词内容：}}
+> <span class="prompt-title">提示词内容：</span>
 >
 > 请读取“目标JD.md”和“resume-options/resume-final.yaml”，根据目标岗位一次性生成 6 个面试问题，覆盖岗位匹配、短视频爆款、数据分析、个人贡献、直播复盘和运营情景题。每题注明考察点，但先不要提供答案，保存为“面试题清单.md”。
 
 题单生成后，从中挑三道最值得深挖的问题开始模拟。
 
-> \textcolor[HTML]{E45C5C}{\large\textbf{提示词内容：}}
+> <span class="prompt-title">提示词内容：</span>
 >
 > 现在开始模拟面试。请从这些问题中选择最值得深挖的 3 个，一次只问一个，并根据我的回答最多追问一次。中途不要点评。完成后生成“面试复盘.md”。
 

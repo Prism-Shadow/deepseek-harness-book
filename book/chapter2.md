@@ -25,7 +25,7 @@
 
 切换到创造模式，新建一个会话，然后发送下面的指令：
 
-> <span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
+> <span class="prompt-title">提示词内容：</span>
 >
 > 基于 standard 帮我创建一个技术文档编辑，id 用 tech-editor，显示名称叫“技术编辑”。它用来审阅 README、教程和项目文档，先检查事实、结构和语言，默认只给建议；我明确要求时再修改文件。完成后告诉我改了哪些配置文件。
 
@@ -58,7 +58,7 @@ $DSH_HOME/.agent-presets/tech-editor/
 
 为了确保新会话加载刚创建的 preset，需要重新打开一个会话进行验证，已经打开的会话不会自动切换到新的 preset。新建会话后，在模式下拉框中选择“技术编辑”，然后发送下面的指令：
 
-> <span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
+> <span class="prompt-title">提示词内容：</span>
 >
 > 审阅工作区里的 about-dsh.md，告诉我最需要改进的两处，并说明理由。
 
@@ -76,7 +76,7 @@ $DSH_HOME/.agent-presets/tech-editor/
 
 回到创造模式，新建一个会话，然后发送下面的指令：
 
-> <span style="color:#e45c5c;font-size:1.1em;font-weight:600;">提示词内容：</span>
+> <span class="prompt-title">提示词内容：</span>
 >
 > 请用运行时插件把 dsh 临时改成明显的翡翠绿主题。先检查相关主题令牌，将侧栏和页面背景改成绿色系，并让发送按钮、顶部选中标签和输入框焦点边框变成翡翠绿；同时用内联 SVG 在右下角绘制一个原创的绿色短发动漫女孩半身像，戴未来感耳机，高度约占页面一半，不遮挡输入框和主要操作。不要修改仓库文件或持久配置；完成后说明修改了哪些令牌，以及刷新或重启后是否保留。
 
