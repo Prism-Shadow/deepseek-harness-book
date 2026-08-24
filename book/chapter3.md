@@ -10,31 +10,9 @@
 
 dsh 可以把这项工作拆开来做。先建立项目和研究计划，再把相对独立的任务交给多个子代理，等材料齐备后回到主会话核验并生成报告。研究说明、原始材料和核验记录都会保存在工作区里，不会只留在一段越来越长的对话中。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\begin{tikzpicture}[every node/.style={align=center, font=\sffamily\footnotesize}]
-  \node[dshnode, minimum width=47mm] (project) {1. 创建调研项目};
-  \node[dshnode, minimum width=47mm, below=7mm of project] (plan) {2. 制定研究计划};
-  \node[dshaccentnode, minimum width=47mm, below=7mm of plan] (parallel) {3. 使用子代理并行调研};
-  \node[dshnodeflat, minimum width=34mm, anchor=north] (cost) at ($(parallel.south)+(-43mm,-10mm)$) {效果与成本};
-  \node[dshnodeflat, minimum width=34mm, anchor=north] (product) at ($(parallel.south)+(0,-10mm)$) {产品与技术适配};
-  \node[dshnodeflat, minimum width=34mm, anchor=north] (safety) at ($(parallel.south)+(43mm,-10mm)$) {安全与落地};
-  \node[dshnode, minimum width=47mm, anchor=north] (verify) at ($(product.south)+(0,-12mm)$) {4. 核验研究结果};
-  \node[dshnode, minimum width=60mm, below=7mm of verify] (report) {5. 生成决策报告并继续完善};
-  \draw[dsharrow] (project) -- (plan);
-  \draw[dsharrow] (plan) -- (parallel);
-  \draw[dsharrow] (parallel) -- (cost);
-  \draw[dsharrow] (parallel) -- (product);
-  \draw[dsharrow] (parallel) -- (safety);
-  \draw[dsharrow] (cost) -- (verify);
-  \draw[dsharrow] (product) -- (verify);
-  \draw[dsharrow] (safety) -- (verify);
-  \draw[dsharrow] (verify) -- (report);
-\end{tikzpicture}
-\caption{使用 dsh 开展深度调研的五个步骤。第三步包含三个并行研究方向，完成后再进入核验和报告生成。}
-\end{figure}
-```
+![使用 dsh 开展深度调研的五个步骤](assets/chapter3/3-1-00-research-flow.svg)
+
+第三步包含三个并行研究方向，完成后再进入核验和报告生成。
 
 本章接着使用第 1 章已经安装并接通模型的 dsh。开始前，新建一个空目录作为工作区，按照第 1 章的方法在 dsh 中选中该目录，再创建一个标准模式会话。后续文件都会保存在这里。
 
@@ -146,27 +124,9 @@ AI代码助手调研/
 
 这次调研无须给子代理编写复杂的人设。只要为每个子代理划定任务范围，并指定一个独立的结果文件即可。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\begin{tikzpicture}[every node/.style={align=center, font=\sffamily\footnotesize}]
-  \node[dshaccentnode, minimum width=34mm] (main) {主会话};
-  \node[dshnode, minimum width=35mm, anchor=north] (cost) at ($(main.south)+(-45mm,-12mm)$) {效果与成本\\子代理};
-  \node[dshnode, minimum width=35mm, anchor=north] (product) at ($(main.south)+(0,-12mm)$) {产品与技术适配\\子代理};
-  \node[dshnode, minimum width=35mm, anchor=north] (safety) at ($(main.south)+(45mm,-12mm)$) {安全与落地\\子代理};
-  \node[dshnodeflat, minimum width=39mm, below=9mm of cost] (costfile) {任务一-效果与成本.md};
-  \node[dshnodeflat, minimum width=39mm, below=9mm of product] (productfile) {任务二-产品与技术适配.md};
-  \node[dshnodeflat, minimum width=39mm, below=9mm of safety] (safetyfile) {任务三-安全与落地.md};
-  \draw[dsharrow] (main) -- (cost);
-  \draw[dsharrow] (main) -- (product);
-  \draw[dsharrow] (main) -- (safety);
-  \draw[dsharrow] (cost) -- (costfile);
-  \draw[dsharrow] (product) -- (productfile);
-  \draw[dsharrow] (safety) -- (safetyfile);
-\end{tikzpicture}
-\caption{主会话与三个子代理的文件分工。每个子代理只负责一个研究方向，并写入自己的文件。}
-\end{figure}
-```
+![主会话与三个子代理的文件分工](assets/chapter3/3-3-00-subagent-files.svg)
+
+每个子代理只负责一个研究方向，并写入自己的文件。
 
 ### 同时启动三个子代理
 
@@ -248,13 +208,7 @@ AI代码助手调研/
 
 这次实际运行中，dsh 抽查了 14 个事实，发现了 Copilot 计费时间和文心快码价格单位等口径冲突，也列出了公开资料无法回答的问题。本次只抽查影响决策的结论，没有重新搜索全部来源；仍未读到全文的材料继续保留原有标记。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.82\textwidth]{assets/chapter3/3-4-01-verification.png}
-\caption{dsh 完成材料核验，列出口径冲突和待确认问题}
-\end{figure}
-```
+![dsh 完成材料核验，列出口径冲突和待确认问题](assets/chapter3/3-4-01-verification.png){width=82%}
 
 例如，公开研究或许能够说明 AI 代码助手在某些编程任务中提高了完成速度，但它无法证明这家公司也能获得相同收益。公司的代码库、人员经验和研发流程都可能不同。这样的结论应记录为“需要通过内部试点验证”，不能简单判为“错误”。
 

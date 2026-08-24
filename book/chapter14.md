@@ -4,38 +4,13 @@
 
 这里说的概念图，是放进页面以前用来尝试视觉方向的插画草图。需求还没完全说清时，可以让 dsh 先画一张，再根据反馈调整。有效的经验会写进绘画 Skill，下一张图便能少走一些弯路。
 
-本章使用一段真实运行记录演示这套方法。初始 Skill 只要求绘制 512×512 的 SVG 宠物，没有指定物种、毛色或构图。图 \ref{fig-14-1} 是其中四张候选图。第一张是橘猫，后面逐步变成了白色狗。
+本章使用一段真实运行记录演示这套方法。初始 Skill 只要求绘制 512×512 的 SVG 宠物，没有指定物种、毛色或构图。下面是其中四张候选图。第一张是橘猫，后面逐步变成了白色狗。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\begin{minipage}{0.43\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{assets/chapter14/14-2-02-round00.png}
-  \par\smallskip\sffamily\footnotesize round-00｜橘猫｜19.73 分
-\end{minipage}\hfill
-\begin{minipage}{0.43\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{assets/chapter14/14-2-03-round01.png}
-  \par\smallskip\sffamily\footnotesize round-01｜橘色狗｜33.16 分
-\end{minipage}
-
-\vspace{4mm}
-
-\begin{minipage}{0.43\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{assets/chapter14/14-2-04-round03.png}
-  \par\smallskip\sffamily\footnotesize round-03｜白色狗｜68.57 分
-\end{minipage}\hfill
-\begin{minipage}{0.43\textwidth}
-  \centering
-  \includegraphics[width=\linewidth]{assets/chapter14/14-2-05-round08.png}
-  \par\smallskip\sffamily\footnotesize round-08｜白色狗与简单道具｜74.81 分
-\end{minipage}
-\caption{同一次任务中的四张宠物概念图}
-\label{fig-14-1}
-\end{figure}
-```
+| round-00｜橘猫｜19.73 分 | round-01｜橘色狗｜33.16 分 |
+| --- | --- |
+| ![round-00 橘猫](assets/chapter14/14-2-02-round00.png) | ![round-01 橘色狗](assets/chapter14/14-2-03-round01.png) |
+| round-03｜白色狗｜68.57 分 | round-08｜白色狗与简单道具｜74.81 分 |
+| ![round-03 白色狗](assets/chapter14/14-2-04-round03.png) | ![round-08 白色狗与简单道具](assets/chapter14/14-2-05-round08.png) |
 
 ## 为什么概念图需要自进化 {#sec-14-1}
 
@@ -57,32 +32,9 @@ Skill 给这些经验提供了落脚点。它可以从很少的规则开始，�
 
 ### 让一次会话跑完循环
 
-图 \ref{fig-14-2} 展示了完整循环。dsh 使用当前 Skill 画图，查看渲染结果并取得分数，再决定是否把本轮经验留下。图中只把“更新或保留 Skill”标成深蓝色，因为这里保存的结果会传给下一轮；其余步骤统一使用浅蓝色。
+下图展示了完整循环。dsh 使用当前 Skill 画图，查看渲染结果并取得分数，再决定是否把本轮经验留下。图中只把“更新或保留 Skill”标成深蓝色，因为这里保存的结果会传给下一轮；其余步骤统一使用浅蓝色。
 
-```{=latex}
-\begin{center}
-\begin{minipage}{\linewidth}
-\centering
-\begin{tikzpicture}[node distance=8mm and 12mm, every node/.style={align=center, font=\sffamily\footnotesize}]
-  \node[dshnode, minimum width=34mm] (skill) {读取当前 Skill};
-  \node[dshnode, minimum width=34mm, right=of skill] (draw) {生成 SVG 概念图};
-  \node[dshnode, minimum width=34mm, right=of draw] (look) {渲染并查看图片};
-  \node[dshnode, minimum width=34mm, below=of look] (score) {取得三个分项得分};
-  \node[dshnode, minimum width=34mm, left=of score] (compare) {比较前后得分};
-  \node[dshaccentnode, minimum width=34mm, left=of compare] (update) {更新或保留 Skill};
-  \draw[dsharrow] (skill) -- (draw);
-  \draw[dsharrow] (draw) -- (look);
-  \draw[dsharrow] (look) -- (score);
-  \draw[dsharrow] (score) -- (compare);
-  \draw[dsharrow] (compare) -- (update);
-  \draw[dshmutedarrow] (update.west) to[out=180, in=180]
-    node[dshlabel, left=1mm] {下一轮} (skill.west);
-\end{tikzpicture}
-\captionof{figure}{概念图生成、评分与 Skill 更新循环，深蓝框中的结果会传给下一轮}
-\label{fig-14-2}
-\end{minipage}
-\end{center}
-```
+![概念图生成、评分与 Skill 更新循环](assets/chapter14/14-1-01-evolution-loop.svg)
 
 一次不要改太多，否则分数涨了也不知道哪里起了作用。本次任务要求每轮只提交一张图、只评分一次，并且优先只改物种、毛色或画面细节中的一项。分数下降，下一轮就回到当前最好版本再试。分数创下新高，也要能说清是哪项改动带来的，才能把规则写进 Skill。
 
@@ -122,16 +74,9 @@ Skill 给这些经验提供了落脚点。它可以从很少的规则开始，�
 
 `round-03` 把狗改成白色。毛色分从 1.61 升到 21.45，物种分也从 16.46 升到 26.89，总分一次升到 68.57。这一轮最明显的变化就是颜色，dsh 当场把“犬类优先采用白色毛色基调”写进 Skill。
 
-图 \ref{fig-14-3} 截取了这次变化。界面先显示 SVG 已经渲染并通过 `read_image` 查看，随后列出三个分项及总分。紧接着出现 Edit 记录，可以看到 dsh 当场修改了 Skill。
+下图截取了这次变化。界面先显示 SVG 已经渲染并通过 `read_image` 查看，随后列出三个分项及总分。紧接着出现 Edit 记录，可以看到 dsh 当场修改了 Skill。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.88\textwidth]{assets/chapter14/14-2-01-dsh-run09.png}
-\caption{round-03 的毛色分明显上升后，dsh 立即修改绘画 Skill}
-\label{fig-14-3}
-\end{figure}
-```
+![round-03 的毛色分明显上升后，dsh 立即修改绘画 Skill](assets/chapter14/14-2-01-dsh-run09.png){width=88%}
 
 `round-04` 用灰色描边补足白色身体的轮廓，总分又升到 72.41。这一轮原本想改善画面细节，细节分却从 20.23 降到 19.39。总分虽然更高，数据却不能证明“增加描边”有效，所以 Skill 没有更新。
 
@@ -156,7 +101,7 @@ Skill 给这些经验提供了落脚点。它可以从很少的规则开始，�
 | round-08 | 清理零碎线段 | 28.50 | 26.97 | 19.34 | **74.81** |
 | round-09 | 增强脸部对比 | 28.22 | 27.49 | 18.56 | 74.27 |
 
-图 \ref{fig-14-4} 把总分单独画成折线。最大的跃升出现在白色狗首次出现时。后半段围绕已经找到的物种和毛色做小范围调整，分数只有小幅波动。
+下图把总分单独画成折线。最大的跃升出现在白色狗首次出现时。后半段围绕已经找到的物种和毛色做小范围调整，分数只有小幅波动。
 
 ![概念图实验从橘猫起步，找到白色狗后只剩小幅调整](assets/chapter14/14-2-06-score-evolution.png){#fig-14-4 width=94%}
 
