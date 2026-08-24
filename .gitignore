@@ -2,6 +2,7 @@
 deepseek-harness/
 /demo/
 output/pdf/*.pdf
+output/html/
 output/rendered/
 tmp/
 __pycache__/
