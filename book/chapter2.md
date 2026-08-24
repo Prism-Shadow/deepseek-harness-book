@@ -33,7 +33,7 @@
 
 执行完成后，dsh 会在用户配置目录中创建新的 preset，并在回复中列出新建的配置文件。
 
-![“技术编辑”创建完成，回复列出配置文件和审阅规则](assets/chapter2/2-1-05-tech-editor-created.png){width=62%}
+![“技术编辑”创建完成，回复列出配置文件和审阅规则](assets/chapter2/2-1-05-tech-editor-created.png){width=56%}
 
 下面用 `$DSH_HOME` 表示 dsh 的用户配置目录。如果没有设置 `DSH_HOME`，它默认指向当前用户主目录下的 `.dsh` 文件夹。
 
@@ -62,7 +62,7 @@ $DSH_HOME/.agent-presets/tech-editor/
 >
 > 审阅工作区里的 about-dsh.md，告诉我最需要改进的两处，并说明理由。
 
-![“技术编辑”读取文档后给出两项具体改进建议](assets/chapter2/2-1-06-tech-editor-review.png){width=48%}
+![“技术编辑”读取文档后给出两项具体改进建议](assets/chapter2/2-1-06-tech-editor-review.png){width=42%}
 
 回复会先确认已经读完 `about-dsh.md`，再指出最值得优先修改的问题。这里给出的两点分别是：文档缺少“如何开始”，以及能力说明过于宽泛。更重要的是，它只提出了修改建议和理由，并没有直接改写文件，这正符合我们为“技术编辑”设定的默认行为。
 

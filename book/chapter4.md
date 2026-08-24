@@ -56,7 +56,7 @@ dsh 会把 Skill 下载到当前工作区，并检查其中的说明、脚本和
 
 整理过程中，dsh 先读取工作簿，检查日期、类别、空白字段和重复记录，再创建新的工作簿并验证其中的公式。完成后，它会在回复中列出发现的问题，如图 4-2 所示。
 
-![dsh 列出原表中的重复、缺失和格式问题](assets/chapter4/4-1-excel-result.png){width=82%}
+![dsh 列出原表中的重复、缺失和格式问题](assets/chapter4/4-1-excel-result.png){width=60%}
 
 ### 检查整理结果
 
@@ -122,7 +122,7 @@ dsh 会将 Skill 安装到 `.agents/skills/minimax-docx`，并核对其中的文
 
 dsh 读取两个文件后，生成报告正文和页面预览，并检查标题层级、表格宽度和分页情况。完成后的回复会列出文件位置和检查结果，如图 4-4 所示。
 
-![dsh 生成 Word 报告并给出排版检查结果](assets/chapter4/4-2-word-result.png){width=76%}
+![dsh 生成 Word 报告并给出排版检查结果](assets/chapter4/4-2-word-result.png){width=68%}
 
 ### 检查报告内容和排版
 
@@ -161,7 +161,7 @@ https://open.bigmodel.cn/usercenter/apikeys
 
 保存配置后，dsh 就可以通过 ModLens 调用视觉模型，如图 4-5 所示。
 
-![在 ModLens 中配置 GLM-5V-Turbo](assets/chapter4/4-1-02-glm-5v-turbo-config.png){width=72%}
+![在 ModLens 中配置 GLM-5V-Turbo](assets/chapter4/4-1-02-glm-5v-turbo-config.png){width=60%}
 
 可以使用上一节生成的 Word 页面预览检查配置。在新会话中发送以下内容。
 
@@ -197,7 +197,7 @@ https://open.bigmodel.cn/usercenter/apikeys
 
 安装结果如图 4-7 所示。`pptx-generator` 中包含页面设计、PptxGenJS、编辑方法和质量检查等参考资料。
 
-![PPT Skill 已安装到当前工作区](assets/chapter4/4-3-pptx-skill-installed.png){width=76%}
+![PPT Skill 已安装到当前工作区](assets/chapter4/4-3-pptx-skill-installed.png){width=62%}
 
 ### 生成并检查演示文稿
 
@@ -229,9 +229,9 @@ https://open.bigmodel.cn/usercenter/apikeys
 
 dsh 生成 PPTX、每页预览和对应的 JavaScript 源文件，并使用 ModLens 检查全部页面。完成后的回复会列出交付文件和 6 页内容，如图 4-8 所示。
 
-![dsh 完成 6 页演示文稿并保留生成源文件](assets/chapter4/4-3-pptx-result.png){width=76%}
+![dsh 完成 6 页演示文稿并保留生成源文件](assets/chapter4/4-3-pptx-result.png){width=64%}
 
-![产品发布会费用复盘演示文稿的六页预览](assets/chapter4/4-3-ppt-preview-overview.png){width=88%}
+![产品发布会费用复盘演示文稿的六页预览](assets/chapter4/4-3-ppt-preview-overview.png){width=72%}
 
 图 4-9 展示了本例的 6 页预览。封面和预算页突出关键数字，费用结构页使用环形图和条形列表，异常事项页使用橙色强调需要处理的凭证问题。
 
@@ -245,7 +245,7 @@ dsh 生成 PPTX、每页预览和对应的 JavaScript 源文件，并使用 ModL
 
 本节的输入文件位于 `4-4-pdf/source/`，共有 13 份 PDF、16 个页面。资料中既有清晰扫描件，也有低对比度页面、横向旋转页面和手机拍摄件，如图 4-10 所示。部分文件还存在内容重复或页码不连续的问题，需要 dsh 在读取内容的同时检查文件质量。
 
-![本节使用的 13 份扫描和拍照 PDF](assets/chapter4/4-4-01-pdf-source-overview.png){width=82%}
+![本节使用的 13 份扫描和拍照 PDF](assets/chapter4/4-4-01-pdf-source-overview.png){width=48%}
 
 本节沿用 4.3 配置的 ModLens 视觉能力，无需再安装新的 Skill。
 
@@ -268,7 +268,7 @@ dsh 生成 PPTX、每页预览和对应的 JavaScript 源文件，并使用 ModL
 
 dsh 会逐页读取 PDF，提取单据中的字段，再通过文件校验值、页面内容和印刷页码检查重复及缺页情况。完成后，它会生成 Excel 汇总表和 Markdown 核查报告，并在回复中列出主要问题，如图 4-11 所示。
 
-![dsh 完成 PDF 批量读取并列出核查结果](assets/chapter4/4-4-02-pdf-result.png){width=70%}
+![dsh 完成 PDF 批量读取并列出核查结果](assets/chapter4/4-4-02-pdf-result.png){width=52%}
 
 ### 检查并修正识别结果
 
@@ -284,7 +284,7 @@ PDF 的页面旋转属性为 0°，只表示页面坐标没有设置旋转，画
 
 dsh 重新使用 ModLens 检查页面，并结合 OCR 文本框方向确认画面内容逆时针横转了 90°。随后，它更新了两份交付文件中的问题说明，同时保留原有的金额和凭证核对结果，如图 4-12 所示。
 
-![dsh 复核页面方向并更新两份交付文件](assets/chapter4/4-4-03-pdf-correction.png){width=70%}
+![dsh 复核页面方向并更新两份交付文件](assets/chapter4/4-4-03-pdf-correction.png){width=52%}
 
 ### 查看整理结果
 

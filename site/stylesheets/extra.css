@@ -49,6 +49,11 @@ input {
   max-width: 100%;
 }
 
+/* 竖向界面截图保持接近真实面板的尺度，避免在宽屏上被异常放大。 */
+.md-typeset img.book-portrait-screenshot {
+  max-width: 18rem;
+}
+
 .md-typeset .prompt-title {
   color: #e45c5c;
   font-size: 1.1em;
@@ -397,6 +402,10 @@ input {
   .md-typeset img.book-technical-figure {
     height: auto !important;
     width: 100% !important;
+  }
+
+  .md-typeset img.book-portrait-screenshot {
+    width: min(72%, 18rem) !important;
   }
 
   .md-typeset .book-figure-grid,

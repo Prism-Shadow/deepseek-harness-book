@@ -125,7 +125,7 @@ dsh web
 
 `t1` 到 `t4` 没有相互依赖，四条连线共同汇入 `t5`；只有四项都完成，队长交叉核对才具备完整输入。
 
-![执行记录中的 t1 至 t4 并行任务与 t5 依赖](assets/chapter10/10-3-02-agent-teams-dependency.png){width=54% height=34%}
+![执行记录中的 t1 至 t4 并行任务与 t5 依赖](assets/chapter10/10-3-02-agent-teams-dependency.png){.book-portrait-screenshot width=34%}
 
 这组先后关系解决了一个常见问题：队长不会只拿到几条线索就急着写结论，四名成员也不用排队。安全 Agent 继续检查权限时，功能 Agent 可以同时整理新能力。四份报告全部到齐，`t5` 才开始汇总。
 
@@ -184,7 +184,7 @@ for (const task of team.tasks) {
 
 这批修复都在帮 Agent 把长任务做完：记录写得住，追问接得上，中断以后还能继续。
 
-![运行记录、追问和长对话恢复变得更可靠](assets/chapter10/10-4-01-bug-fixes.png){width=94%}
+![运行记录、追问和长对话恢复变得更可靠](assets/chapter10/10-4-01-bug-fixes.png){width=84%}
 
 另外，旧日期里的新记录不再漏掉，小上下文模型会更早整理对话，服务重启后也能恢复手动整理。维护者已经补上相关回归测试；本次只确认测试已经写入，没有运行全套测试。
 

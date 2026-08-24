@@ -59,7 +59,7 @@ npx @deepseek-ai/dsh plugin --profile web add @sugarforever/dsh-lark
 
 完成设置后，单击“Save and reconnect”保存并重新连接。
 
-![飞书插件使用开放单聊并自动选择工作区](assets/chapter5/5-1-01-lark-settings.png){width=68%}
+![飞书插件使用开放单聊并自动选择工作区](assets/chapter5/5-1-01-lark-settings.png){width=58%}
 
 在飞书中打开机器人，发送一条测试消息。
 
@@ -96,7 +96,7 @@ npx @larksuite/cli@latest install
 
 项目组已经在飞书中建立《2.0 版本上线准备记录》，其中包含上线日期、完成情况、当前风险和后续安排，如图 5-3 所示。本节让 dsh 查找并读取这份文档，再整理出便于检查的摘要。
 
-![用于演示的 2.0 版本上线准备记录](assets/chapter5/5-2-01-project-document.png){width=82%}
+![用于演示的 2.0 版本上线准备记录](assets/chapter5/5-2-01-project-document.png){width=66%}
 
 ### 让 dsh 整理文档
 
@@ -134,7 +134,7 @@ dsh 会先按标题查找文档，再读取正文并组织摘要。回复中可�
 
 dsh 会根据上一轮读取的内容创建新文档，并在回复中给出文档链接和行动清单预览，如图 5-5 所示。原来的上线准备记录不会改变。
 
-![dsh 创建 2.0 版本上线行动清单](assets/chapter5/5-3-01-action-list-created.png){width=86%}
+![dsh 创建 2.0 版本上线行动清单](assets/chapter5/5-3-01-action-list-created.png){width=42%}
 
 ## 创建任务和安排日程 {#sec-5-4}
 
@@ -156,7 +156,7 @@ dsh 会根据上一轮读取的内容创建新文档，并在回复中给出文�
 
 dsh 完成操作后，会在回复中列出两项任务和一项日程的创建结果，如图 5-6 所示。
 
-![dsh 创建两项任务和上线评审日程](assets/chapter5/5-4-01-tasks-calendar-created.png){width=76%}
+![dsh 创建两项任务和上线评审日程](assets/chapter5/5-4-01-tasks-calendar-created.png){width=68%}
 
 打开其中一项任务，可以核对负责人和截止时间，如图 5-7 所示。
 
@@ -198,6 +198,6 @@ dsh 会读取审批定义，填写申请内容并发起审批。回复出现“�
 
 在飞书审批中打开该申请，可以核对假期类型、日期、请假事由和当前状态，如图 5-10 所示。
 
-![飞书审批中显示事假申请详情](assets/chapter5/5-6-02-leave-approval-detail.png){width=68%}
+![飞书审批中显示事假申请详情](assets/chapter5/5-6-02-leave-approval-detail.png){width=56%}
 
 至此，数字秘书已经完成文档读取、行动清单整理、任务和日程创建、进展消息发送与审批发起。后续仍可在同一飞书会话中继续交代新的工作。

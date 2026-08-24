@@ -38,7 +38,7 @@ npx -y @deepseek-ai/dsh web
 
 “轨迹”用于查看第 1 章介绍过的原始执行日志。单击 **Design** 后，会话主区域切换为独立画布，左上角显示 iDesign，即 DeepSeek Design 的 Studio 工作台。
 
-![Design 视图打开，Studio 工作台加载](assets/chapter6/6-1-02-design-studio.png){width=88%}
+![Design 视图打开，Studio 工作台加载](assets/chapter6/6-1-02-design-studio.png){width=78%}
 
 ## 准备文案和参考风格 {#sec-6-2}
 
@@ -85,7 +85,7 @@ npx -y @deepseek-ai/dsh web
 
 收到指令后，dsh 会先核对活动信息，再生成设计简报并保存为工作区中的 Markdown 文件，同时在回复中概括主要内容。
 
-![对话中提出活动信息和风格要求，dsh 整理出设计简报](assets/chapter6/6-2-01-brief-input.png)
+![对话中提出活动信息和风格要求，dsh 整理出设计简报](assets/chapter6/6-2-01-brief-input.png){width=66%}
 
 简报包含活动信息核对表、海报文案和设计风格说明，并列出推荐语、二维码位置及最终尺寸等待确认事项。进入设计阶段前，应先逐项确认这些内容，避免在版面生成后重复调整基础信息。
 
@@ -102,13 +102,13 @@ dsh 会按照 Design 项目的格式，将文件写入工作区的 `design/<会�
 
 文件生成后，切换到会话的 Design 视图，即可在画布中查看渲染结果。
 
-![Design 视图中渲染出海报设计稿](assets/chapter6/6-3-01-design-generated.png)
+![Design 视图中渲染出海报设计稿](assets/chapter6/6-3-01-design-generated.png){width=82%}
 
 ### 查看初稿效果
 
 竖版画布顶部显示引题“共读时光 · 书香邻里”，并使用楷体作为局部装饰；中部依次排列宋体主标题“周六社区读书会”和书名《人类简史》；下方展示推荐语、时间、地点、报名方式和主办方。初稿采用简报中确定的暖米色背景、焦糖棕主色与暖金色点缀，并通过双线边框和纸张颗粒表现旧书质感。
 
-![海报初稿，暖米色纸底配焦糖棕主色](assets/chapter6/6-3-02-poster-first-draft.png){width=62%}
+![海报初稿，暖米色纸底配焦糖棕主色](assets/chapter6/6-3-02-poster-first-draft.png){width=46%}
 
 ### 调整配色和文案
 
@@ -126,7 +126,7 @@ dsh 会读取 `design` 目录下的 `design-tokens.css` 和 `index.html`，修�
 
 返回 Design 视图，可以查看更新后的配色和版面。
 
-![调整后，主色换成墨绿，点缀色换成淡金](assets/chapter6/6-3-03-design-adjusted.png)
+![调整后，主色换成墨绿，点缀色换成淡金](assets/chapter6/6-3-03-design-adjusted.png){width=82%}
 
 对比调整前后的结果，主色由暖调焦糖棕变为冷调墨绿，点缀色由暖金变为淡金，整体视觉倾向更加沉静。报名文案已经更新，其字号和对比度也有所提高。对于配色、文案等整体调整，可以继续通过对话提出要求；dsh 修改文件后，画布会同步刷新。
 
@@ -142,7 +142,7 @@ Edit 开关位于 Studio 工具栏的 Ask AI 按钮旁。单击开关后，画�
 
 选中元素后单击 Ask AI，插件会将文件路径、元素定位、当前文字和修改指引整理为草稿，并填入会话输入框。该操作不会自动发送消息。检查草稿并补充具体修改要求后，再单击发送。借助这些上下文信息，dsh 可以准确定位需要修改的元素。
 
-![选中元素后点 Ask AI，对话输入框自动填入包含文件、元素定位和当前文字的修改草稿](assets/chapter6/6-3-05-edit-askai-draft.png){width=82%}
+![选中元素后点 Ask AI，对话输入框自动填入包含文件、元素定位和当前文字的修改草稿](assets/chapter6/6-3-05-edit-askai-draft.png){width=74%}
 
 本节使用了两种修改方式。涉及整体风格和多项内容时，可以在会话中提出要求；涉及单个元素时，可以使用 Edit 功能精确调整。两种方式操作的是工作区中的同一组文件，可根据修改范围选择。
 
@@ -162,6 +162,6 @@ Design 项目保存在工作区的 `design/<会话ID>/` 目录中，其中 `inde
 
 本例使用无头浏览器渲染海报页面并导出 PNG，结果如下：
 
-![导出后的最终海报成品](assets/chapter6/6-4-01-poster-final-export.png){width=62%}
+![导出后的最终海报成品](assets/chapter6/6-4-01-poster-final-export.png){width=46%}
 
 最终文件包含主标题、书名、时间、地点、报名方式和主办方等全部信息，配色采用调整后的墨绿色与淡金色，画布保持 1080×1440 的竖版比例，可用于社区公告栏张贴或线上发布。
