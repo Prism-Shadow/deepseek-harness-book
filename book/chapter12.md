@@ -75,11 +75,11 @@ Plugin 是可以反复加载的代码定义，Fiber 则对应其中某一次实�
 
 下面的命令不需要模型密钥。它会打印 Web profile 最终生成的配置树：
 
-```sh
+```
 npx -y @deepseek-ai/dsh --profile web --dump-config
 ```
 
-实际输出中，驱动 Agent 的 `agent-loop` 和维护待办事项的 `tool-todo` 具有相同的配置形状。
+输出中可以找到 `agent-loop` 和 `tool-todo`。前者负责驱动 Agent Loop，后者提供待办事项工具。两者职责差别很大，但在最终配置树中都表现为插件配置项，都有自己的 `id`、`name` 和 `config`。
 
 ![实际 dump-config 输出中 agent-loop 与 tool-todo 是平等插件](assets/chapter12/12-1-02-plugin-tree-proof.svg)
 
