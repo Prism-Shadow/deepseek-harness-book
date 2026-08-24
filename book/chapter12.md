@@ -83,7 +83,7 @@ npx -y @deepseek-ai/dsh --profile web --dump-config
 
 ![实际 dump-config 输出中 agent-loop 与 tool-todo 是平等插件](assets/chapter12/12-1-02-plugin-tree-proof.svg)
 
-配置树中的每一项都采用相同的插件结构。模型适配器、工具、会话、沙箱和 Agent Loop 虽然分工不同，在 Cordis 中都以插件身份参与运行。
+这也是 Cordis 组装 dsh 的基本方式：模型适配器、工具、会话、沙箱和 Agent Loop 等能力虽然承担不同职责，但都通过插件进入运行时。Loader 不需要知道哪个是“核心能力”、哪个是“小工具”，而是按照最终配置树加载相应的 Plugin。
 
 ![dsh 的各项能力通过 Cordis Context 协作](assets/chapter12/12-1-01-everything-is-plugin.svg)
 
