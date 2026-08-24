@@ -32,9 +32,9 @@
 
 dsh 读取文件后，会自行确定段落结构和标题。
 
-![没有 Skill 时，dsh 自己组织周报的结构和小标题](assets/chapter13/13-1-01-baseline-no-skill.png){width=88%}
+![没有 Skill 时，dsh 自己决定文件名、结构和小标题](assets/chapter13/13-1-01-baseline-no-skill.png){width=86%}
 
-这次生成的周报以“一、本周工作总结”开头，先写一段概述，随后列出编号清单，并保存为 `本周周报.md`。内容基本完整，但更换话题或生成日期后，标题措辞、编号方式和文件名都可能变化，缺少一套稳定的格式用于核对。
+这次生成的文件名是 `本周周报.md`，正文以“本周工作周报”为标题，下面使用中文序号划分“本周完成”“会议与排期”“风险与遗留问题”和“下周计划”。内容基本完整，但文件名没有日期，章节名称也由模型临时决定。下周再次运行时，格式仍可能变化。
 
 ### 写一份 Skill
 
@@ -85,33 +85,37 @@ description: 把本周零散的工作记录整理成固定格式的周报。用�
 
 ### 使用 Skill 后
 
-新建对话，再次输入“参考本周工作草记.md 里的内容，帮我写一份这周的周报”。
+新建对话，再次输入：
 
-![有 Skill 之后，dsh 先加载 Skill 再按固定格式整理](assets/chapter13/13-1-02-skill-loaded.png){width=88%}
+> <span class="prompt-title">提示词内容：</span>
+>
+> 参考本周工作草记.md 里的内容，帮我写一份这周的周报
 
-这次对话开头出现一条“上下文注入 · skill-catalog”。这是 dsh 提供给模型的 Skill 目录，其中包含当前可用的 Skill 名称和简短说明。模型发现任务匹配后会主动调用。随后出现的“Skill · weekly-report”表明模型已经加载这份格式说明。由于草记中没有明确的周五日期，dsh 按照 Skill 规则先执行命令确认当天日期，再生成 `周报-2026-08-17.md`。该文件名与 Skill 中的命名规则一致。
+![有 Skill 之后，dsh 先加载 Skill 再按固定格式整理](assets/chapter13/13-1-02-skill-loaded.png){width=86%}
+
+这次对话开头出现一条“上下文注入 · skill-catalog”。这是 dsh 提供给模型的 Skill 目录，其中包含当前可用的 Skill 名称和简短说明。模型发现任务匹配后会主动调用。随后出现的“Skill · weekly-report”表明模型已经加载这份格式说明。由于草记中没有明确的周五日期，dsh 按照 Skill 规则先执行命令确认当天日期，再生成 `周报-2026-08-28.md`。该文件名与 Skill 中的命名规则一致。
 
 打开这份文件核对内容：
 
 ```md
-# 周报 2026-08-17
+# 周报 2026-08-28
 
 ## 本周完成
-- 复现登录超时问题，定位为 session 过期时间设置过短，调整为 2 小时
+- 复现用户反馈的登录超时问题，定位为 session 过期时间过短，已调整为 2 小时
 - 将登录超时修复合并到 dev 分支，补充两个单元测试
-- 确定下月排期，决定优先开发导出 Excel 功能
-- 对比 exceljs 与 xlsx-populate 后确定采用 exceljs，完成基础导出逻辑
+- 参与下月排期讨论，确定优先开发导出 Excel 功能
+- 对比 exceljs 与 xlsx-populate，确定选型 exceljs 并完成基础导出逻辑
+- 核对产品需求文档，提出三条修改意见
 
 ## 进行中
-- 导出 Excel 功能仍在开发，基础导出逻辑已完成，合并单元格部分待实现
+- 导出 Excel 功能开发中：已完成库选型和基础导出逻辑，合并单元格部分待实现
 
 ## 下周计划
-- 完成导出 Excel 功能的合并单元格实现
-- 跟进产品侧对需求文档修改意见的确认
-- 排查测试环境数据库连接偶发断开问题
+- 完成导出 Excel 功能，实现合并单元格及剩余逻辑
+- 跟进需求文档修改意见，确认后更新文档
 
 ## 风险与阻塞
-- 需求文档的三条修改意见已提交，等待产品确认
+- 需求文档三条修改意见尚未获得产品确认
 - 测试环境数据库连接偶尔断开，原因尚未定位
 ```
 
@@ -150,9 +154,13 @@ MCP 服务器的配置写在当前 profile 的 `cordis.patch.yml` 中，也就�
 
 如果服务器通过 HTTP 提供服务，可以改用 `transport: streamable-http`，再配置 `url` 和可选的 `headers`。需要密钥时，将密钥放入 `headers` 或 `env` 字段，并通过 `!!js process.env.对应变量名` 引用环境变量，不要在配置文件中写入明文密钥。YAML 依靠缩进表示层级。如果 `config` 下的字段少缩进一级，就会被解析为与 `config` 平级，导致 dsh 启动失败。遇到解析错误时，应先对照示例检查缩进。
 
-保存后无需重启 `dsh web`。dsh 会监听该补丁文件，检测到改动后会断开并重新连接对应的服务器。新建对话，输入“用 mcp 文件系统工具看看笔记目录里有什么文件，然后读一下数据库偶尔断连排查这份笔记，告诉我下一步排查方向是什么”。
+保存后无需重启 `dsh web`。dsh 会监听该补丁文件，检测到改动后会断开并重新连接对应的服务器。新建对话，输入：
 
-![模型依次调用三个 mcp__notes__ 前缀的工具](assets/chapter13/13-2-01-mcp-tool-calls.png){width=88%}
+> <span class="prompt-title">提示词内容：</span>
+>
+> 用 mcp 文件系统工具看看笔记目录里有什么文件，然后读一下数据库偶尔断连排查这份笔记，告诉我下一步排查方向是什么
+
+![模型依次调用三个 mcp__notes__ 前缀的工具](assets/chapter13/13-2-01-mcp-tool-calls.png){width=86%}
 
 调用记录中依次出现三个工具。
 
@@ -162,7 +170,9 @@ MCP 服务器的配置写在当前 profile 的 `cordis.patch.yml` 中，也就�
 
 工具名称由 `mcp__`、服务器名和原始工具名组成，各部分使用两条下划线连接。这里的 `notes` 就是配置中的 `serverName`。这三个工具都来自新接入的服务器，接入前不会出现在工具列表中。
 
-![基于笔记内容给出的排查建议](assets/chapter13/13-2-02-mcp-result.png){width=88%}
+三个工具调用结束后，回答先复述笔记里的验证方法，再补充需要核对的配置值和日志。
+
+![基于笔记内容给出的排查建议](assets/chapter13/13-2-02-mcp-result.png){width=86%}
 
 最终回答沿用了笔记中“怀疑连接池空闲超时比 wait_timeout 长”这一排查方向，并补充验证步骤和判断标准。回答中的建议可以在笔记原文中找到依据，说明 MCP 服务器已经接入成功。
 
@@ -191,7 +201,7 @@ dsh plugin --profile web add dsh-find-plugin
 ```json
 {
   "dependencies": {
-    "dsh-find-plugin": "^0.3.6"
+    "dsh-find-plugin": "^0.3.7"
   },
   "dsh": {
     "profile": {
@@ -209,23 +219,29 @@ dsh plugin --profile web add dsh-find-plugin
 
 这里有一点容易忽略。`cordis.patch.yml` 修改后会自动热更新，但 `package.json` 中的依赖和 `bundles` 列表不在监听范围内，因此新安装的插件不会立即生效。如果安装后直接测试，dsh 仍会使用原有的插件配置。
 
-![重启之前，dsh 尚未加载新工具，只能搜索网页和查阅源码](assets/chapter13/13-3-01-before-restart-no-tool.png){width=88%}
+![重启之前，dsh 尚未加载新工具，只能搜索网页和查阅源码](assets/chapter13/13-3-01-before-restart-no-tool.png){width=86%}
 
 调用记录中没有出现新工具，dsh 改为搜索网页并查阅本地源码，说明插件尚未注册到工具列表。返回终端，按 `Ctrl+C` 停止 `dsh web`，重新运行 `npx -y @deepseek-ai/dsh web`，再打开页面。
 
-新建对话，输入“我想要一个能帮我管理剪贴板历史的 dsh 插件，市面上有类似的吗，帮我搜一下”。
+新建对话，输入：
 
-![这次模型直接调用了新安装插件提供的 find_dsh_plugin 工具](assets/chapter13/13-3-02-find-tool-call.png){width=88%}
+> <span class="prompt-title">提示词内容：</span>
+>
+> 我想要一个能帮我管理剪贴板历史的 dsh 插件，市面上有类似的吗，帮我搜一下
+
+![这次模型直接调用了新安装插件提供的 find_dsh_plugin 工具](assets/chapter13/13-3-02-find-tool-call.png){width=86%}
 
 重启后，调用记录中出现了 `find_dsh_plugin`。该工具由 `dsh-find-plugin` 注册，安装前不会出现在这台机器的工具列表中。它会实时搜索 GitHub 上带有 `dsh-plugin` 标签的仓库。
 
-![带安装命令和安全提醒的搜索结果](assets/chapter13/13-3-03-find-result.png){width=88%}
+工具返回候选仓库后，dsh 整理出两个同名插件，并给出各自的安装命令和源码审查建议。
 
-回答列出了一个候选插件和可直接执行的安装命令，并提醒用户在安装前审查源码、锁定到具体的 commit。该提醒来自 `find_dsh_plugin` 工具描述中的固定提示。
+![带安装命令和安全提醒的搜索结果](assets/chapter13/13-3-03-find-result.png){width=86%}
+
+回答列出了两个候选插件和可直接执行的安装命令，并提醒用户在安装前审查源码，必要时锁定到具体的 commit。候选仓库的 star 很少，搜索结果也给出了相应的风险提示。
 
 最后在设置页确认插件状态。打开左下角“设置”，切换到“插件”标签，再进入“插件列表”，在搜索框中输入 `find`。
 
-![设置页的插件列表中可以找到新安装的插件，状态为已启用](assets/chapter13/13-3-04-settings-plugin-list.png){width=88%}
+![设置页的插件列表中可以找到新安装的插件，状态为已启用](assets/chapter13/13-3-04-settings-plugin-list.png){width=68%}
 
 `find-plugin` 的状态显示为“已启用”，说明该第三方插件已经被 dsh 识别并成功加载。内置插件和第三方插件都可以从同一页面查看。
 
@@ -330,9 +346,13 @@ schema.additionalProperties must be explicitly true or false
 
 执行 `pnpm install`，将 `file:` 依赖链接到 `node_modules`，然后重启 `dsh web`。这里还有一个容易忽略的问题。`pnpm install` 会将 `plugins/tool-decide/` 中的文件同步到 `node_modules/tool-decide/`，通常采用硬链接。之后如果修改 `index.js`，`node_modules` 中的文件不会自动更新，需要再次执行 `pnpm install`。代码修改没有生效时，应先确认是否已经执行该命令。
 
-重启后新建对话，输入“中午不知道吃沙县小吃还是黄焖鸡米饭，帮我随机选一个”。
+重启后新建对话，输入：
 
-![dsh 调用了自定义的 pick_one 工具并给出结果](assets/chapter13/13-4-01-pick-one-result.png){width=88%}
+> <span class="prompt-title">提示词内容：</span>
+>
+> 中午不知道吃沙县小吃还是黄焖鸡米饭，帮我随机选一个
+
+![dsh 调用了自定义的 pick_one 工具并给出结果](assets/chapter13/13-4-01-pick-one-result.png){width=78%}
 
 调用记录中的 `pick_one · {"options": ["沙县小吃", "黄焖鸡米饭"]}` 来自前文实现的工具。模型从用户输入中提取两个选项作为参数，工具随机选择其中一个，再由模型写入最终回复。这说明自定义插件已经被 dsh 加载并正常调用。
 
