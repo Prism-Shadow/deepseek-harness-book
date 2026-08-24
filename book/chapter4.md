@@ -29,7 +29,7 @@ Excel 工作簿不仅保存单元格中的文字和数字，还包含公式、�
 
 dsh 会把 Skill 下载到当前工作区，并检查其中的说明、脚本和模板。安装完成后，可以让 dsh 尝试加载 `minimax-xlsx`。出现 Skill 调用记录，并返回完整的技能指令，说明 dsh 已经发现它，如图 4-1 所示。
 
-![dsh 成功发现并加载 Excel Skill](assets/chapter4/4-1-excel-skill-installed.png){width=76%}
+![dsh 成功发现并加载 Excel Skill](assets/chapter4/4-1-excel-skill-installed.png){width=62%}
 
 ### 整理费用表
 
@@ -56,7 +56,7 @@ dsh 会把 Skill 下载到当前工作区，并检查其中的说明、脚本和
 
 整理过程中，dsh 先读取工作簿，检查日期、类别、空白字段和重复记录，再创建新的工作簿并验证其中的公式。完成后，它会在回复中列出发现的问题，如图 4-2 所示。
 
-![dsh 列出原表中的重复、缺失和格式问题](assets/chapter4/4-1-excel-result.png){width=60%}
+![dsh 列出原表中的重复、缺失和格式问题](assets/chapter4/4-1-excel-result.png){width=48%}
 
 ### 检查整理结果
 
@@ -93,7 +93,7 @@ dsh 可以完成批量检查和格式整理，但不应自行补造缺失的业�
 
 dsh 会将 Skill 安装到 `.agents/skills/minimax-docx`，并核对其中的文件，如图 4-3 所示。
 
-![Word Skill 已安装到 dsh 的项目级 Skill 目录](assets/chapter4/4-2-word-skill-installed.png){width=74%}
+![Word Skill 已安装到 dsh 的项目级 Skill 目录](assets/chapter4/4-2-word-skill-installed.png){width=52%}
 
 ### 生成费用复盘报告
 
@@ -122,7 +122,7 @@ dsh 会将 Skill 安装到 `.agents/skills/minimax-docx`，并核对其中的文
 
 dsh 读取两个文件后，生成报告正文和页面预览，并检查标题层级、表格宽度和分页情况。完成后的回复会列出文件位置和检查结果，如图 4-4 所示。
 
-![dsh 生成 Word 报告并给出排版检查结果](assets/chapter4/4-2-word-result.png){width=68%}
+![dsh 生成 Word 报告并给出排版检查结果](assets/chapter4/4-2-word-result.png){width=56%}
 
 ### 检查报告内容和排版
 
@@ -173,7 +173,7 @@ https://open.bigmodel.cn/usercenter/apikeys
 >
 > 只根据图片内容，告诉我页面标题、费用预算、实际总费用和预算执行率。
 
-![dsh 通过 ModLens 读取 Word 页面预览](assets/chapter4/4-3-modlens-test.png){width=60%}
+![dsh 通过 ModLens 读取 Word 页面预览](assets/chapter4/4-3-modlens-test.png){width=34%}
 
 图 4-6 中，dsh 调用 `modlens_read_image`，并准确读出页面中的四项信息，说明视觉能力已经可以使用。
 
@@ -197,7 +197,7 @@ https://open.bigmodel.cn/usercenter/apikeys
 
 安装结果如图 4-7 所示。`pptx-generator` 中包含页面设计、PptxGenJS、编辑方法和质量检查等参考资料。
 
-![PPT Skill 已安装到当前工作区](assets/chapter4/4-3-pptx-skill-installed.png){width=62%}
+![PPT Skill 已安装到当前工作区](assets/chapter4/4-3-pptx-skill-installed.png){width=44%}
 
 ### 生成并检查演示文稿
 
@@ -229,9 +229,9 @@ https://open.bigmodel.cn/usercenter/apikeys
 
 dsh 生成 PPTX、每页预览和对应的 JavaScript 源文件，并使用 ModLens 检查全部页面。完成后的回复会列出交付文件和 6 页内容，如图 4-8 所示。
 
-![dsh 完成 6 页演示文稿并保留生成源文件](assets/chapter4/4-3-pptx-result.png){width=64%}
+![dsh 完成 6 页演示文稿并保留生成源文件](assets/chapter4/4-3-pptx-result.png){width=46%}
 
-![产品发布会费用复盘演示文稿的六页预览](assets/chapter4/4-3-ppt-preview-overview.png){width=72%}
+![产品发布会费用复盘演示文稿的六页预览](assets/chapter4/4-3-ppt-preview-overview.png){width=90%}
 
 图 4-9 展示了本例的 6 页预览。封面和预算页突出关键数字，费用结构页使用环形图和条形列表，异常事项页使用橙色强调需要处理的凭证问题。
 
@@ -245,7 +245,7 @@ dsh 生成 PPTX、每页预览和对应的 JavaScript 源文件，并使用 ModL
 
 本节的输入文件位于 `4-4-pdf/source/`，共有 13 份 PDF、16 个页面。资料中既有清晰扫描件，也有低对比度页面、横向旋转页面和手机拍摄件，如图 4-10 所示。部分文件还存在内容重复或页码不连续的问题，需要 dsh 在读取内容的同时检查文件质量。
 
-![本节使用的 13 份扫描和拍照 PDF](assets/chapter4/4-4-01-pdf-source-overview.png){width=48%}
+![本节使用的 13 份扫描和拍照 PDF](assets/chapter4/4-4-01-pdf-source-overview.png){width=92%}
 
 本节沿用 4.3 配置的 ModLens 视觉能力，无需再安装新的 Skill。
 
@@ -268,7 +268,7 @@ dsh 生成 PPTX、每页预览和对应的 JavaScript 源文件，并使用 ModL
 
 dsh 会逐页读取 PDF，提取单据中的字段，再通过文件校验值、页面内容和印刷页码检查重复及缺页情况。完成后，它会生成 Excel 汇总表和 Markdown 核查报告，并在回复中列出主要问题，如图 4-11 所示。
 
-![dsh 完成 PDF 批量读取并列出核查结果](assets/chapter4/4-4-02-pdf-result.png){width=52%}
+![dsh 完成 PDF 批量读取并列出核查结果](assets/chapter4/4-4-02-pdf-result.png){width=42%}
 
 ### 检查并修正识别结果
 
@@ -284,7 +284,7 @@ PDF 的页面旋转属性为 0°，只表示页面坐标没有设置旋转，画
 
 dsh 重新使用 ModLens 检查页面，并结合 OCR 文本框方向确认画面内容逆时针横转了 90°。随后，它更新了两份交付文件中的问题说明，同时保留原有的金额和凭证核对结果，如图 4-12 所示。
 
-![dsh 复核页面方向并更新两份交付文件](assets/chapter4/4-4-03-pdf-correction.png){width=52%}
+![dsh 复核页面方向并更新两份交付文件](assets/chapter4/4-4-03-pdf-correction.png){width=42%}
 
 ### 查看整理结果
 
