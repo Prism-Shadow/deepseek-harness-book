@@ -1,6 +1,0 @@
-file '../clips/shot1.mp4'
-file '../clips/shot2.mp4'
-file '../clips/shot3.mp4'
-file '../clips/shot4.mp4'
-file '../clips/shot5.mp4'
-file '../clips/shot6.mp4'
