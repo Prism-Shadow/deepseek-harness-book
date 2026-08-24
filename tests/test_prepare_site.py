@@ -61,6 +61,18 @@ class PrepareSiteTest(unittest.TestCase):
         self.assertIn("早期内容摘要", rendered)
         self.assertNotIn("tikzpicture", rendered)
 
+    def test_converts_raw_latex_equation_for_mathjax(self) -> None:
+        source = r"""```{=latex}
+\[
+t(\text{文本})=\left\lceil\dfrac{n}{4}\right\rceil+4
+\]
+```
+"""
+        rendered = transform_markdown(source)
+        self.assertIn("$$", rendered)
+        self.assertIn(r"\dfrac{n}{4}", rendered)
+        self.assertNotIn("{=latex}", rendered)
+
     def test_copies_assets_byte_for_byte(self) -> None:
         with tempfile.TemporaryDirectory() as temp_name:
             root = Path(temp_name)

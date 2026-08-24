@@ -173,6 +173,10 @@ def render_latex_block(body: str) -> str:
         return render_image_block(body, caption)
     if "\\begin{tikzpicture}" in body:
         return render_diagram(body, caption)
+    stripped = body.strip()
+    if stripped.startswith("\\[") and stripped.endswith("\\]"):
+        formula = stripped[2:-2].strip()
+        return f"$$\n{formula}\n$$"
     if not body.strip() or LATEX_COMMAND.search(body):
         return ""
     raise SystemExit("网页端遇到未支持的 LaTeX 块")
@@ -227,7 +231,7 @@ def prepare_site(book_dir: Path, output_dir: Path, site_assets: Path) -> list[Pa
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True)
     shutil.copytree(book_dir / "assets", output_dir / "assets")
-    for directory in ("assets", "stylesheets"):
+    for directory in ("assets", "javascripts", "stylesheets"):
         source = site_assets / directory
         if source.is_dir():
             shutil.copytree(source, output_dir / directory, dirs_exist_ok=True)
