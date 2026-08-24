@@ -49,6 +49,34 @@ input {
   max-width: 100%;
 }
 
+/* 表格块居中；表头和短标签列居中，说明文字继续左对齐。 */
+.md-typeset__scrollwrap:has(> .md-typeset__table) {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: center;
+}
+
+.md-typeset__scrollwrap > .md-typeset__table {
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+
+.md-typeset > table:not([class]) {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.md-typeset table:not([class]) th,
+.md-typeset table:not([class]) td {
+  vertical-align: middle;
+}
+
+.md-typeset table:not([class]) thead th:not([align]),
+.md-typeset table:not([class]) tbody td:first-child:not([align]) {
+  text-align: center;
+}
+
 /* 竖向界面截图保持接近真实面板的尺度，避免在宽屏上被异常放大。 */
 .md-typeset img.book-portrait-screenshot {
   max-width: 18rem;
