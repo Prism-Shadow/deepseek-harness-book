@@ -31,7 +31,8 @@ theme:
         icon: material/weather-sunny
         name: 切换到浅色模式
   features:
-    - navigation.sections
+    - toc.integrate
+    - toc.follow
     - navigation.footer
     - navigation.top
     - navigation.tracking

@@ -59,6 +59,195 @@ input {
   white-space: pre-line;
 }
 
+/*
+ * Material 在 960–1220px 之间默认隐藏全书目录、只保留本章目录。
+ * 书稿预览更需要全书导航，因此在这一档宽度改为常驻左栏，
+ * 并沿用桌面端的展开结构；本章目录由 toc.integrate 放在当前章下。
+ */
+@media screen and (min-width: 60em) and (max-width: 76.234375em) {
+  .md-header__button[for="__drawer"] {
+    display: none;
+  }
+
+  [dir="ltr"] .md-sidebar--primary,
+  [dir="rtl"] .md-sidebar--primary {
+    left: auto;
+    right: auto;
+  }
+
+  .md-sidebar--primary {
+    align-self: flex-start;
+    background: transparent;
+    box-shadow: none;
+    display: block;
+    height: calc(100vh - 2.4rem);
+    position: sticky;
+    top: 2.4rem;
+    transform: none;
+    transition: none;
+    width: 12.1rem;
+    z-index: auto;
+  }
+
+  .md-sidebar--primary .md-sidebar__scrollwrap {
+    bottom: auto;
+    height: 100%;
+    left: auto;
+    margin: 0 0.2rem;
+    overflow-x: hidden;
+    overflow-y: auto;
+    position: static;
+    right: auto;
+    top: auto;
+  }
+
+  .md-sidebar--secondary {
+    display: none !important;
+  }
+
+  .md-nav--primary {
+    background: transparent;
+    display: block;
+    height: auto;
+    position: static;
+    transform: none;
+    visibility: visible;
+  }
+
+  .md-nav--primary .md-nav:not(.md-nav--secondary) {
+    background: transparent;
+    display: grid;
+    grid-template-rows: minmax(0.4rem, 0fr);
+    height: auto;
+    opacity: 0;
+    position: static;
+    transform: none;
+    visibility: collapse;
+  }
+
+  .md-nav--primary
+    .md-nav__toggle.md-toggle--indeterminate
+    ~ .md-nav:not(.md-nav--secondary),
+  .md-nav--primary
+    .md-nav__toggle:checked
+    ~ .md-nav:not(.md-nav--secondary) {
+    grid-template-rows: minmax(0.4rem, 1fr);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .md-nav--primary .md-nav:not(.md-nav--secondary) > .md-nav__list {
+    overflow: hidden;
+  }
+
+  .md-nav--primary > .md-nav__title {
+    background: var(--md-default-bg-color);
+    box-shadow: 0 0 0.4rem 0.4rem var(--md-default-bg-color);
+    color: var(--md-default-fg-color--light);
+    cursor: default;
+    font-size: 0.7rem;
+    height: auto;
+    line-height: 1.3;
+    padding: 0 0.6rem;
+    position: sticky;
+    top: 0;
+    white-space: normal;
+    z-index: 1;
+  }
+
+  .md-nav--primary > .md-nav__title .md-logo,
+  .md-nav--primary > .md-nav__title .md-nav__icon {
+    display: none;
+  }
+
+  [dir="ltr"] .md-nav--primary > .md-nav__list {
+    padding-left: 0.6rem;
+  }
+
+  [dir="rtl"] .md-nav--primary > .md-nav__list {
+    padding-right: 0.6rem;
+  }
+
+  .md-nav--primary .md-nav__item {
+    border-top: 0;
+    font-size: 0.7rem;
+    line-height: 1.3;
+  }
+
+  .md-nav--primary .md-nav__link {
+    margin-top: 0.625em;
+    padding: 0;
+  }
+
+  .md-nav--primary .md-nav__item--nested > .md-nav > .md-nav__title {
+    display: none;
+  }
+
+  .md-nav--primary .md-nav--secondary {
+    background: transparent;
+    border-left: 1px solid var(--md-primary-fg-color);
+    display: none;
+    height: auto;
+    margin: 0.55rem 0 1.1rem;
+    position: static;
+    transform: none;
+  }
+
+  .md-nav--primary.md-nav--integrated
+    > .md-nav__list
+    > .md-nav__item--active
+    .md-nav__item--active
+    > .md-nav--secondary {
+    display: block;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .md-nav--primary .md-nav--secondary > .md-nav__title {
+    display: none;
+  }
+
+  .md-nav--primary .md-nav--secondary .md-nav__list {
+    overflow: visible;
+    padding: 0 0 0 0.6rem;
+  }
+}
+
+/* 手机和平板抽屉稍宽一些，避免长章名被挤成三四行。 */
+@media screen and (max-width: 59.984375em) {
+  :root {
+    --dsh-drawer-width: min(15rem, 82vw);
+  }
+
+  [dir="ltr"] .md-sidebar--primary {
+    left: calc(-1 * var(--dsh-drawer-width));
+  }
+
+  [dir="rtl"] .md-sidebar--primary {
+    right: calc(-1 * var(--dsh-drawer-width));
+  }
+
+  .md-sidebar--primary {
+    width: var(--dsh-drawer-width);
+  }
+
+  [data-md-toggle="drawer"]:checked ~ .md-container .md-sidebar--primary {
+    transform: translateX(var(--dsh-drawer-width));
+  }
+
+  [dir="rtl"]
+    [data-md-toggle="drawer"]:checked
+    ~ .md-container
+    .md-sidebar--primary {
+    transform: translateX(calc(-1 * var(--dsh-drawer-width)));
+  }
+
+  .md-nav--primary > .md-nav__title {
+    min-height: 5.6rem;
+    white-space: normal;
+  }
+}
+
 .md-typeset figure.book-figure,
 .md-typeset figure.book-diagram {
   margin: 1.6rem auto;

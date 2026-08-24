@@ -1,0 +1,24 @@
+{% set dsh_edit_url = page.edit_url %}
+{% if page.file.src_uri == "index.md" %}
+  {% set dsh_edit_url = config.repo_url ~ "/edit/main/book/introduction.md" %}
+{% endif %}
+
+{% if dsh_edit_url %}
+  {% if "content.action.edit" in features %}
+    <a href="{{ dsh_edit_url }}" title="{{ lang.t('action.edit') }}" class="md-content__button md-icon" rel="edit">
+      {% set icon = config.theme.icon.edit or "material/file-edit-outline" %}
+      {% include ".icons/" ~ icon ~ ".svg" %}
+    </a>
+  {% endif %}
+  {% if "content.action.view" in features %}
+    {% if "/blob/" in dsh_edit_url %}
+      {% set part = "blob" %}
+    {% else %}
+      {% set part = "edit" %}
+    {% endif %}
+    <a href="{{ dsh_edit_url | replace(part, 'raw') }}" title="{{ lang.t('action.view') }}" class="md-content__button md-icon">
+      {% set icon = config.theme.icon.view or "material/file-eye-outline" %}
+      {% include ".icons/" ~ icon ~ ".svg" %}
+    </a>
+  {% endif %}
+{% endif %}
