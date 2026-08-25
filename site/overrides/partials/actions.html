@@ -1,7 +1,4 @@
 {% set dsh_edit_url = page.edit_url %}
-{% if page.file.src_uri == "index.md" %}
-  {% set dsh_edit_url = config.repo_url ~ "/edit/main/book/introduction.md" %}
-{% endif %}
 
 {% if dsh_edit_url %}
   {% if "content.action.edit" in features %}

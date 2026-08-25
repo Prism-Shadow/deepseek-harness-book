@@ -524,7 +524,7 @@ pnpm install
 pnpm exec cordis
 ```
 
-运行后得到：
+运行时会先输出第一组结果：
 
 ```text
 A enter
@@ -533,14 +533,19 @@ default
 B leave
 A leave
 A(B(hello))
+```
+
+第一组中，A 和 B 都调用 `next()`，因此处理进入默认函数；默认函数返回后，再按 B、A 的顺序返回。
+
+随后，第二次调用继续输出：
+
+```text
 A enter
 B enter
 B short-circuit
 A leave
 A(blocked)
 ```
-
-第一组中，A 和 B 都调用 `next()`，因此处理进入默认函数；默认函数返回后，再按 B、A 的顺序返回。
 
 第二组中，B 发现输入包含 `blocked` 后直接返回，没有调用 `next()`。因此默认函数不会执行，但已经进入的 A 仍然会收到 B 的结果并继续执行。
 

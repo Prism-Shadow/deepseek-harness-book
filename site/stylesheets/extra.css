@@ -5,6 +5,9 @@
   --dsh-rule: #ccd7e8;
   --dsh-muted: #5e6b7d;
   --dsh-code: #f5f7fa;
+  --dsh-header: #243b61;
+  --dsh-figure-bg: #ffffff;
+  --dsh-figure-rule: #d8e0eb;
 }
 
 [data-md-color-scheme="slate"] {
@@ -14,12 +17,25 @@
   --dsh-rule: #40516a;
   --dsh-muted: #b1bed0;
   --dsh-code: #1c2533;
+  --dsh-header: #171e2a;
+  --dsh-figure-bg: #ffffff;
+  --dsh-figure-rule: #526076;
 }
 
 body,
 input {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
     "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+}
+
+/* 顶栏保留功能入口，颜色退到内容之后。 */
+.md-header {
+  background: var(--dsh-header);
+  box-shadow: 0 1px 0 rgb(15 23 42 / 16%);
+}
+
+.md-header__title {
+  font-weight: 650;
 }
 
 .md-grid {
@@ -47,6 +63,15 @@ input {
   height: auto;
   margin: 1.1rem auto 0.45rem;
   max-width: 100%;
+}
+
+/* 给界面截图和矢量图一个稳定的浅色画布，避免深色模式下突兀。 */
+.md-typeset img.book-figure-image {
+  background: var(--dsh-figure-bg);
+  border: 1px solid var(--dsh-figure-rule);
+  border-radius: 0.55rem;
+  box-sizing: border-box;
+  padding: clamp(0.25rem, 0.7vw, 0.55rem);
 }
 
 /* 表格块居中；表头和短标签列居中，说明文字继续左对齐。 */
@@ -92,10 +117,295 @@ input {
   white-space: pre-line;
 }
 
+/* 首页只保留读者开始阅读所需的信息，不把展示样式带进章节正文。 */
+.home-page {
+  margin: 0 auto;
+  max-width: 58rem;
+}
+
+.home-hero {
+  background: var(--dsh-accent-soft);
+  border: 1px solid var(--dsh-rule);
+  border-radius: 1rem;
+  padding: clamp(1.6rem, 4vw, 3rem);
+}
+
+.md-typeset .home-hero__eyebrow,
+.md-typeset .home-section-heading > p {
+  color: var(--dsh-accent);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.45rem;
+}
+
+.md-typeset .home-hero h1 {
+  font-size: clamp(1.8rem, 4.5vw, 2.75rem);
+  line-height: 1.2;
+  margin: 0;
+  max-width: 18em;
+}
+
+.md-typeset .home-hero__lead {
+  color: var(--dsh-muted);
+  font-size: clamp(0.9rem, 2vw, 1.05rem);
+  line-height: 1.75;
+  margin: 1rem 0 0;
+  max-width: 40rem;
+}
+
+.home-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 1.4rem;
+}
+
+.md-typeset .home-hero__actions .md-button {
+  margin: 0;
+}
+
+.md-typeset .home-hero__actions .md-button:not(.md-button--primary) {
+  border-color: currentColor;
+  color: var(--dsh-accent);
+}
+
+.md-typeset ul.home-hero__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1.5rem;
+  list-style: none;
+  margin: 1.35rem 0 0;
+  padding: 1rem 0 0;
+  border-top: 1px solid var(--dsh-rule);
+}
+
+.md-typeset .home-hero__facts li {
+  color: var(--dsh-muted);
+  margin: 0;
+}
+
+.md-typeset .home-hero__facts li::before {
+  background: var(--dsh-accent);
+  border-radius: 50%;
+  content: "";
+  display: inline-block;
+  height: 0.34rem;
+  margin-right: 0.45rem;
+  vertical-align: 0.08rem;
+  width: 0.34rem;
+}
+
+.home-routes {
+  scroll-margin-top: 4rem;
+  margin-top: 2.6rem;
+}
+
+.md-typeset .home-section-heading h2 {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.home-route-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin-top: 1.1rem;
+}
+
+.md-typeset .home-route-card {
+  background: var(--md-default-bg-color);
+  border: 1px solid var(--dsh-rule);
+  border-radius: 0.75rem;
+  color: var(--md-typeset-color);
+  display: flex;
+  flex-direction: column;
+  min-height: 12rem;
+  padding: 1rem;
+  text-decoration: none;
+}
+
+.md-typeset .home-route-card:hover {
+  border-color: var(--dsh-accent);
+}
+
+.md-typeset .home-hero__actions .md-button:focus-visible,
+.md-typeset .home-hero__actions .md-button.focus-visible,
+.md-typeset .home-route-card:focus-visible,
+.md-typeset .home-route-card.focus-visible {
+  outline: 3px solid var(--dsh-accent);
+  outline-offset: 3px;
+}
+
+.md-typeset .home-route-card__range {
+  color: var(--dsh-accent);
+  font-size: 0.66rem;
+  font-weight: 700;
+}
+
+.md-typeset .home-route-card strong {
+  font-size: 0.94rem;
+  margin-top: 0.35rem;
+}
+
+.md-typeset .home-route-card > span:not(.home-route-card__range) {
+  color: var(--dsh-muted);
+  line-height: 1.7;
+  margin-top: 0.55rem;
+}
+
+.md-typeset .home-route-card b {
+  color: var(--dsh-accent);
+  font-size: 0.7rem;
+  margin-top: auto;
+  padding-top: 0.9rem;
+}
+
+.home-introduction {
+  margin: 2.8rem auto 0;
+  max-width: 52rem;
+}
+
+.md-typeset .home-introduction > h2:first-of-type {
+  margin-top: 0;
+}
+
+/* 分部导读采用书籍扉页和目录的排法，避免落地页式 Hero 与卡片。 */
+.part-page {
+  margin: 0 auto;
+  max-width: 48rem;
+}
+
+.part-hero {
+  border-bottom: 1px solid var(--dsh-rule);
+  padding: 0.5rem 0 2rem;
+}
+
+.md-typeset .part-hero__eyebrow {
+  color: var(--dsh-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  margin: 0 0 0.6rem;
+}
+
+.md-typeset .part-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  line-height: 1.12;
+  margin: 0;
+}
+
+.md-typeset .part-hero__lead {
+  color: var(--dsh-muted);
+  font-size: clamp(0.9rem, 1.8vw, 1.02rem);
+  line-height: 1.75;
+  margin: 1rem 0 0;
+  max-width: 40rem;
+}
+
+.md-typeset .part-start-link {
+  border-bottom: 1px solid currentcolor;
+  color: var(--dsh-accent);
+  display: inline-block;
+  font-weight: 600;
+  margin-top: 1.25rem;
+  padding-bottom: 0.08rem;
+  text-decoration: none;
+}
+
+.part-introduction {
+  margin-top: 2.4rem;
+}
+
+.part-chapter-groups {
+  border-bottom: 1px solid var(--dsh-rule);
+  margin-top: 1.2rem;
+}
+
+.md-typeset .part-chapter-card {
+  border-top: 1px solid var(--dsh-rule);
+  color: var(--md-typeset-color);
+  column-gap: 1.2rem;
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  padding: 1.05rem 0;
+  text-decoration: none;
+}
+
+.md-typeset .part-chapter-card:hover strong {
+  color: var(--dsh-accent);
+}
+
+.md-typeset .part-chapter-card span {
+  color: var(--dsh-muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  padding-top: 0.12rem;
+}
+
+.md-typeset .part-chapter-card strong {
+  grid-column: 2;
+  transition: color 120ms ease;
+}
+
+.md-typeset .part-chapter-card p {
+  color: var(--dsh-muted);
+  grid-column: 2;
+  line-height: 1.65;
+  margin: 0.35rem 0 0;
+}
+
+/* 顶栏保留仓库入口，但不占用一整块横向空间。 */
+.md-header__source {
+  margin-left: 0.3rem;
+  width: auto;
+}
+
+.md-header__source .md-source {
+  padding-left: 0.45rem;
+  padding-right: 0.45rem;
+  width: auto;
+}
+
+.md-header__source .md-source__repository {
+  display: none;
+}
+
+/* 页脚保留版权与前后章导航，弱化模板署名区域的视觉重量。 */
+.md-footer-meta {
+  background: var(--md-default-bg-color);
+  border-top: 1px solid var(--dsh-rule);
+}
+
+.md-footer-meta .md-copyright {
+  color: var(--dsh-muted);
+}
+
+.md-container:has(.home-page) .md-footer__inner {
+  display: none;
+}
+
 /* 低于 Material 桌面断点时统一使用加宽的抽屉目录。 */
 @media screen and (max-width: 76.234375em) {
   :root {
     --dsh-drawer-width: min(15rem, 82vw);
+  }
+
+  html:has([data-md-toggle="drawer"]:checked),
+  body:has([data-md-toggle="drawer"]:checked) {
+    overflow: hidden;
+  }
+
+  .md-sidebar--primary .md-nav__list {
+    overscroll-behavior-y: contain;
+  }
+
+  .md-overlay {
+    overscroll-behavior: none;
+    touch-action: none;
   }
 
   [dir="ltr"] .md-sidebar--primary {
@@ -294,6 +604,52 @@ input {
 }
 
 @media screen and (max-width: 44rem) {
+  .home-hero {
+    border-radius: 0.8rem;
+    padding: 1.25rem;
+  }
+
+  .home-hero__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .md-typeset .home-hero__actions .md-button {
+    text-align: center;
+  }
+
+  .md-typeset ul.home-hero__facts {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .home-route-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .md-typeset .home-route-card {
+    min-height: 0;
+  }
+
+  .part-hero {
+    padding: 0.25rem 0 1.5rem;
+  }
+
+  .md-typeset .part-chapter-card {
+    grid-template-columns: 1fr;
+  }
+
+  .md-typeset .part-chapter-card span,
+  .md-typeset .part-chapter-card strong,
+  .md-typeset .part-chapter-card p {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .md-typeset .part-chapter-card strong {
+    margin-top: 0.25rem;
+  }
+
   .md-typeset img.book-technical-figure {
     height: auto !important;
     width: 100% !important;
