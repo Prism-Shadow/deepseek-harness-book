@@ -25,6 +25,12 @@ INCLUDEGRAPHICS = re.compile(
 CAPTION = re.compile(r"\\caption(?:of\{figure\})?\{(.+?)\}(?:\n|$)")
 LABEL = re.compile(r"\\label\{([^}]+)\}")
 REFERENCE = re.compile(r"图\s*\\ref\{(fig-[A-Za-z0-9._:-]+)\}")
+FIGURE_BLOCK = re.compile(
+    r"(?P<open><figure\b)(?P<attributes>[^>]*)(?P<body>>.*?<figcaption>)"
+    r"(?P<caption>.*?)(?P<close></figcaption>.*?</figure>)",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+HTML_ID = re.compile(r'\bid="([^"]+)"')
 UNPUBLISHED_DEMO_LINK = re.compile(r"\[([^]]+)\]\(\.\./demo/[^)]+\)")
 LATEX_COMMAND = re.compile(r"\\(?:Needspace|newpage|clearpage)\b")
 MARKDOWN_IMAGE = re.compile(
@@ -256,7 +262,45 @@ def render_latex_block(body: str) -> str:
     raise SystemExit("网页端遇到未支持的 LaTeX 块")
 
 
-def transform_markdown(text: str) -> str:
+def number_web_figures(text: str, chapter_number: int) -> tuple[str, dict[str, str]]:
+    """Number rendered figures in reading order without changing source captions."""
+    figure_numbers: dict[str, str] = {}
+    figure_index = 0
+
+    def replace(match: re.Match[str]) -> str:
+        nonlocal figure_index
+        figure_index += 1
+        number = f"{chapter_number}.{figure_index}"
+        expected_id = f"fig-{chapter_number}-{figure_index}"
+        attributes = match.group("attributes")
+        identifier_match = HTML_ID.search(attributes)
+        if identifier_match:
+            identifier = identifier_match.group(1)
+            if identifier.startswith("fig-") and identifier != expected_id:
+                raise SystemExit(
+                    f"图片 {number} 的锚点应为 {expected_id}，实际为 {identifier}"
+                )
+        else:
+            identifier = expected_id
+            attributes += f' id="{identifier}"'
+
+        figure_numbers[identifier] = number
+        caption = match.group("caption")
+        numbered_caption = (
+            f'<span class="book-figure-number">图 {number}</span> {caption}'
+        )
+        return (
+            match.group("open")
+            + attributes
+            + match.group("body")
+            + numbered_caption
+            + match.group("close")
+        )
+
+    return FIGURE_BLOCK.sub(replace, text), figure_numbers
+
+
+def transform_markdown(text: str, chapter_number: int | None = None) -> str:
     """Convert Pandoc-only blocks while leaving the canonical Markdown untouched."""
     lines = render_markdown_figures(text).splitlines()
     output: list[str] = []
@@ -281,7 +325,19 @@ def transform_markdown(text: str) -> str:
         index += 1
 
     rendered_text = "\n".join(output).rstrip() + "\n"
-    rendered_text = REFERENCE.sub(lambda match: f"[图](#{match.group(1)})", rendered_text)
+    figure_numbers: dict[str, str] = {}
+    if chapter_number is not None:
+        rendered_text, figure_numbers = number_web_figures(
+            rendered_text, chapter_number
+        )
+
+    def render_reference(match: re.Match[str]) -> str:
+        identifier = match.group(1)
+        number = figure_numbers.get(identifier)
+        label = f"图 {number}" if number else "图"
+        return f"[{label}](#{identifier})"
+
+    rendered_text = REFERENCE.sub(render_reference, rendered_text)
     rendered_text = UNPUBLISHED_DEMO_LINK.sub(lambda match: match.group(1), rendered_text)
     if RAW_LATEX_START in rendered_text:
         raise SystemExit("网页稿仍包含 LaTeX 原始块")
@@ -318,10 +374,12 @@ def prepare_site(book_dir: Path, output_dir: Path, site_assets: Path) -> list[Pa
     )
     generated.append(index_path)
 
-    for _number, source in chapters:
+    for number, source in chapters:
         target = output_dir / source.name
         target.write_text(
-            transform_markdown(source.read_text(encoding="utf-8")),
+            transform_markdown(
+                source.read_text(encoding="utf-8"), chapter_number=number
+            ),
             encoding="utf-8",
         )
         validate_images(target)

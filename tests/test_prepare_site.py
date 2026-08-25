@@ -93,9 +93,29 @@ class PrepareSiteTest(unittest.TestCase):
 \label{fig-1-1}
 ```
 """
-        rendered = transform_markdown(source)
-        self.assertIn("[图](#fig-1-1)", rendered)
+        rendered = transform_markdown(source, chapter_number=1)
+        self.assertIn("[图 1.1](#fig-1-1)", rendered)
         self.assertIn('id="fig-1-1"', rendered)
+        self.assertIn(
+            '<figcaption><span class="book-figure-number">'
+            "图 1.1</span> 示例截图</figcaption>",
+            rendered,
+        )
+
+    def test_numbers_mixed_figure_types_in_reading_order(self) -> None:
+        source = r"""```{=latex}
+\begin{figure}[H]
+\includegraphics{assets/one.png}
+\caption{第一张图}
+\end{figure}
+```
+
+![第二张图](assets/two.png)
+"""
+        rendered = transform_markdown(source, chapter_number=3)
+        self.assertIn('id="fig-3-1"', rendered)
+        self.assertIn('id="fig-3-2"', rendered)
+        self.assertLess(rendered.index("图 3.1"), rendered.index("图 3.2"))
 
     def test_converts_known_tikz_diagram(self) -> None:
         source = r"""```{=latex}
