@@ -83,8 +83,8 @@ input {
 }
 
 .md-typeset .prompt-title {
-  color: #e45c5c;
-  font-size: 1.1em;
+  color: var(--md-primary-fg-color);
+  font-size: 0.9em;
   font-weight: 600;
 }
 
