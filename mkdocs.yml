@@ -84,6 +84,6 @@ nav:
   - 第二部分　拆解 dsh:
       - 第11章　Harness 的工作原理: chapter11.md
       - 第12章　dsh 的核心：Cordis: chapter12.md
-  - 第三部分　动手写出自己的第一个插件:
+  - 第三部分　扩展 dsh:
       - 第13章　扩展 dsh 的能力: chapter13.md
       - 第14章　让 dsh 通过自进化画出概念图: chapter14.md

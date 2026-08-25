@@ -45,6 +45,38 @@ class PrepareSiteTest(unittest.TestCase):
             rendered,
         )
 
+    def test_adds_visible_caption_to_standalone_markdown_image(self) -> None:
+        source = (
+            "正文。\n\n"
+            "![示例截图](assets/example.png){#fig-example width=82%}\n"
+        )
+        rendered = transform_markdown(source)
+        self.assertIn(
+            '<figure class="book-figure" id="fig-example" markdown>',
+            rendered,
+        )
+        self.assertIn(
+            "![示例截图](assets/example.png)"
+            '{ .book-figure-image width=82% loading="lazy" }',
+            rendered,
+        )
+        self.assertIn("<figcaption>示例截图</figcaption>", rendered)
+
+    def test_does_not_rewrap_images_in_code_or_existing_figure(self) -> None:
+        source = """```markdown
+![代码示例](assets/code.png)
+```
+
+<figure class="book-figure" markdown>
+![已有图片](assets/existing.png)
+<figcaption>已有说明</figcaption>
+</figure>
+"""
+        rendered = transform_markdown(source)
+        self.assertEqual(rendered.count('<figure class="book-figure"'), 1)
+        self.assertNotIn("<figcaption>代码示例</figcaption>", rendered)
+        self.assertEqual(rendered.count("<figcaption>已有说明</figcaption>"), 1)
+
     def test_removes_pdf_only_layout_command(self) -> None:
         source = "before\n\n```{=latex}\n\\Needspace{18\\baselineskip}\n```\n\nafter\n"
         rendered = transform_markdown(source)
