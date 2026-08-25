@@ -1,0 +1,2 @@
+- name: './greeter.js'
+- name: './consumer.js'
