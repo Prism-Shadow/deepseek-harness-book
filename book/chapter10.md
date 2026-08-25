@@ -184,7 +184,7 @@ for (const task of team.tasks) {
 
 这批修复都在帮 Agent 把长任务做完：记录写得住，追问接得上，中断以后还能继续。
 
-![运行记录、追问和长对话恢复变得更可靠](assets/chapter10/10-4-01-bug-fixes.png){width=84%}
+![运行记录、追问和长对话恢复变得更可靠](assets/chapter10/10-4-01-bug-fixes.svg){.book-technical-figure width=72%}
 
 另外，旧日期里的新记录不再漏掉，小上下文模型会更早整理对话，服务重启后也能恢复手动整理。维护者已经补上相关回归测试；本次只确认测试已经写入，没有运行全套测试。
 

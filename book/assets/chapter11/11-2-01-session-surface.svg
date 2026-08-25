@@ -1,21 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 170 1600 700" width="1600" height="700" role="img" aria-labelledby="title desc">
   <title id="title">dsh 从会话日志中整理下一次模型请求所需的历史</title>
   <desc id="desc">只追加的会话日志保留完整事件。dsh 从日志整理当前 surface，再构造下一次模型请求。</desc>
   <defs>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
-      <path d="M0 0L10 5L0 10z" fill="#315EF5"/>
+    <marker id="arrow" viewBox="0 -2 6 4" refX="5.67" refY="0" markerWidth="9" markerHeight="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M5.67 0 L1.29 1.66 L2.74 0 L1.29 -1.66 Z" fill="#253A9B"/>
     </marker>
     <style>
-      .zh{font-family:SimSun,"Songti SC",serif}.mix{font-family:"Times New Roman",SimSun,"Songti SC",serif}.mono{font-family:Menlo,Consolas,monospace}
+      .zh{font-family:"Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif}.mix{font-family:"Times New Roman","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif}.mono{font-family:Menlo,Consolas,monospace}
       .title{font-size:50px;font-weight:700;fill:#273142}.sub{font-size:25px;fill:#5C667A}
       .head{font-size:31px;font-weight:700;fill:#273142}.body{font-size:22px;fill:#526071}
-      .chip{font-size:19px;fill:#445064}.white{fill:#FFFFFF}.line{stroke:#315EF5;stroke-width:4;fill:none;marker-end:url(#arrow)}
+      .chip{font-size:19px;fill:#445064}.white{fill:#FFFFFF}.line{stroke:#253A9B;stroke-width:4;fill:none;marker-end:url(#arrow)}
     </style>
   </defs>
   <rect width="1600" height="900" fill="#FFFFFF"/>
-  <text x="100" y="94" class="mix title">会话日志如何变成模型历史</text>
-  <text x="100" y="140" class="zh sub">日志保留完整运行记录，surface 只承载继续会话所需的状态</text>
-
   <g>
     <rect x="150" y="200" width="1300" height="205" rx="26" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
     <text x="205" y="255" class="zh head">只追加的会话事件日志</text>

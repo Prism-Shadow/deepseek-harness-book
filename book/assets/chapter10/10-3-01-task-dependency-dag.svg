@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="635" viewBox="0 205 1600 635">
   <defs>
-    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-      <path d="M0,0 L12,6 L0,12 Z" fill="#315EF5"/>
+    <marker id="arrow" viewBox="0 -2 6 4" refX="5.67" refY="0" markerWidth="9" markerHeight="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M5.67 0 L1.29 1.66 L2.74 0 L1.29 -1.66 Z" fill="#253A9B"/>
     </marker>
     <style>
-      .zh { font-family: "Songti SC", SimSun, serif; fill: #273142; }
+      .zh { font-family: "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif; fill: #273142; }
       .en { font-family: "Times New Roman", serif; fill: #667085; }
       .title { font-size: 48px; font-weight: 700; }
       .node { font-size: 28px; font-weight: 700; }
@@ -14,40 +14,32 @@
     </style>
   </defs>
   <rect width="1600" height="900" fill="#FFFFFF"/>
-  <text x="90" y="105" class="zh title">四路并行审查，队长最后交叉核对</text>
-  <text x="92" y="150" class="en small">95 commits · four independent reviews · one synthesis task</text>
-
   <g>
     <rect x="80" y="235" width="310" height="180" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
-    <text x="115" y="282" class="en tag">t1 · feature</text>
-    <text x="235" y="338" text-anchor="middle" class="zh node">功能分析</text>
-    <text x="235" y="380" text-anchor="middle" class="zh small">归并用户可见变化</text>
+    <text x="235" y="320" text-anchor="middle" class="zh node">功能分析</text>
+    <text x="235" y="365" text-anchor="middle" class="zh small">归并用户可见变化</text>
 
     <rect x="455" y="235" width="310" height="180" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
-    <text x="490" y="282" class="en tag">t2 · bug</text>
-    <text x="610" y="338" text-anchor="middle" class="zh node">修复分析</text>
-    <text x="610" y="380" text-anchor="middle" class="zh small">核对回归测试与可靠性</text>
+    <text x="610" y="320" text-anchor="middle" class="zh node">修复分析</text>
+    <text x="610" y="365" text-anchor="middle" class="zh small">核对回归测试与可靠性</text>
 
     <rect x="830" y="235" width="310" height="180" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
-    <text x="865" y="282" class="en tag">t3 · security</text>
-    <text x="985" y="338" text-anchor="middle" class="zh node">安全审查</text>
-    <text x="985" y="380" text-anchor="middle" class="zh small">区分修复、候选与未知</text>
+    <text x="985" y="320" text-anchor="middle" class="zh node">安全审查</text>
+    <text x="985" y="365" text-anchor="middle" class="zh small">区分修复、候选与未知</text>
 
     <rect x="1205" y="235" width="310" height="180" rx="24" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
-    <text x="1240" y="282" class="en tag">t4 · performance</text>
-    <text x="1360" y="338" text-anchor="middle" class="zh node">性能审查</text>
-    <text x="1360" y="380" text-anchor="middle" class="zh small">寻找优化与剩余瓶颈</text>
+    <text x="1360" y="320" text-anchor="middle" class="zh node">性能审查</text>
+    <text x="1360" y="365" text-anchor="middle" class="zh small">寻找优化与剩余瓶颈</text>
   </g>
 
-  <g fill="none" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow)">
-    <path d="M235 415 C235 535 575 500 680 585"/>
-    <path d="M610 415 C610 505 690 520 735 585"/>
-    <path d="M985 415 C985 505 910 520 865 585"/>
-    <path d="M1360 415 C1360 535 1025 500 920 585"/>
+  <g fill="none" stroke="#253A9B" stroke-width="4" marker-end="url(#arrow)">
+    <path d="M235 415 C235 535 550 500 650 570 L680 600"/>
+    <path d="M610 415 C610 505 680 520 715 565 L735 600"/>
+    <path d="M985 415 C985 505 920 520 885 565 L865 600"/>
+    <path d="M1360 415 C1360 535 1050 500 950 570 L920 600"/>
   </g>
 
   <rect x="535" y="600" width="530" height="190" rx="28" fill="#315EF5" stroke="#2148CC" stroke-width="3"/>
-  <text x="575" y="650" class="en tag inverse">t5 · captain · depends on t1–t4</text>
-  <text x="800" y="712" text-anchor="middle" class="zh node inverse">交叉核对与最终汇总</text>
-  <text x="800" y="757" text-anchor="middle" class="zh small inverse">复查时间窗、提交号、源码证据和风险边界</text>
+  <text x="800" y="680" text-anchor="middle" class="zh node inverse">交叉核对与最终汇总</text>
+  <text x="800" y="730" text-anchor="middle" class="zh small inverse">复查时间窗、提交号、源码证据和风险边界</text>
 </svg>

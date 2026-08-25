@@ -139,6 +139,15 @@ input {
   width: 100%;
 }
 
+/* figure 自己已经提供段落间距，避免图片和外层 p 再重复留白。 */
+.md-typeset figure.book-figure > p {
+  margin: 0;
+}
+
+.md-typeset figure.book-figure img {
+  margin: 0 auto;
+}
+
 .md-typeset .book-figure-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
