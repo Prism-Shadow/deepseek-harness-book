@@ -306,6 +306,7 @@ input {
 .md-typeset figcaption {
   color: var(--dsh-muted);
   font-size: 0.68rem;
+  font-style: normal;
   line-height: 1.55;
   margin-top: 0.65rem;
 }
