@@ -134,6 +134,11 @@ input {
   text-align: center;
 }
 
+/* 单图占满正文宽度，使图片百分比相对正文区域生效。 */
+.md-typeset figure.book-figure:not(.book-figure-grid) {
+  width: 100%;
+}
+
 .md-typeset .book-figure-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
