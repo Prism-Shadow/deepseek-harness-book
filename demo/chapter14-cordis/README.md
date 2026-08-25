@@ -1,19 +1,19 @@
-# 第 12 章 Cordis 配套示例
+# 第 14 章 Cordis 配套示例
 
-本目录保存第 12 章使用的最小 Cordis 示例。读者可以复制整个目录，在副本中运行和修改。
+本目录保存第 14 章使用的最小 Cordis 示例。读者可以复制整个目录，在副本中运行和修改。
 
 ```text
-chapter12-cordis/
-├── 12-2-lifecycle/
+chapter14-cordis/
+├── 14-2-lifecycle/
 │   ├── cordis.yml
 │   ├── hello.js
 │   └── package.json
-├── 12-3-relations/
+├── 14-3-relations/
 │   ├── consumer.js
 │   ├── cordis.yml
 │   ├── greeter.js
 │   └── package.json
-└── 12-3-waterfall/
+└── 14-3-waterfall/
     ├── cordis.yml
     ├── package.json
     └── waterfall-demo.js

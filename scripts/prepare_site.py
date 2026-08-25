@@ -41,13 +41,6 @@ FENCE_START = re.compile(r"^\s*(`{3,}|~{3,})")
 HOMEPAGE_HEADING = re.compile(r"^# (内容简介\b.*)$", flags=re.MULTILINE)
 HOMEPAGE_META_TITLE = re.compile(r"^title:[^\n]*\n", flags=re.MULTILINE)
 EMPTY_FRONT_MATTER = re.compile(r"\A---\n\s*---\n")
-PART_HEADING = re.compile(
-    r"^# \s*第[^\n]*?部分[\u3000 ]+(.+?)\s*$", flags=re.MULTILINE
-)
-PAGE_HEADING = re.compile(
-    r"(?:^# (?P<markdown>.+?)\s*$|<h1>(?P<html>.+?)</h1>)",
-    flags=re.MULTILINE,
-)
 
 
 DIAGRAMS: dict[str, str] = {
@@ -369,34 +362,10 @@ def transform_homepage(text: str) -> str:
     return rendered
 
 
-def discover_part_intros(book_dir: Path, outline: Path) -> list[Path]:
-    """Find one web introduction page for every canonical book part."""
-    part_titles = PART_HEADING.findall(outline.read_text(encoding="utf-8"))
-    if not part_titles:
-        raise SystemExit("目录中没有找到分部标题")
-
-    pages: list[Path] = []
-    for number, title in enumerate(part_titles, start=1):
-        source = book_dir / "parts" / f"part{number}" / "index.md"
-        if not source.is_file():
-            raise SystemExit(f"第 {number} 部分缺少网页导读: {source}")
-        heading = PAGE_HEADING.search(source.read_text(encoding="utf-8"))
-        actual = "无一级标题"
-        if heading is not None:
-            actual = (heading.group("markdown") or heading.group("html")).strip()
-        if actual != title.strip():
-            raise SystemExit(
-                f"第 {number} 部分导读标题不一致: 目录为“{title}”，导读为“{actual}”"
-            )
-        pages.append(source)
-    return pages
-
-
 def prepare_site(book_dir: Path, output_dir: Path, site_assets: Path) -> list[Path]:
     safe_output_dir(book_dir, output_dir)
     outline = book_dir / "outline.md"
     plans = parse_outline(outline)
-    part_intros = discover_part_intros(book_dir, outline)
     chapters = discover_chapters(book_dir)
     if [number for number, _ in chapters] != list(range(1, len(plans) + 1)):
         raise SystemExit("chapterN.md 必须完整覆盖 outline.md 中的所有章节")
@@ -423,17 +392,6 @@ def prepare_site(book_dir: Path, output_dir: Path, site_assets: Path) -> list[Pa
     )
     generated.append(index_path)
 
-    for source in part_intros:
-        relative = source.relative_to(book_dir)
-        target = output_dir / relative
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(
-            transform_markdown(source.read_text(encoding="utf-8")),
-            encoding="utf-8",
-        )
-        validate_images(target)
-        generated.append(target)
-
     for number, source in chapters:
         target = output_dir / source.name
         target.write_text(
@@ -457,7 +415,7 @@ def main() -> None:
     generated = prepare_site(args.book_dir, args.output_dir, args.site_assets)
     print(
         "网页正文："
-        + "、".join(str(path.relative_to(args.output_dir)) for path in generated)
+        + "、".join(path.name for path in generated)
     )
 
 

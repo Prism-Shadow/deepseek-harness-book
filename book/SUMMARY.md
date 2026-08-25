@@ -15,12 +15,12 @@
 * [第10章　用 dsh 和 AgentTeams 组建 OPC 代码审查团队](chapter10.md)
   * [代码审查提示词](assets/chapter10/repository-review-prompt.md)
 
-## 第二部分　拆解 dsh
+## 第二部分　扩展 dsh
 
-* [第11章　Harness 的工作原理](chapter11.md)
-* [第12章　dsh 的核心：Cordis](chapter12.md)
+* [第11章　扩展 dsh 的能力](chapter11.md)
+* [第12章　让 dsh 通过自进化画出概念图](chapter12.md)
 
-## 第三部分　扩展 dsh
+## 第三部分　拆解 dsh
 
-* [第13章　扩展 dsh 的能力](chapter13.md)
-* [第14章　让 dsh 通过自进化画出概念图](chapter14.md)
+* [第13章　Harness 的工作原理](chapter13.md)
+* [第14章　dsh 的核心：Cordis](chapter14.md)

@@ -271,93 +271,6 @@ input {
   margin-top: 0;
 }
 
-/* 分部导读采用书籍扉页和目录的排法，避免落地页式 Hero 与卡片。 */
-.part-page {
-  margin: 0 auto;
-  max-width: 48rem;
-}
-
-.part-hero {
-  border-bottom: 1px solid var(--dsh-rule);
-  padding: 0.5rem 0 2rem;
-}
-
-.md-typeset .part-hero__eyebrow {
-  color: var(--dsh-muted);
-  font-size: 0.72rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  margin: 0 0 0.6rem;
-}
-
-.md-typeset .part-hero h1 {
-  font-size: clamp(2rem, 5vw, 3rem);
-  line-height: 1.12;
-  margin: 0;
-}
-
-.md-typeset .part-hero__lead {
-  color: var(--dsh-muted);
-  font-size: clamp(0.9rem, 1.8vw, 1.02rem);
-  line-height: 1.75;
-  margin: 1rem 0 0;
-  max-width: 40rem;
-}
-
-.md-typeset .part-start-link {
-  border-bottom: 1px solid currentcolor;
-  color: var(--dsh-accent);
-  display: inline-block;
-  font-weight: 600;
-  margin-top: 1.25rem;
-  padding-bottom: 0.08rem;
-  text-decoration: none;
-}
-
-.part-introduction {
-  margin-top: 2.4rem;
-}
-
-.part-chapter-groups {
-  border-bottom: 1px solid var(--dsh-rule);
-  margin-top: 1.2rem;
-}
-
-.md-typeset .part-chapter-card {
-  border-top: 1px solid var(--dsh-rule);
-  color: var(--md-typeset-color);
-  column-gap: 1.2rem;
-  display: grid;
-  grid-template-columns: 7rem minmax(0, 1fr);
-  padding: 1.05rem 0;
-  text-decoration: none;
-}
-
-.md-typeset .part-chapter-card:hover strong {
-  color: var(--dsh-accent);
-}
-
-.md-typeset .part-chapter-card span {
-  color: var(--dsh-muted);
-  font-size: 0.72rem;
-  font-weight: 600;
-  grid-column: 1;
-  grid-row: 1 / span 2;
-  padding-top: 0.12rem;
-}
-
-.md-typeset .part-chapter-card strong {
-  grid-column: 2;
-  transition: color 120ms ease;
-}
-
-.md-typeset .part-chapter-card p {
-  color: var(--dsh-muted);
-  grid-column: 2;
-  line-height: 1.65;
-  margin: 0.35rem 0 0;
-}
-
 /* 顶栏保留仓库入口，但不占用一整块横向空间。 */
 .md-header__source {
   margin-left: 0.3rem;
@@ -629,25 +542,6 @@ input {
 
   .md-typeset .home-route-card {
     min-height: 0;
-  }
-
-  .part-hero {
-    padding: 0.25rem 0 1.5rem;
-  }
-
-  .md-typeset .part-chapter-card {
-    grid-template-columns: 1fr;
-  }
-
-  .md-typeset .part-chapter-card span,
-  .md-typeset .part-chapter-card strong,
-  .md-typeset .part-chapter-card p {
-    grid-column: 1;
-    grid-row: auto;
-  }
-
-  .md-typeset .part-chapter-card strong {
-    margin-top: 0.25rem;
   }
 
   .md-typeset img.book-technical-figure {
