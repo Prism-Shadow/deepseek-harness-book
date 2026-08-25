@@ -1,14 +1,41 @@
 {% extends "base.html" %}
 
+{% set book_title = config.extra.book_title | d(config.site_name, true) %}
+
+{% block htmltitle %}
+  {% if page and page.is_homepage %}
+    <title>{{ book_title }}</title>
+  {% elif page.meta and page.meta.title %}
+    <title>{{ page.meta.title }} - {{ book_title }}</title>
+  {% elif page.title %}
+    <title>{{ page.title | striptags }} - {{ book_title }}</title>
+  {% else %}
+    <title>{{ book_title }}</title>
+  {% endif %}
+{% endblock %}
+
 {% block extrahead %}
   {{ super() }}
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="{{ config.site_name }}">
-  <meta property="og:title" content="{{ page.title if page and page.title else config.site_name }}">
+  <meta property="og:site_name" content="{{ book_title }}">
+  <meta property="og:title" content="{{ book_title if page and page.is_homepage else (page.title if page and page.title else book_title) }}">
   <meta property="og:description" content="{{ config.site_description }}">
   <meta property="og:image" content="{{ config.site_url }}assets/images/og.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{{ page.title if page and page.title else config.site_name }}">
+  <meta name="twitter:title" content="{{ book_title if page and page.is_homepage else (page.title if page and page.title else book_title) }}">
   <meta name="twitter:description" content="{{ config.site_description }}">
   <meta name="twitter:image" content="{{ config.site_url }}assets/images/og.png">
+{% endblock %}
+
+{% block content %}
+  {% if page and page.is_homepage %}
+    <div class="home-page">
+      {% include "partials/home.html" %}
+      <div class="home-introduction">
+        {{ page.content }}
+      </div>
+    </div>
+  {% else %}
+    {{ super() }}
+  {% endif %}
 {% endblock %}

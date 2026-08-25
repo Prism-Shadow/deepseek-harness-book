@@ -10,7 +10,7 @@ DeepSeek Harness 中文实战书稿与配套素材。
 
 网站使用 `book/*.md` 作为唯一正文源，并通过 Material for MkDocs 生成。GitHub Pages 启用后，访问地址为：
 
-<https://prism-shadow.github.io/dsh-book/>
+<https://dshbook.penguin.ooo/>
 
 本地预览时，在仓库根目录运行：
 

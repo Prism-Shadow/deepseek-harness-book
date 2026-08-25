@@ -1,16 +1,67 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
-  <title id="title">dsh 中一切皆插件</title><desc id="desc">模型、工具、技能、会话、沙箱、存储、循环和界面都是平等插件，通过共享上下文协作。</desc>
-  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" fill="#315EF5"/></marker><style>
-    .zh{font-family:SimSun,"Songti SC",serif}.mix{font-family:"Times New Roman",SimSun,"Songti SC",serif}.t{font-size:50px;font-weight:700;fill:#273142}.sub{font-size:25px;fill:#5c667a}
-    .h{font-size:29px;font-weight:700;fill:#273142}.p{font-size:22px;fill:#526071}.ih{font-size:34px;font-weight:700;fill:#fff}.ip{font-size:24px;fill:#fff}.line{stroke:#315EF5;stroke-width:4;fill:none;marker-end:url(#a)}
-  </style></defs>
-  <rect width="1600" height="900" fill="#fff"/><text x="100" y="92" class="mix t">dsh 中，一切皆插件</text><text x="100" y="137" class="zh sub">没有哪项能力拥有“特权内核”地位</text>
-  <rect x="550" y="340" width="500" height="220" rx="30" fill="#315EF5"/><text x="800" y="421" text-anchor="middle" class="mix ih">Cordis Context</text><text x="800" y="468" text-anchor="middle" class="zh ip">服务 · 类型化事件 · 撤销链</text><text x="800" y="510" text-anchor="middle" class="zh ip">负责装配，不承载业务能力</text>
-  <g><rect x="100" y="230" width="290" height="120" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/><text x="245" y="278" text-anchor="middle" class="mix h">Model</text><text x="245" y="317" text-anchor="middle" class="zh p">模型适配器</text><path d="M390 290L548 393" class="line"/></g>
-  <g><rect x="100" y="410" width="290" height="120" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/><text x="245" y="458" text-anchor="middle" class="mix h">Tools / Skills</text><text x="245" y="497" text-anchor="middle" class="zh p">工具与技能</text><path d="M390 470H548" class="line"/></g>
-  <g><rect x="100" y="590" width="290" height="120" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/><text x="245" y="638" text-anchor="middle" class="mix h">Session</text><text x="245" y="677" text-anchor="middle" class="zh p">日志与持久化</text><path d="M390 650L548 522" class="line"/></g>
-  <g><rect x="1210" y="230" width="290" height="120" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/><text x="1355" y="278" text-anchor="middle" class="mix h">Sandbox</text><text x="1355" y="317" text-anchor="middle" class="zh p">执行隔离</text><path d="M1210 290L1052 393" class="line"/></g>
-  <g><rect x="1210" y="410" width="290" height="120" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/><text x="1355" y="458" text-anchor="middle" class="mix h">Agent Loop</text><text x="1355" y="497" text-anchor="middle" class="zh p">决定下一步</text><path d="M1210 470H1052" class="line"/></g>
-  <g><rect x="1210" y="590" width="290" height="120" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/><text x="1355" y="638" text-anchor="middle" class="mix h">Storage / UI</text><text x="1355" y="677" text-anchor="middle" class="zh p">存储与界面</text><path d="M1210 650L1052 522" class="line"/></g>
-  <text x="800" y="800" text-anchor="middle" class="zh sub">换插件或改配置即可替换能力，无需 fork 核心源码</text>
+  <title id="title">dsh 插件通过 Cordis Context 协作</title>
+  <desc id="desc">模型、工具与技能、会话、沙箱、Agent Loop、存储与界面六类插件连接到同一个 Cordis Context。</desc>
+
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#315EF5"/>
+    </marker>
+    <style>
+      .zh { font-family: SimSun, "Songti SC", serif; }
+      .mix { font-family: "Times New Roman", SimSun, "Songti SC", serif; }
+      .node-title { font-size: 31px; font-weight: 700; fill: #273142; }
+      .node-note { font-size: 23px; fill: #526071; }
+      .context-title { font-size: 40px; font-weight: 700; fill: #FFFFFF; }
+      .connector { stroke: #315EF5; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+      .node { fill: #F3F4F6; stroke: #9AA7B8; stroke-width: 3; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+
+  <path d="M390 175L608 372" class="connector"/>
+  <path d="M390 450H608" class="connector"/>
+  <path d="M390 725L608 528" class="connector"/>
+  <path d="M1210 175L992 372" class="connector"/>
+  <path d="M1210 450H992" class="connector"/>
+  <path d="M1210 725L992 528" class="connector"/>
+
+  <g>
+    <rect x="90" y="110" width="300" height="130" rx="20" class="node"/>
+    <text x="240" y="164" text-anchor="middle" class="mix node-title">Model</text>
+    <text x="240" y="205" text-anchor="middle" class="zh node-note">模型适配器</text>
+  </g>
+
+  <g>
+    <rect x="90" y="385" width="300" height="130" rx="20" class="node"/>
+    <text x="240" y="439" text-anchor="middle" class="mix node-title">Tools / Skills</text>
+    <text x="240" y="480" text-anchor="middle" class="zh node-note">工具与技能</text>
+  </g>
+
+  <g>
+    <rect x="90" y="660" width="300" height="130" rx="20" class="node"/>
+    <text x="240" y="714" text-anchor="middle" class="mix node-title">Session</text>
+    <text x="240" y="755" text-anchor="middle" class="zh node-note">会话状态</text>
+  </g>
+
+  <rect x="610" y="350" width="380" height="200" rx="30" fill="#315EF5"/>
+  <text x="800" y="466" text-anchor="middle" class="mix context-title">Cordis Context</text>
+
+  <g>
+    <rect x="1210" y="110" width="300" height="130" rx="20" class="node"/>
+    <text x="1360" y="164" text-anchor="middle" class="mix node-title">Sandbox</text>
+    <text x="1360" y="205" text-anchor="middle" class="zh node-note">执行隔离</text>
+  </g>
+
+  <g>
+    <rect x="1210" y="385" width="300" height="130" rx="20" class="node"/>
+    <text x="1360" y="439" text-anchor="middle" class="mix node-title">Agent Loop</text>
+    <text x="1360" y="480" text-anchor="middle" class="zh node-note">任务循环</text>
+  </g>
+
+  <g>
+    <rect x="1210" y="660" width="300" height="130" rx="20" class="node"/>
+    <text x="1360" y="714" text-anchor="middle" class="mix node-title">Storage / UI</text>
+    <text x="1360" y="755" text-anchor="middle" class="zh node-note">存储与界面</text>
+  </g>
 </svg>

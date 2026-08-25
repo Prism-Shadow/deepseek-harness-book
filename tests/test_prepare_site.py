@@ -154,7 +154,16 @@ t(\text{文本})=\left\lceil\dfrac{n}{4}\right\rceil+4
                 "# 第一部分　示例\n\n## 第1章　开始\n\n### 1.1 阅读\n",
                 encoding="utf-8",
             )
-            (book / "introduction.md").write_text("# 简介\n", encoding="utf-8")
+            (book / "introduction.md").write_text(
+                "---\ntitle: 示例书\n---\n\n# 内容简介\n",
+                encoding="utf-8",
+            )
+            part_intro = book / "parts" / "part1" / "index.md"
+            part_intro.parent.mkdir(parents=True)
+            part_intro.write_text(
+                "# 示例\n\n这一部分帮助读者完成示例。\n",
+                encoding="utf-8",
+            )
             (book / "chapter1.md").write_text(
                 "# 开始 {#ch-1}\n\n## 阅读 {#sec-1-1}\n\n"
                 "![示例](assets/example.png)\n",
@@ -165,6 +174,10 @@ t(\text{文本})=\left\lceil\dfrac{n}{4}\right\rceil+4
             output = root / "output" / "site-src"
             prepare_site(book, output, site_assets)
             self.assertEqual((output / "assets/example.png").read_bytes(), image)
+            self.assertIn(
+                "这一部分帮助读者完成示例",
+                (output / "parts/part1/index.md").read_text(encoding="utf-8"),
+            )
 
 
 if __name__ == "__main__":
