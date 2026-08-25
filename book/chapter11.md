@@ -10,7 +10,7 @@
 
 在 dsh 的工作流程里，模型负责判断下一步，Agent Loop 负责把任务往前推。每一步开始时，Agent Loop 根据当前会话组装模型请求。模型可以直接回复，也可以申请调用工具。工具执行完成后，结果被写回会话，Agent Loop 再次请求模型。这个过程不断重复，直到模型给出最终回复。下图展示了这套循环。
 
-![模型与工具在 agent loop 中循环交接](assets/chapter11/11-1-01-agent-loop.png){#fig-11-1 .book-technical-figure width=72%}
+![模型与工具在 agent loop 中循环交接](assets/chapter11/11-1-01-agent-loop.png){.book-technical-figure width=72%}
 
 turn 和 step 记录的是两个不同层次。一个**轮次**（turn）对应 dsh 对一条用户消息的完整处理：用户发出消息时开始，任务结束时结束。一个**步骤**（step）对应其中的一次模型请求，以及这次请求可能触发的工具调用。因此，一个 turn 通常包含一个或多个 step。
 
@@ -38,7 +38,7 @@ dsh 会先从日志中整理出一份供会话继续使用的消息视图，这�
 
 下图展示了这两个层次之间的关系。
 
-![dsh 从会话日志中整理下一次模型请求所需的历史](assets/chapter11/11-2-01-session-surface.png){#fig-11-2 .book-technical-figure width=72%}
+![dsh 从会话日志中整理下一次模型请求所需的历史](assets/chapter11/11-2-01-session-surface.png){.book-technical-figure width=72%}
 
 会话继续时，新内容会通过 `append` 加入 surface。surface 也可以通过 `replace` 更新已有内容，例如后面会看到的历史压缩。无论哪种操作，原始事件仍然保留在会话日志中，因此 surface 的变化不会破坏完整的运行记录。
 
@@ -58,7 +58,7 @@ dsh 会先从日志中整理出一份供会话继续使用的消息视图，这�
 
 工具运行成功、失败或被拒绝，dsh 都会把相应结果写入会话日志。下一次请求时，这条结果会进入消息历史。模型可以据此继续任务，也可以在调用被拒绝后读取原因，调整后续行动。下图展示了这条完整路径。
 
-![dsh 处理一次工具调用的过程](assets/chapter11/11-3-01-tool-call-pipeline.png){#fig-11-3 .book-technical-figure width=72%}
+![dsh 处理一次工具调用的过程](assets/chapter11/11-3-01-tool-call-pipeline.png){.book-technical-figure width=72%}
 
 不同工具还会受到各自的执行约束。文件和 Shell 工具会应用相应的沙箱与访问规则，其他工具则按照各自定义的权限运行。也就是说，模型提出工具调用，并不意味着它自动获得了工具能够触及的全部资源。
 
@@ -84,7 +84,7 @@ system prompt 位于最前面，用来说明 dsh 的身份、基本行为和工�
 
 下图展示了这些内容在一次模型请求中的关系。
 
-![一次模型请求中的主要上下文](assets/chapter11/11-4-01-request-context.png){#fig-11-4 .book-technical-figure width=72%}
+![一次模型请求中的主要上下文](assets/chapter11/11-4-01-request-context.png){.book-technical-figure width=72%}
 
 ### 如何统计 token 数
 
@@ -148,7 +148,7 @@ $$
 
 如果这样仍然无法腾出足够空间，才进入第三层：**历史摘要**。dsh 让模型概括一段较早的消息，用一条摘要替代这些内容，同时保留较近期的消息原文。下图用一个简化的例子表示这种变化。
 
-![用摘要替代较早历史，同时保留近期消息原文](assets/chapter11/11-4-02-history-compaction.png){#fig-11-5 .book-technical-figure width=72%}
+![用摘要替代较早历史，同时保留近期消息原文](assets/chapter11/11-4-02-history-compaction.png){.book-technical-figure width=72%}
 
 这三层处理都只改变模型后续看到的内容，不会删除会话日志中的原始记录。spill 文件仍保存完整工具输出，已经写入的 `tool/result` 和旧消息也仍然存在。因此，上下文变短并不意味着会话历史本身被删除。
 
