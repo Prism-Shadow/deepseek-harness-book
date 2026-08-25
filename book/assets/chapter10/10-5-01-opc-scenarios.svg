@@ -1,10 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 170 1600 630" width="1600" height="630">
   <defs>
-    <marker id="arrow-blue" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
-      <path d="M0,0 L12,6 L0,12 Z" fill="#315EF5"/>
+    <marker id="arrow-blue" viewBox="0 -2 6 4" refX="5.67" refY="0" markerWidth="9" markerHeight="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M5.67 0 L1.29 1.66 L2.74 0 L1.29 -1.66 Z" fill="#253A9B"/>
     </marker>
     <style>
-      .cn { font-family: SimSun, "Songti SC", serif; fill: #273142; }
+      .cn { font-family: "Noto Sans CJK SC", "Source Han Sans SC", "Microsoft YaHei", sans-serif; fill: #273142; }
       .en { font-family: "Times New Roman", serif; }
       .title { font-size: 52px; font-weight: 700; }
       .node-title { font-size: 30px; font-weight: 700; }
@@ -14,12 +14,9 @@
   </defs>
   <rect width="1600" height="900" fill="#FFFFFF"/>
 
-  <text x="100" y="108" class="cn title">适合并行审查的 OPC 任务</text>
-  <rect x="100" y="136" width="108" height="6" rx="3" fill="#315EF5"/>
-
   <path d="M500 255 H560 M500 405 H560 M500 555 H560 M500 705 H560 M560 255 V705" fill="none" stroke="#64748B" stroke-width="3"/>
   <circle cx="560" cy="480" r="8" fill="#315EF5"/>
-  <path d="M560 480 H625" fill="none" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow-blue)"/>
+  <path d="M560 480 H635" fill="none" stroke="#253A9B" stroke-width="4" marker-end="url(#arrow-blue)"/>
 
   <g>
     <rect x="100" y="200" width="400" height="110" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
@@ -50,13 +47,13 @@
     <text x="825" y="548" text-anchor="middle" class="cn desc white">分工、等待、汇总</text>
   </g>
 
-  <path d="M1015 480 H1080 V385 H1145" fill="none" stroke="#315EF5" stroke-width="5" marker-end="url(#arrow-blue)"/>
+  <path d="M1015 480 H1080 V385 H1160" fill="none" stroke="#253A9B" stroke-width="4" marker-end="url(#arrow-blue)"/>
   <g>
     <rect x="1160" y="300" width="340" height="170" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
     <text x="1330" y="370" text-anchor="middle" class="cn node-title">统一报告</text>
     <text x="1330" y="418" text-anchor="middle" class="cn desc">结论与证据</text>
   </g>
-  <path d="M1330 470 V560" fill="none" stroke="#315EF5" stroke-width="4" marker-end="url(#arrow-blue)"/>
+  <path d="M1330 470 V575" fill="none" stroke="#253A9B" stroke-width="4" marker-end="url(#arrow-blue)"/>
   <g>
     <rect x="1160" y="575" width="340" height="170" rx="24" fill="#FFFFFF" stroke="#315EF5" stroke-width="4"/>
     <text x="1330" y="645" text-anchor="middle" class="cn node-title">人工拍板</text>

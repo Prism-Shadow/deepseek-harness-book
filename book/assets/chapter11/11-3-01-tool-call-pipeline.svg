@@ -1,29 +1,26 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 220 1600 640" width="1600" height="640" role="img" aria-labelledby="title desc">
   <title id="title">dsh 处理一次工具调用的过程</title>
   <desc id="desc">模型给出工具名和参数后，dsh 先记录调用，再经过权限、hook 和用户确认。放行后执行工具，拒绝时生成拒绝结果；两条路径都会记录 tool/result 并返回下一次模型请求。</desc>
   <defs>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" fill="#315EF5"/></marker>
-    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7B8798"/></marker>
+    <marker id="arrow-blue" viewBox="0 -2 6 4" refX="5.67" refY="0" markerWidth="9" markerHeight="6" orient="auto" markerUnits="strokeWidth"><path d="M5.67 0 L1.29 1.66 L2.74 0 L1.29 -1.66 Z" fill="#253A9B"/></marker>
+    <marker id="arrow-gray" viewBox="0 -2 6 4" refX="5.67" refY="0" markerWidth="9" markerHeight="6" orient="auto" markerUnits="strokeWidth"><path d="M5.67 0 L1.29 1.66 L2.74 0 L1.29 -1.66 Z" fill="#7B8798"/></marker>
     <style>
-      .zh{font-family:SimSun,"Songti SC",serif}.mix{font-family:"Times New Roman",SimSun,"Songti SC",serif}.mono{font-family:Menlo,Consolas,monospace}
+      .zh{font-family:"Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif}.mix{font-family:"Times New Roman","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif}.mono{font-family:Menlo,Consolas,monospace}
       .title{font-size:50px;font-weight:700;fill:#273142}.sub{font-size:25px;fill:#5C667A}
       .node{font-size:29px;font-weight:700;fill:#273142}.desc{font-size:22px;fill:#526071}.code{font-size:21px;fill:#526071}
-      .white{fill:#FFFFFF}.line{fill:none;stroke:#315EF5;stroke-width:4;marker-end:url(#arrow-blue)}
+      .white{fill:#FFFFFF}.line{fill:none;stroke:#253A9B;stroke-width:4;marker-end:url(#arrow-blue)}
       .muted{fill:none;stroke:#7B8798;stroke-width:4;stroke-dasharray:11 9;marker-end:url(#arrow-gray)}
       .label{font-size:22px;fill:#526071}
     </style>
   </defs>
   <rect width="1600" height="900" fill="#FFFFFF"/>
-  <text x="100" y="94" class="zh title">一次工具调用如何被执行</text>
-  <text x="100" y="140" class="zh sub">放行和拒绝都会留下可回放的结果，再交还给模型</text>
-
   <path d="M350 340H430" class="line"/><path d="M700 340H780" class="line"/><path d="M1050 340H1130" class="line"/>
-  <path d="M965 430V560H1130" class="muted"/>
-  <path d="M1315 430V490Q1315 520 1285 520H1035Q1005 520 1005 550V615H1050" class="line"/>
-  <path d="M1130 615H1050" class="muted"/>
+  <path d="M915 430 L1130 590" class="muted"/>
+  <path d="M1500 340 H1530 Q1550 340 1550 360 V700 Q1550 740 1510 740 H935 Q915 740 915 720 V680" class="line"/>
+  <path d="M1130 640H1050" class="muted"/>
   <path d="M780 615H680" class="line"/>
   <text x="1082" y="315" text-anchor="middle" class="zh label">放行</text>
-  <text x="986" y="518" class="zh label">拒绝</text>
+  <text x="1000" y="485" class="zh label">拒绝</text>
 
   <g>
     <rect x="70" y="265" width="280" height="150" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>

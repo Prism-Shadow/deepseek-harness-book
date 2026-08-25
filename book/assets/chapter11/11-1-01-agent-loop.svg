@@ -1,32 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 260 1600 500" width="1600" height="500" role="img" aria-labelledby="title desc">
   <title id="title">模型与工具在 agent loop 中循环交接</title>
   <desc id="desc">用户输入进入模型请求。模型可以直接回复，也可以申请工具调用；工具结果返回后，agent loop 再次请求模型。</desc>
   <defs>
-    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
-      <path d="M0 0L10 5L0 10z" fill="#315EF5"/>
+    <marker id="arrow-blue" viewBox="0 -2 6 4" refX="5.67" refY="0" markerWidth="9" markerHeight="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M5.67 0 L1.29 1.66 L2.74 0 L1.29 -1.66 Z" fill="#253A9B"/>
     </marker>
-    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
-      <path d="M0 0L10 5L0 10z" fill="#7B8798"/>
+    <marker id="arrow-gray" viewBox="0 -2 6 4" refX="5.67" refY="0" markerWidth="9" markerHeight="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M5.67 0 L1.29 1.66 L2.74 0 L1.29 -1.66 Z" fill="#7B8798"/>
     </marker>
     <style>
-      .zh{font-family:SimSun,"Songti SC",serif}.mix{font-family:"Times New Roman",SimSun,"Songti SC",serif}
+      .zh{font-family:"Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif}.mix{font-family:"Times New Roman","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif}
       .title{font-size:50px;font-weight:700;fill:#273142}.sub{font-size:25px;fill:#5C667A}
       .node{font-size:30px;font-weight:700;fill:#273142}.desc{font-size:23px;fill:#526071}
-      .white{fill:#FFFFFF}.line{fill:none;stroke:#315EF5;stroke-width:4;marker-end:url(#arrow-blue)}
+      .white{fill:#FFFFFF}.line{fill:none;stroke:#253A9B;stroke-width:4;marker-end:url(#arrow-blue)}
       .muted{fill:none;stroke:#7B8798;stroke-width:4;marker-end:url(#arrow-gray)}
       .label{font-size:22px;fill:#526071}
     </style>
   </defs>
   <rect width="1600" height="900" fill="#FFFFFF"/>
-  <text x="100" y="94" class="mix title">模型与工具如何循环交接</text>
-  <text x="100" y="140" class="zh sub">agent loop 根据每次结果，决定是否继续请求模型</text>
-
   <path d="M340 380H455" class="line"/>
   <path d="M765 380H900" class="line"/>
   <path d="M1180 380H1280" class="line"/>
   <path d="M610 470V585" class="muted"/>
-  <path d="M1410 455V710Q1410 760 1360 760H850Q800 760 800 710V500Q800 450 765 450" class="line"/>
-  <text x="970" y="798" text-anchor="middle" class="zh label">工具结果写回会话，带着新结果再次请求</text>
+  <path d="M1410 455 C1410 610 850 610 765 450" class="line"/>
+  <text x="1120" y="620" text-anchor="middle" class="zh label">工具结果写回会话，带着新结果再次请求</text>
 
   <g>
     <rect x="80" y="305" width="260" height="150" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>

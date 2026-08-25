@@ -1,18 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img" aria-labelledby="title desc">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="80 170 1520 680" width="1520" height="680" role="img" aria-labelledby="title desc">
   <title id="title">一次模型请求中的主要上下文</title>
   <desc id="desc">一次模型请求包含相对稳定的 system prompt 和工具描述，以及随任务推进增长的消息历史。权限状态和插件注入信息作为已记录的状态进入消息历史。</desc>
   <defs>
     <style>
-      .zh{font-family:SimSun,"Songti SC",serif}.mix{font-family:"Times New Roman",SimSun,"Songti SC",serif}
+      .zh{font-family:"Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif}.mix{font-family:"Times New Roman","Noto Sans CJK SC","Source Han Sans SC","Microsoft YaHei",sans-serif}
       .title{font-size:50px;font-weight:700;fill:#273142}.sub{font-size:25px;fill:#5C667A}
       .head{font-size:31px;font-weight:700;fill:#273142}.body{font-size:23px;fill:#526071}
       .small{font-size:21px;fill:#5C667A}.white{fill:#FFFFFF}.tag{font-size:22px;font-weight:700;fill:#315EF5}
     </style>
   </defs>
   <rect width="1600" height="900" fill="#FFFFFF"/>
-  <text x="100" y="94" class="zh title">一次模型请求里有什么</text>
-  <text x="100" y="140" class="zh sub">请求前缀尽量稳定，消息历史则随任务持续增长</text>
-
   <rect x="170" y="200" width="1110" height="625" rx="30" fill="#FAFBFC" stroke="#C8CED8" stroke-width="3"/>
   <text x="225" y="252" class="mix head">下一次 Model Request</text>
 
