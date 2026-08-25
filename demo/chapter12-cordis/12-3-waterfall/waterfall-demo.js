@@ -19,13 +19,6 @@ export function apply(ctx) {
     return `B(${downstream})`
   })
 
-  ctx.on('demo/transform', async (_input, next) => {
-    console.log('C enter')
-    const downstream = await next()
-    console.log('C leave')
-    return `C(${downstream})`
-  })
-
   void (async () => {
     console.log(await ctx.waterfall(
       'demo/transform',

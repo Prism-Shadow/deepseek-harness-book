@@ -1,2 +1,2 @@
-- name: './greeter.js'
 - name: './consumer.js'
+- name: './greeter.js'
