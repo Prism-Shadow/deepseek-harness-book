@@ -27,6 +27,11 @@ LABEL = re.compile(r"\\label\{([^}]+)\}")
 REFERENCE = re.compile(r"图\s*\\ref\{(fig-[A-Za-z0-9._:-]+)\}")
 UNPUBLISHED_DEMO_LINK = re.compile(r"\[([^]]+)\]\(\.\./demo/[^)]+\)")
 LATEX_COMMAND = re.compile(r"\\(?:Needspace|newpage|clearpage)\b")
+MARKDOWN_IMAGE = re.compile(
+    r"^\s*!\[([^]]*)\]\(([^)]+)\)(?:\{([^}]*)\})?\s*$"
+)
+ATTRIBUTE_ID = re.compile(r"(?<!\S)#([A-Za-z][A-Za-z0-9._:-]*)")
+FENCE_START = re.compile(r"^\s*(`{3,}|~{3,})")
 
 
 DIAGRAMS: dict[str, str] = {
@@ -172,6 +177,70 @@ def render_diagram(body: str, caption: str) -> str:
     )
 
 
+def render_markdown_image(line: str) -> str | None:
+    """Turn one standalone Markdown image into a visible web figure."""
+    match = MARKDOWN_IMAGE.match(line)
+    if match is None:
+        return None
+
+    caption, target, raw_attributes = match.groups()
+    attributes = raw_attributes or ""
+    identifier_match = ATTRIBUTE_ID.search(attributes)
+    identifier = f' id="{identifier_match.group(1)}"' if identifier_match else ""
+    if identifier_match:
+        attributes = ATTRIBUTE_ID.sub("", attributes, count=1)
+
+    image_attributes = attributes.split()
+    if ".book-figure-image" not in image_attributes:
+        image_attributes.insert(0, ".book-figure-image")
+    if not any(attribute.startswith("loading=") for attribute in image_attributes):
+        image_attributes.append('loading="lazy"')
+    attribute_block = " ".join(image_attributes)
+
+    rendered = [
+        f'<figure class="book-figure"{identifier} markdown>',
+        f"![{caption}]({target}){{ {attribute_block} }}",
+    ]
+    if caption:
+        rendered.append(f"<figcaption>{html.escape(caption)}</figcaption>")
+    rendered.append("</figure>")
+    return "\n".join(rendered)
+
+
+def render_markdown_figures(text: str) -> str:
+    """Wrap source Markdown images, without touching code or existing figures."""
+    output: list[str] = []
+    fence: tuple[str, int] | None = None
+    figure_depth = 0
+
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        fence_match = FENCE_START.match(line)
+        if fence is not None:
+            output.append(line)
+            marker, length = fence
+            if stripped.startswith(marker * length):
+                fence = None
+            continue
+        if fence_match:
+            token = fence_match.group(1)
+            fence = (token[0], len(token))
+            output.append(line)
+            continue
+
+        opens = len(re.findall(r"<figure\b", line, flags=re.IGNORECASE))
+        closes = len(re.findall(r"</figure>", line, flags=re.IGNORECASE))
+        if figure_depth > 0 or opens:
+            output.append(line)
+            figure_depth = max(0, figure_depth + opens - closes)
+            continue
+
+        rendered = render_markdown_image(line)
+        output.extend(rendered.splitlines() if rendered else [line])
+
+    return "\n".join(output)
+
+
 def render_latex_block(body: str) -> str:
     caption = extract_caption(body)
     if INCLUDEGRAPHICS.search(body):
@@ -189,7 +258,7 @@ def render_latex_block(body: str) -> str:
 
 def transform_markdown(text: str) -> str:
     """Convert Pandoc-only blocks while leaving the canonical Markdown untouched."""
-    lines = text.splitlines()
+    lines = render_markdown_figures(text).splitlines()
     output: list[str] = []
     index = 0
     while index < len(lines):
