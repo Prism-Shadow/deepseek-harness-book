@@ -148,6 +148,37 @@ Skill 给这些经验提供了落脚点。它可以从很少的规则开始，�
 
 这些规则都能在前面的分数中找到来源。狗来自第1轮，白色来自第3轮，简单道具来自第7轮，画面清理来自第8轮。失败的浅蓝背景和最后一次脸部对比没有留下，完整过程仍保存在运行记录中。模型参数始终未变，四条变化都发生在 Skill 中。
 
-不过，分数也有够不到的地方。物种和毛色两项已经接近满分，画面细节却始终在 18.56 到 21.46 之间徘徊。最终图的总分更高，主要因为它更像白色狗；若从设计师的眼光看，造型是否生动、线条是否精致、风格是否适合页面，还需要人工确认。
+```{=latex}
+\Needspace{14\baselineskip}
+```
 
-这次自动评分帮 dsh 找到了白色狗和简单道具，却没有解决“画得好不好看”。实际使用时，可以让自动评测检查物种、颜色和关键元素，风格、质感以及是否适合页面仍由人决定。下一次再画同类概念图时，dsh 会带着这四条规则起步。
+### 换一个会话，看看 Skill 能否复用
+
+前面的规则来自同一条执行轨迹。要确认它们已经写进 Skill，可以新建一个没有前文历史的会话，只把最终的 Skill 放进工作区，再发送下面的提示词。
+
+> <span class="prompt-title">提示词内容：</span>
+>
+> 读取并使用当前工作区中的 animal-drawing Skill，绘制一张 512×512 的 SVG 宠物概念图并保存为 candidate.svg。只生成这一张图，不调用评测器，不修改 Skill，不参考其他会话或已有图片。完成后检查 SVG 能正常打开，并用中文简短报告文件路径。
+
+新会话直接读取 Skill 并生成图片。左图是第8轮的高分图，右图是新会话生成的结果。
+
+```{=latex}
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.43\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{assets/chapter14/14-2-05-round08.png}
+  \par\smallskip\sffamily\footnotesize 第8轮的高分图
+\end{minipage}\hfill
+\begin{minipage}{0.43\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{assets/chapter14/14-2-07-skill-reuse.png}
+  \par\smallskip\sffamily\footnotesize 新会话复用 Skill 的结果
+\end{minipage}
+\caption{第8轮高分图与新会话复用最终 Skill 生成的概念图}
+\end{figure}
+```
+
+两张图的具体构图不同，右图仍保留了白色犬类、浅色地面、红球和清晰的大轮廓。这次复用表明，Skill 已经能把经过评分验证的方向带到新会话里，具体构图仍由本次会话决定。
+
+这次自动评分帮 dsh 找到了白色狗和简单道具，也让这些偏好进入 Skill。至于造型是否生动、线条是否精致、风格是否适合页面，仍需要人工确认。实际使用时，可以让自动评测检查物种、颜色和关键元素，把风格、质感及页面适配交给人来判断。下一次再画同类概念图时，dsh 会带着这四条规则起步。
