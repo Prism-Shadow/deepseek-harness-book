@@ -144,6 +144,11 @@ def render_image_block(body: str, caption: str) -> str:
         rendered.append(
             f"![{caption}]({target}){{ {' '.join(attrs)} }}"
         )
+        # Markdown merges adjacent image lines into one paragraph.  In a
+        # multi-image figure that paragraph becomes a single grid item, which
+        # leaves the whole image group stuck in the grid's left column.
+        if len(images) > 1:
+            rendered.append("")
     if caption:
         rendered.append(f"<figcaption>{html.escape(caption)}</figcaption>")
     rendered.append("</figure>")

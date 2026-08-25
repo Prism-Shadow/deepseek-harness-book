@@ -28,6 +28,23 @@ class PrepareSiteTest(unittest.TestCase):
         self.assertIn('style="width: 82%;"', rendered)
         self.assertNotIn("includegraphics", rendered)
 
+    def test_separates_images_into_individual_grid_items(self) -> None:
+        source = r"""```{=latex}
+\begin{figure}[H]
+\includegraphics[width=\linewidth]{assets/one.png}
+\includegraphics[width=\linewidth]{assets/two.png}
+\caption{两张示例图}
+\end{figure}
+```
+"""
+        rendered = transform_markdown(source)
+        self.assertIn('class="book-figure book-figure-grid"', rendered)
+        self.assertIn(
+            "{ .book-figure-image loading=\"lazy\" }\n\n"
+            "![两张示例图](assets/two.png)",
+            rendered,
+        )
+
     def test_removes_pdf_only_layout_command(self) -> None:
         source = "before\n\n```{=latex}\n\\Needspace{18\\baselineskip}\n```\n\nafter\n"
         rendered = transform_markdown(source)
