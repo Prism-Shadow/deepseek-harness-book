@@ -1,0 +1,45 @@
+{#-
+  将全书的“部分”渲染为静态分组标题，章节保持完整可见。
+-#}
+{% import "partials/nav-item.html" as item with context %}
+{% set class = "md-nav md-nav--primary" %}
+{% if "navigation.tabs" in features %}
+  {% set class = class ~ " md-nav--lifted" %}
+{% endif %}
+{% if "toc.integrate" in features %}
+  {% set class = class ~ " md-nav--integrated" %}
+{% endif %}
+<nav class="{{ class }}" aria-label="{{ lang.t('nav') }}" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <span class="md-nav__button md-logo book-nav-logo" role="img" aria-label="{{ config.site_name }}">
+      {% include "partials/logo.html" %}
+    </span>
+    {{ config.site_name }}
+  </label>
+  {% if config.repo_url %}
+    <div class="md-nav__source">
+      {% include "partials/source.html" %}
+    </div>
+  {% endif %}
+  <ul class="md-nav__list" data-md-scrollfix>
+    {% for nav_item in nav.items %}
+      {% set path = "__nav_" ~ loop.index %}
+      {% if nav_item.children %}
+        {% set group_class = "md-nav__item book-nav-group" %}
+        {% if nav_item.active %}
+          {% set group_class = group_class ~ " book-nav-group--active" %}
+        {% endif %}
+        <li class="{{ group_class }}">
+          <strong class="book-nav-group__title">{{ item.render_title(nav_item) }}</strong>
+          <ul class="md-nav__list book-nav-group__list">
+            {% for child in nav_item.children %}
+              {{ item.render(child, path ~ "_" ~ loop.index, 2, nav_item) }}
+            {% endfor %}
+          </ul>
+        </li>
+      {% else %}
+        {{ item.render(nav_item, path, 1) }}
+      {% endif %}
+    {% endfor %}
+  </ul>
+</nav>
