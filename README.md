@@ -37,7 +37,7 @@ DeepSeek Harness（简称 dsh）是一套由插件组装而成的 Agent Harness�
 
 | 章节 | 主要内容 | 配套 Demo |
 | --- | --- | --- |
-| **第一部分　玩转 dsh** |  |  |
+| **🚀 第一部分　玩转 dsh** |  |  |
 | [第 1 章 初识 dsh](https://dshbook.penguin.ooo/chapter1/) | 安装 dsh，接入模型，完成第一次任务。 |  |
 | [第 2 章 定制自己的 dsh](https://dshbook.penguin.ooo/chapter2/) | 创建 AI 助手，用插件修改并保存主题。 |  |
 | [第 3 章 让 dsh 完成一次调研](https://dshbook.penguin.ooo/chapter3/) | 拆分调研任务，核验材料并生成报告。 | [Demo](demo/chapter3-ai-code-assistant-research/) |
@@ -48,10 +48,10 @@ DeepSeek Harness（简称 dsh）是一套由插件组装而成的 Agent Harness�
 | [第 8 章 让 dsh 帮你找工作](https://dshbook.penguin.ooo/chapter8/) | 分析岗位，优化简历并进行模拟面试。 | [Demo](demo/chapter8-job-hunt/) |
 | [第 9 章 用 dsh 构建市场投研助手](https://dshbook.penguin.ooo/chapter9/) | 定义信号，回测策略并生成市场报告。 | [Demo](demo/chapter9-a-share-research/) |
 | [第 10 章 用 dsh 和 AgentTeams 组建 OPC 代码审查团队](https://dshbook.penguin.ooo/chapter10/) | 用 AgentTeams 并行审查仓库更新。 | [Demo](demo/chapter10-agentteams-repo-review/) |
-| **第二部分　扩展 dsh** |  |  |
+| **🧩 第二部分　扩展 dsh** |  |  |
 | [第 11 章 扩展 dsh 的能力](https://dshbook.penguin.ooo/chapter11/) | 使用 Skill、MCP 和插件扩展 dsh。 | [Demo](demo/chapter11-dsh-extensions/) |
 | [第 12 章 让 dsh 通过自进化画出概念图](https://dshbook.penguin.ooo/chapter12/) | 通过多轮评分改进并复用绘画 Skill。 | [Demo](demo/chapter12-concept-art-evolution/) |
-| **第三部分　拆解 dsh** |  |  |
+| **⚙️ 第三部分　拆解 dsh** |  |  |
 | [第 13 章 Harness 的工作原理](https://dshbook.penguin.ooo/chapter13/) | 理解消息、会话、工具和上下文管理。 |  |
 | [第 14 章 dsh 的核心：Cordis](https://dshbook.penguin.ooo/chapter14/) | 理解 Cordis 的插件加载、依赖和通信。 | [Demo](demo/chapter14-cordis/) |
 
