@@ -12,7 +12,11 @@
   </a>
 </div>
 
-[在线阅读](https://dshbook.penguin.ooo/) ｜ [从第 1 章开始](https://dshbook.penguin.ooo/chapter1/)
+<div align="center">
+  <a href="https://dshbook.penguin.ooo/">在线阅读</a>
+  ｜
+  <a href="https://dshbook.penguin.ooo/chapter1/">从第 1 章开始</a>
+</div>
 
 ## 📖 这本书写什么
 
