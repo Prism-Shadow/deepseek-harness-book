@@ -7,19 +7,21 @@
   --dsh-code: #f5f7fa;
   --dsh-header: #243b61;
   --dsh-figure-bg: #ffffff;
-  --dsh-figure-rule: #d8e0eb;
 }
 
 [data-md-color-scheme="slate"] {
+  --md-default-bg-color: #1b1c20;
+  --md-default-fg-color: rgba(240, 241, 243, 0.92);
+  --md-code-bg-color: #202226;
+  --md-typeset-color: rgba(240, 241, 243, 0.92);
   --dsh-accent: #70a7ff;
   --dsh-accent-strong: #9fc5ff;
-  --dsh-accent-soft: #1a2941;
-  --dsh-rule: #40516a;
-  --dsh-muted: #b1bed0;
-  --dsh-code: #1c2533;
-  --dsh-header: #171e2a;
+  --dsh-accent-soft: #20242c;
+  --dsh-rule: #3d424b;
+  --dsh-muted: #b8bdc6;
+  --dsh-code: #202226;
+  --dsh-header: #181a1f;
   --dsh-figure-bg: #ffffff;
-  --dsh-figure-rule: #526076;
 }
 
 body,
@@ -68,7 +70,6 @@ input {
 /* 给界面截图和矢量图一个稳定的浅色画布，避免深色模式下突兀。 */
 .md-typeset img.book-figure-image {
   background: var(--dsh-figure-bg);
-  border: 1px solid var(--dsh-figure-rule);
   border-radius: 0.55rem;
   box-sizing: border-box;
   padding: clamp(0.25rem, 0.7vw, 0.55rem);
@@ -107,6 +108,14 @@ input {
   max-width: 18rem;
 }
 
+/* README 首页沿用 GitHub 的徽章横排方式，不改变正文图片的统一尺度。 */
+.md-typeset .readme-page > div[align="center"] > img,
+.md-typeset .readme-page > div[align="center"] > a > img {
+  display: inline-block;
+  margin: 0.2rem 0.08rem;
+  width: auto;
+}
+
 .md-typeset .prompt-title {
   color: var(--md-primary-fg-color);
   font-size: 0.9em;
@@ -115,160 +124,6 @@ input {
 
 .md-typeset blockquote:has(.prompt-title) p:not(:first-child) {
   white-space: pre-line;
-}
-
-/* 首页只保留读者开始阅读所需的信息，不把展示样式带进章节正文。 */
-.home-page {
-  margin: 0 auto;
-  max-width: 58rem;
-}
-
-.home-hero {
-  background: var(--dsh-accent-soft);
-  border: 1px solid var(--dsh-rule);
-  border-radius: 1rem;
-  padding: clamp(1.6rem, 4vw, 3rem);
-}
-
-.md-typeset .home-hero__eyebrow,
-.md-typeset .home-section-heading > p {
-  color: var(--dsh-accent);
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  margin: 0 0 0.45rem;
-}
-
-.md-typeset .home-hero h1 {
-  font-size: clamp(1.8rem, 4.5vw, 2.75rem);
-  line-height: 1.2;
-  margin: 0;
-  max-width: 18em;
-}
-
-.md-typeset .home-hero__lead {
-  color: var(--dsh-muted);
-  font-size: clamp(0.9rem, 2vw, 1.05rem);
-  line-height: 1.75;
-  margin: 1rem 0 0;
-  max-width: 40rem;
-}
-
-.home-hero__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
-  margin-top: 1.4rem;
-}
-
-.md-typeset .home-hero__actions .md-button {
-  margin: 0;
-}
-
-.md-typeset .home-hero__actions .md-button:not(.md-button--primary) {
-  border-color: currentColor;
-  color: var(--dsh-accent);
-}
-
-.md-typeset ul.home-hero__facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem 1.5rem;
-  list-style: none;
-  margin: 1.35rem 0 0;
-  padding: 1rem 0 0;
-  border-top: 1px solid var(--dsh-rule);
-}
-
-.md-typeset .home-hero__facts li {
-  color: var(--dsh-muted);
-  margin: 0;
-}
-
-.md-typeset .home-hero__facts li::before {
-  background: var(--dsh-accent);
-  border-radius: 50%;
-  content: "";
-  display: inline-block;
-  height: 0.34rem;
-  margin-right: 0.45rem;
-  vertical-align: 0.08rem;
-  width: 0.34rem;
-}
-
-.home-routes {
-  scroll-margin-top: 4rem;
-  margin-top: 2.6rem;
-}
-
-.md-typeset .home-section-heading h2 {
-  border: 0;
-  margin: 0;
-  padding: 0;
-}
-
-.home-route-grid {
-  display: grid;
-  gap: 0.8rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin-top: 1.1rem;
-}
-
-.md-typeset .home-route-card {
-  background: var(--md-default-bg-color);
-  border: 1px solid var(--dsh-rule);
-  border-radius: 0.75rem;
-  color: var(--md-typeset-color);
-  display: flex;
-  flex-direction: column;
-  min-height: 12rem;
-  padding: 1rem;
-  text-decoration: none;
-}
-
-.md-typeset .home-route-card:hover {
-  border-color: var(--dsh-accent);
-}
-
-.md-typeset .home-hero__actions .md-button:focus-visible,
-.md-typeset .home-hero__actions .md-button.focus-visible,
-.md-typeset .home-route-card:focus-visible,
-.md-typeset .home-route-card.focus-visible {
-  outline: 3px solid var(--dsh-accent);
-  outline-offset: 3px;
-}
-
-.md-typeset .home-route-card__range {
-  color: var(--dsh-accent);
-  font-size: 0.66rem;
-  font-weight: 700;
-}
-
-.md-typeset .home-route-card strong {
-  font-size: 0.94rem;
-  margin-top: 0.35rem;
-}
-
-.md-typeset .home-route-card > span:not(.home-route-card__range) {
-  color: var(--dsh-muted);
-  line-height: 1.7;
-  margin-top: 0.55rem;
-}
-
-.md-typeset .home-route-card b {
-  color: var(--dsh-accent);
-  font-size: 0.7rem;
-  margin-top: auto;
-  padding-top: 0.9rem;
-}
-
-.home-introduction {
-  margin: 2.8rem auto 0;
-  max-width: 52rem;
-}
-
-.md-typeset .home-introduction > h2:first-of-type {
-  margin-top: 0;
 }
 
 /* 顶栏保留仓库入口，但不占用一整块横向空间。 */
@@ -287,9 +142,18 @@ input {
   display: none;
 }
 
-.book-header-logo,
-.book-nav-logo {
+.book-header-logo {
   cursor: default;
+}
+
+.md-nav--primary .book-nav-title {
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+}
+
+.md-nav--primary .book-nav-title:hover,
+.md-nav--primary .book-nav-title:focus-visible {
+  color: var(--dsh-accent);
 }
 
 /* 顶栏按钮使用即时可见的站内提示，不依赖浏览器延迟显示 title。 */
@@ -452,10 +316,6 @@ html.book-sidebar-collapsed .book-sidebar-toggle__icon--expand {
 
 .md-footer-meta .md-copyright {
   color: var(--dsh-muted);
-}
-
-.md-container:has(.home-page) .md-footer__inner {
-  display: none;
 }
 
 /* 低于 Material 桌面断点时统一使用加宽的抽屉目录。 */
@@ -697,33 +557,6 @@ html.book-sidebar-collapsed .book-sidebar-toggle__icon--expand {
 }
 
 @media screen and (max-width: 44rem) {
-  .home-hero {
-    border-radius: 0.8rem;
-    padding: 1.25rem;
-  }
-
-  .home-hero__actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .md-typeset .home-hero__actions .md-button {
-    text-align: center;
-  }
-
-  .md-typeset ul.home-hero__facts {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .home-route-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .md-typeset .home-route-card {
-    min-height: 0;
-  }
-
   .md-typeset img.book-technical-figure {
     height: auto !important;
     width: 100% !important;

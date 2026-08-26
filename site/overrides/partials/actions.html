@@ -1,19 +1,24 @@
-{% set dsh_edit_url = page.edit_url %}
-
-{% if dsh_edit_url %}
+{#-
+  网页稿由构建脚本生成；首页和导言页需要指回各自的真实源文件。
+-#}
+{% set edit_url = page.edit_url %}
+{% if page.meta and page.meta.source_edit_path %}
+  {% set edit_url = config.repo_url ~ "/edit/main/" ~ page.meta.source_edit_path %}
+{% endif %}
+{% if edit_url %}
   {% if "content.action.edit" in features %}
-    <a href="{{ dsh_edit_url }}" title="{{ lang.t('action.edit') }}" class="md-content__button md-icon" rel="edit">
+    <a href="{{ edit_url }}" title="{{ lang.t('action.edit') }}" class="md-content__button md-icon" rel="edit">
       {% set icon = config.theme.icon.edit or "material/file-edit-outline" %}
       {% include ".icons/" ~ icon ~ ".svg" %}
     </a>
   {% endif %}
   {% if "content.action.view" in features %}
-    {% if "/blob/" in dsh_edit_url %}
+    {% if "/blob/" in edit_url %}
       {% set part = "blob" %}
     {% else %}
       {% set part = "edit" %}
     {% endif %}
-    <a href="{{ dsh_edit_url | replace(part, 'raw') }}" title="{{ lang.t('action.view') }}" class="md-content__button md-icon">
+    <a href="{{ edit_url | replace(part, 'raw') }}" title="{{ lang.t('action.view') }}" class="md-content__button md-icon">
       {% set icon = config.theme.icon.view or "material/file-eye-outline" %}
       {% include ".icons/" ~ icon ~ ".svg" %}
     </a>

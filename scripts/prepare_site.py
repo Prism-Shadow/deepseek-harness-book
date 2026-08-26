@@ -38,9 +38,13 @@ MARKDOWN_IMAGE = re.compile(
 )
 ATTRIBUTE_ID = re.compile(r"(?<!\S)#([A-Za-z][A-Za-z0-9._:-]*)")
 FENCE_START = re.compile(r"^\s*(`{3,}|~{3,})")
-HOMEPAGE_HEADING = re.compile(r"^# (内容简介\b.*)$", flags=re.MULTILINE)
-HOMEPAGE_META_TITLE = re.compile(r"^title:[^\n]*\n", flags=re.MULTILINE)
+INTRODUCTION_HEADING = re.compile(r"^# (导言\b.*)$", flags=re.MULTILINE)
+INTRODUCTION_META_TITLE = re.compile(r"^title:[^\n]*\n", flags=re.MULTILINE)
 EMPTY_FRONT_MATTER = re.compile(r"\A---\n\s*---\n")
+README_DEMO_LINK = re.compile(r"\]\((demo/[^)]+)\)")
+README_CHAPTER_LINK = re.compile(
+    r"\]\(https://dshbook\.penguin\.ooo/(chapter\d+)/\)"
+)
 
 
 DIAGRAMS: dict[str, str] = {
@@ -347,22 +351,58 @@ def transform_markdown(text: str, chapter_number: int | None = None) -> str:
     return rendered_text
 
 
-def transform_homepage(text: str) -> str:
-    """Keep the book title as the web homepage h1 and demote its introduction."""
+def transform_introduction(text: str) -> str:
+    """Prepare the book introduction as a regular website page."""
     rendered = transform_markdown(text)
-    rendered, title_count = HOMEPAGE_META_TITLE.subn("", rendered, count=1)
+    rendered, title_count = INTRODUCTION_META_TITLE.subn("", rendered, count=1)
     rendered, front_matter_count = EMPTY_FRONT_MATTER.subn("", rendered, count=1)
-    rendered, heading_count = HOMEPAGE_HEADING.subn(r"## \1", rendered, count=1)
+    heading_count = len(INTRODUCTION_HEADING.findall(rendered))
     if title_count != 1:
-        raise SystemExit("网页首页缺少标题元数据")
+        raise SystemExit("网页导言缺少标题元数据")
     if front_matter_count != 1:
-        raise SystemExit("网页首页的元数据块不是预期结构")
+        raise SystemExit("网页导言的元数据块不是预期结构")
     if heading_count != 1:
-        raise SystemExit("网页首页缺少“内容简介”标题")
-    return rendered
+        raise SystemExit("网页导言缺少“导言”标题")
+    metadata = (
+        "---\n"
+        "title: 导言\n"
+        "source_edit_path: book/introduction.md\n"
+        "---\n\n"
+    )
+    return metadata + rendered
 
 
-def prepare_site(book_dir: Path, output_dir: Path, site_assets: Path) -> list[Path]:
+def transform_readme(text: str, repository_url: str) -> str:
+    """Prepare the repository README as the website homepage."""
+    rendered = transform_markdown(text)
+    rendered = rendered.replace("(book/assets/", "(assets/")
+    rendered = README_CHAPTER_LINK.sub(
+        lambda match: f"]({match.group(1)}.md)", rendered
+    )
+    rendered = rendered.replace(
+        "](https://dshbook.penguin.ooo/)", "](index.md)"
+    )
+    repository = repository_url.rstrip("/")
+    rendered = README_DEMO_LINK.sub(
+        lambda match: f"]({repository}/tree/main/{match.group(1).rstrip('/')})",
+        rendered,
+    )
+    metadata = (
+        "---\n"
+        "title: DeepSeek Harness 实战指南\n"
+        "source_edit_path: README.md\n"
+        "---\n\n"
+    )
+    return metadata + rendered
+
+
+def prepare_site(
+    book_dir: Path,
+    output_dir: Path,
+    site_assets: Path,
+    readme_path: Path | None = None,
+    repository_url: str = "https://github.com/Prism-Shadow/dsh-book",
+) -> list[Path]:
     safe_output_dir(book_dir, output_dir)
     outline = book_dir / "outline.md"
     plans = parse_outline(outline)
@@ -374,6 +414,9 @@ def prepare_site(book_dir: Path, output_dir: Path, site_assets: Path) -> list[Pa
         validate_chapter(number, path, plans)
     introduction = book_dir / "introduction.md"
     validate_images(introduction)
+    readme = readme_path or book_dir.parent / "README.md"
+    if not readme.is_file():
+        raise SystemExit(f"网站首页缺少 README: {readme}")
 
     if output_dir.exists():
         shutil.rmtree(output_dir)
@@ -387,10 +430,18 @@ def prepare_site(book_dir: Path, output_dir: Path, site_assets: Path) -> list[Pa
     generated: list[Path] = []
     index_path = output_dir / "index.md"
     index_path.write_text(
-        transform_homepage(introduction.read_text(encoding="utf-8")),
+        transform_readme(readme.read_text(encoding="utf-8"), repository_url),
         encoding="utf-8",
     )
+    validate_images(index_path)
     generated.append(index_path)
+
+    introduction_path = output_dir / "introduction.md"
+    introduction_path.write_text(
+        transform_introduction(introduction.read_text(encoding="utf-8")),
+        encoding="utf-8",
+    )
+    generated.append(introduction_path)
 
     for number, source in chapters:
         target = output_dir / source.name
@@ -411,8 +462,19 @@ def main() -> None:
     parser.add_argument("--book-dir", type=Path, default=Path("book"))
     parser.add_argument("--output-dir", type=Path, default=Path("output/site-src"))
     parser.add_argument("--site-assets", type=Path, default=Path("site"))
+    parser.add_argument("--readme", type=Path, default=Path("README.md"))
+    parser.add_argument(
+        "--repository-url",
+        default="https://github.com/Prism-Shadow/dsh-book",
+    )
     args = parser.parse_args()
-    generated = prepare_site(args.book_dir, args.output_dir, args.site_assets)
+    generated = prepare_site(
+        args.book_dir,
+        args.output_dir,
+        args.site_assets,
+        args.readme,
+        args.repository_url,
+    )
     print(
         "网页正文："
         + "、".join(path.name for path in generated)
