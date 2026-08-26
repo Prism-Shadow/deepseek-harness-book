@@ -2,7 +2,7 @@
 title: 从零开始玩转 DeepSeek Harness
 ---
 
-# 内容简介 {.unnumbered #content-intro}
+# 导言 {.unnumbered #content-intro}
 
 大模型正在从一问一答的聊天工具，变成能够持续执行任务、调用工具、读写文件的智能体（Agent）。要让模型真正替人做事，仅有模型本身还不够，还需要一层负责组织消息、上下文、工具和运行流程的系统，这层系统称为 Agent Harness。DeepSeek Harness（简称 dsh）就是这样一套由插件组装而成的 Agent Harness，它把模型的能力接到人们每天面对的真实任务上。
 

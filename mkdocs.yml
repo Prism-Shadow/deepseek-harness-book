@@ -1,5 +1,5 @@
-site_name: DeepSeek Harness 中文实战书
-site_description: DeepSeek Harness 中文实战书稿：从基础使用到 Harness、Cordis 与插件扩展
+site_name: DeepSeek Harness 实战指南
+site_description: DeepSeek Harness 实战指南：从基础使用到 Harness、Cordis 与插件扩展
 site_url: https://dshbook.penguin.ooo/
 repo_name: Prism-Shadow/dsh-book
 repo_url: https://github.com/Prism-Shadow/dsh-book
@@ -76,7 +76,8 @@ extra_javascript:
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
 nav:
-  - 开始阅读: index.md
+  - DeepSeek Harness 实战指南: index.md
+  - 导言: introduction.md
   - 第一部分　玩转 dsh:
       - 第1章　初识 dsh: chapter1.md
       - 第2章　定制自己的 dsh: chapter2.md

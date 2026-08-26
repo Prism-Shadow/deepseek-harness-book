@@ -4,7 +4,7 @@
 
 {% block htmltitle %}
   {% if page and page.is_homepage %}
-    <title>{{ book_title }}</title>
+    <title>{{ config.site_name }}</title>
   {% elif page.meta and page.meta.title %}
     <title>{{ page.meta.title }} - {{ book_title }}</title>
   {% elif page.title %}
@@ -25,22 +25,19 @@
   </script>
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="{{ book_title }}">
-  <meta property="og:title" content="{{ book_title if page and page.is_homepage else (page.title if page and page.title else book_title) }}">
+  <meta property="og:title" content="{{ config.site_name if page and page.is_homepage else (page.title if page and page.title else book_title) }}">
   <meta property="og:description" content="{{ config.site_description }}">
   <meta property="og:image" content="{{ config.site_url }}assets/images/og.png">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{{ book_title if page and page.is_homepage else (page.title if page and page.title else book_title) }}">
+  <meta name="twitter:title" content="{{ config.site_name if page and page.is_homepage else (page.title if page and page.title else book_title) }}">
   <meta name="twitter:description" content="{{ config.site_description }}">
   <meta name="twitter:image" content="{{ config.site_url }}assets/images/og.png">
 {% endblock %}
 
 {% block content %}
   {% if page and page.is_homepage %}
-    <div class="home-page">
-      {% include "partials/home.html" %}
-      <div class="home-introduction">
-        {{ page.content }}
-      </div>
+    <div class="readme-page">
+      {{ super() }}
     </div>
   {% else %}
     {{ super() }}

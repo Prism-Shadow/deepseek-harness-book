@@ -43,7 +43,7 @@ def render_outline(outline: Path, actual: list[Path], output: Path) -> None:
     identifiers = collect_identifiers(actual)
     result = [r"\begin{hhplannedoutline}"]
     if "content-intro" in identifiers:
-        result.append(r"\hhplanfront{内容简介}{content-intro}")
+        result.append(r"\hhplanfront{导言}{content-intro}")
 
     active_part = ""
     part_number = 0

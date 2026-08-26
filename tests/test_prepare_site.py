@@ -9,10 +9,34 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from prepare_site import prepare_site, transform_markdown  # noqa: E402
+from prepare_site import (  # noqa: E402
+    prepare_site,
+    transform_markdown,
+    transform_readme,
+)
 
 
 class PrepareSiteTest(unittest.TestCase):
+    def test_prepares_readme_as_web_homepage(self) -> None:
+        source = """# 示例
+
+![图片](book/assets/example.png)
+
+[在线阅读](https://dshbook.penguin.ooo/)
+[开始](https://dshbook.penguin.ooo/chapter1/)
+[Demo](demo/example/)
+"""
+        rendered = transform_readme(source, "https://github.com/example/book")
+        self.assertIn("title: DeepSeek Harness 实战指南", rendered)
+        self.assertIn("source_edit_path: README.md", rendered)
+        self.assertIn("![图片](assets/example.png)", rendered)
+        self.assertIn("[在线阅读](index.md)", rendered)
+        self.assertIn("[开始](chapter1.md)", rendered)
+        self.assertIn(
+            "[Demo](https://github.com/example/book/tree/main/demo/example)",
+            rendered,
+        )
+
     def test_converts_latex_image_without_reencoding(self) -> None:
         source = r"""正文。
 
@@ -155,7 +179,7 @@ t(\text{文本})=\left\lceil\dfrac{n}{4}\right\rceil+4
                 encoding="utf-8",
             )
             (book / "introduction.md").write_text(
-                "---\ntitle: 示例书\n---\n\n# 内容简介\n",
+                "---\ntitle: 示例书\n---\n\n# 导言\n",
                 encoding="utf-8",
             )
             (book / "chapter1.md").write_text(
@@ -163,11 +187,21 @@ t(\text{文本})=\left\lceil\dfrac{n}{4}\right\rceil+4
                 "![示例](assets/example.png)\n",
                 encoding="utf-8",
             )
+            (root / "README.md").write_text(
+                "# 示例首页\n\n![示例](book/assets/example.png)\n",
+                encoding="utf-8",
+            )
             site_assets = root / "site"
             site_assets.mkdir()
             output = root / "output" / "site-src"
             prepare_site(book, output, site_assets)
             self.assertEqual((output / "assets/example.png").read_bytes(), image)
+            self.assertIn("示例首页", (output / "index.md").read_text())
+            self.assertIn("# 导言", (output / "introduction.md").read_text())
+            self.assertIn(
+                "source_edit_path: book/introduction.md",
+                (output / "introduction.md").read_text(),
+            )
 
 
 if __name__ == "__main__":

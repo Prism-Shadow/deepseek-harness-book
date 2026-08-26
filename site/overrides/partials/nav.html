@@ -10,19 +10,20 @@
   {% set class = class ~ " md-nav--integrated" %}
 {% endif %}
 <nav class="{{ class }}" aria-label="{{ lang.t('nav') }}" data-md-level="0">
-  <label class="md-nav__title" for="__drawer">
+  {% set home_item = nav.items | first %}
+  <a class="md-nav__title book-nav-title" href="{{ home_item.url | url }}"{% if home_item.active %} aria-current="page"{% endif %}>
     <span class="md-nav__button md-logo book-nav-logo" role="img" aria-label="{{ config.site_name }}">
       {% include "partials/logo.html" %}
     </span>
     {{ config.site_name }}
-  </label>
+  </a>
   {% if config.repo_url %}
     <div class="md-nav__source">
       {% include "partials/source.html" %}
     </div>
   {% endif %}
   <ul class="md-nav__list" data-md-scrollfix>
-    {% for nav_item in nav.items %}
+    {% for nav_item in nav.items[1:] %}
       {% set path = "__nav_" ~ loop.index %}
       {% if nav_item.children %}
         {% set group_class = "md-nav__item book-nav-group" %}

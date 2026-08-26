@@ -33,7 +33,7 @@ class PrepareBookTest(unittest.TestCase):
         self.book.mkdir()
         (self.book / "outline.md").write_text(OUTLINE, encoding="utf-8")
         (self.book / "introduction.md").write_text(
-            "# 内容简介 {.unnumbered #content-intro}\n\n正文。\n",
+            "# 导言 {.unnumbered #content-intro}\n\n正文。\n",
             encoding="utf-8",
         )
         (self.book / "chapter1.md").write_text(
