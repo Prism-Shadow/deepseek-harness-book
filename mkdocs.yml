@@ -1,5 +1,5 @@
-site_name: dsh 中文实战书
-site_description: dsh 中文实战书稿：从基础使用到 Harness、Cordis 与插件扩展
+site_name: DeepSeek Harness 中文实战书
+site_description: DeepSeek Harness 中文实战书稿：从基础使用到 Harness、Cordis 与插件扩展
 site_url: https://dshbook.penguin.ooo/
 repo_name: Prism-Shadow/dsh-book
 repo_url: https://github.com/Prism-Shadow/dsh-book
@@ -19,6 +19,8 @@ theme:
   language: zh
   custom_dir: site/overrides
   font: false
+  icon:
+    repo: fontawesome/brands/github
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
@@ -68,6 +70,7 @@ extra_css:
   - stylesheets/extra.css
 
 extra_javascript:
+  - javascripts/sidebar-toggle.js
   - javascripts/drawer-scroll-lock.js
   - javascripts/mathjax.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js

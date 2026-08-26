@@ -16,6 +16,13 @@
 
 {% block extrahead %}
   {{ super() }}
+  <script>
+    try {
+      if (localStorage.getItem("book-sidebar-collapsed") === "true") {
+        document.documentElement.classList.add("book-sidebar-collapsed");
+      }
+    } catch {}
+  </script>
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="{{ book_title }}">
   <meta property="og:title" content="{{ book_title if page and page.is_homepage else (page.title if page and page.title else book_title) }}">

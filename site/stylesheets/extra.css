@@ -287,6 +287,163 @@ input {
   display: none;
 }
 
+.book-header-logo,
+.book-nav-logo {
+  cursor: default;
+}
+
+/* 顶栏按钮使用即时可见的站内提示，不依赖浏览器延迟显示 title。 */
+.md-header [data-book-tooltip] {
+  position: relative;
+}
+
+.md-header [data-book-tooltip]::after {
+  background: var(--md-default-fg-color);
+  border-radius: 0.12rem;
+  box-shadow: var(--md-shadow-z1);
+  color: var(--md-default-bg-color);
+  content: attr(data-book-tooltip);
+  font-size: 0.64rem;
+  font-weight: 400;
+  left: 50%;
+  line-height: 1.2;
+  opacity: 0;
+  padding: 0.35rem 0.45rem;
+  pointer-events: none;
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  transform: translateX(-50%);
+  transition: opacity 120ms ease;
+  visibility: hidden;
+  white-space: nowrap;
+  z-index: 5;
+}
+
+.md-header [data-book-tooltip]:hover::after,
+.md-header [data-book-tooltip]:focus-visible::after {
+  opacity: 1;
+  visibility: visible;
+}
+
+.md-header .book-header-logo::after {
+  left: 0;
+  transform: none;
+}
+
+.md-header label[for="__drawer"]::after {
+  left: 0;
+  transform: none;
+}
+
+.md-header__source .md-source::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+.md-header__inner .book-sidebar-toggle {
+  display: none;
+}
+
+.book-sidebar-toggle__icon {
+  display: block;
+  height: 1.2rem;
+  width: 1.2rem;
+}
+
+.book-sidebar-toggle__icon > svg {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.book-sidebar-toggle__icon--expand,
+html.book-sidebar-collapsed .book-sidebar-toggle__icon--collapse {
+  display: none;
+}
+
+html.book-sidebar-collapsed .book-sidebar-toggle__icon--expand {
+  display: block;
+}
+
+/* “部分”只作为目录分隔标题，所有章节始终显示。 */
+.book-nav-group {
+  margin: 6px 0;
+}
+
+.book-nav-group__title {
+  color: var(--md-default-fg-color);
+  display: block;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 30px;
+  margin: 0;
+  padding: 0;
+}
+
+.book-nav-group__list {
+  margin: 0;
+  padding: 0;
+}
+
+.book-nav-group__list > .md-nav__item {
+  box-sizing: border-box;
+  margin: 6px 0;
+  padding-left: 15px;
+}
+
+.book-nav-group__list > .md-nav__item > .md-nav__link {
+  font-size: 14px;
+  line-height: 30px;
+  margin: 0;
+  padding: 0;
+}
+
+/* Material 在窄屏目录中默认给每一项加边框，这里改回书籍目录的平铺样式。 */
+.md-nav--primary .book-nav-group,
+.md-nav--primary .book-nav-group__list > .md-nav__item {
+  border-top: 0;
+}
+
+/* 隐藏章节目录的滚动条外观，同时保留滚轮和触控滚动。 */
+.md-sidebar--primary .md-sidebar__scrollwrap,
+.md-sidebar--primary .md-nav--primary > .md-nav__list {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.md-sidebar--primary .md-sidebar__scrollwrap::-webkit-scrollbar,
+.md-sidebar--primary .md-nav--primary > .md-nav__list::-webkit-scrollbar {
+  height: 0;
+  width: 0;
+}
+
+@media screen and (min-width: 76.25em) {
+  .md-header__inner .book-sidebar-toggle {
+    display: block;
+  }
+
+  html.book-sidebar-collapsed .md-sidebar--primary {
+    display: none;
+  }
+
+  .md-sidebar--primary {
+    width: 15rem;
+  }
+
+  [dir="ltr"] .md-sidebar--primary .md-sidebar__inner {
+    padding-right: 0.6rem;
+  }
+
+  [dir="rtl"] .md-sidebar--primary .md-sidebar__inner {
+    padding-left: 0.6rem;
+  }
+
+  .book-nav-group__list > .md-nav__item {
+    padding-left: 3px;
+  }
+}
+
 /* 页脚保留版权与前后章导航，弱化模板署名区域的视觉重量。 */
 .md-footer-meta {
   background: var(--md-default-bg-color);
@@ -314,6 +471,29 @@ input {
 
   .md-sidebar--primary .md-nav__list {
     overscroll-behavior-y: contain;
+  }
+
+  .md-sidebar--primary .md-nav--primary > .md-nav__list {
+    overflow-x: hidden;
+  }
+
+  /* 所有章节统一预留目录图标列，避免当前章节切换时标题重新换行。 */
+  .book-nav-group__list > .md-nav__item > .md-nav__link {
+    box-sizing: border-box;
+    padding-inline-end: 28px;
+    position: relative;
+  }
+
+  .book-nav-group__list
+    > .md-nav__item
+    > label.md-nav__link--active
+    .md-nav__icon {
+    height: 20px;
+    inset-inline-end: 4px;
+    margin: 0;
+    position: absolute;
+    top: 5px;
+    width: 20px;
   }
 
   .md-overlay {
