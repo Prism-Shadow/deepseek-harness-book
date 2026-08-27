@@ -7,10 +7,12 @@ ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 BOOK_DIR="$ROOT_DIR/book"
 OUTPUT_DIR="$ROOT_DIR/output/pdf"
 BUILD_DIR="$ROOT_DIR/tmp/pdfs/elegant-build"
-OUTPUT_PDF="$OUTPUT_DIR/DSH-Book-样章.pdf"
+OUTPUT_PDF="$OUTPUT_DIR/DeepSeek Harness 实战指南.pdf"
 OUTLINE_TEX="$BUILD_DIR/planned-outline.tex"
 BOOK_MARKDOWN="$BUILD_DIR/book.md"
 SVG_BUILD_DIR="$BUILD_DIR/svg-assets"
+GITHUB_MARK_SVG="$BOOK_DIR/assets/github-mark.svg"
+GITHUB_MARK_PDF="$BUILD_DIR/github-mark.pdf"
 
 if ! command -v pandoc >/dev/null 2>&1; then
   echo "缺少 pandoc。macOS 可运行：brew install pandoc" >&2
@@ -80,6 +82,11 @@ for tex_file in "${REQUIRED_TEX_FILES[@]}"; do
 done
 
 mkdir -p "$OUTPUT_DIR" "$BUILD_DIR"
+
+rsvg-convert \
+  --format=pdf \
+  --output="$GITHUB_MARK_PDF" \
+  "$GITHUB_MARK_SVG"
 
 python3 "$SCRIPT_DIR/prepare_book.py" \
   --book-dir "$BOOK_DIR" \

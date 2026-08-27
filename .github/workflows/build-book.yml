@@ -45,7 +45,7 @@ jobs:
         run: ./scripts/build_pdf.sh
 
       - name: Inspect PDF
-        run: pdfinfo output/pdf/DSH-Book-样章.pdf
+        run: pdfinfo "output/pdf/DeepSeek Harness 实战指南.pdf"
 
       - uses: actions/upload-artifact@v4
         with:

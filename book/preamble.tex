@@ -32,6 +32,12 @@
   }%
 }
 
+\newcommand{\DSHRepositoryURL}{https://github.com/Prism-Shadow/deepseek-harness-book}
+\newcommand{\DSHGitHubMark}{%
+  \raisebox{-0.8mm}{%
+    \includegraphics[width=4.2mm]{tmp/pdfs/elegant-build/github-mark.pdf}}%
+}
+
 % Brand colors follow the official DSH fish mark.
 \definecolor{DSHInk}{HTML}{1C2530}
 \definecolor{DSHMuted}{HTML}{667085}
@@ -382,33 +388,38 @@
         font=\sffamily\bfseries\fontsize{39pt}{47pt}\selectfont]
         at ($(current page.north)+(0,-91mm)$) {DeepSeek Harness};
       \node[anchor=north,text=DSHMuted,
-        font=\sffamily\DSHHeadingFont\fontsize{11pt}{17pt}\selectfont]
+        font=\sffamily\DSHHeadingFont\fontsize{16pt}{22pt}\selectfont]
         at ($(current page.north)+(0,-132mm)$)
         {面向普通用户的 Agent 实践指南};
 
       % One understated relationship instead of a literal architecture chart.
-      \coordinate (model) at ($(current page.south)+(-49mm,69mm)$);
+      \coordinate (model) at ($(current page.south)+(-53mm,69mm)$);
       \coordinate (dsh) at ($(current page.south)+(0,69mm)$);
-      \coordinate (tools) at ($(current page.south)+(49mm,69mm)$);
-      \draw[DSHRule,line width=1pt] ($(model)+(16mm,0)$) -- ($(dsh)+(-17mm,0)$);
-      \draw[DSHRule,line width=1pt] ($(dsh)+(17mm,0)$) -- ($(tools)+(-16mm,0)$);
-      \fill[DSHAccent] ($(model)+(16mm,0)$) circle (1.2mm);
-      \fill[DSHAccent] ($(tools)+(-16mm,0)$) circle (1.2mm);
+      \coordinate (tools) at ($(current page.south)+(53mm,69mm)$);
+      \draw[DSHRule,line width=1pt] ($(model)+(18mm,0)$) -- ($(dsh)+(-24mm,0)$);
+      \draw[DSHRule,line width=1pt] ($(dsh)+(24mm,0)$) -- ($(tools)+(-18mm,0)$);
+      \fill[DSHAccent] ($(model)+(18mm,0)$) circle (1.35mm);
+      \fill[DSHAccent] ($(tools)+(-18mm,0)$) circle (1.35mm);
       \node[text=DSHMuted,
-        font=\sffamily\bfseries\fontsize{10pt}{12pt}\selectfont]
+        font=\sffamily\bfseries\fontsize{12pt}{15pt}\selectfont]
         at (model) {MODEL};
-      \node[fill=DSHAccent,rounded corners=2mm,minimum width=30mm,
-        minimum height=13mm,text=white,inner sep=0pt,
-        font=\sffamily\bfseries\fontsize{11pt}{13pt}\selectfont]
-        at (dsh) {dsh};
+      \node[fill=DSHAccent,rounded corners=2mm,minimum width=48mm,
+        minimum height=15mm,text=white,inner sep=0pt,
+        font=\sffamily\bfseries\fontsize{12pt}{15pt}\selectfont]
+        at (dsh) {DeepSeek Harness};
       \node[text=DSHMuted,
-        font=\sffamily\bfseries\fontsize{10pt}{12pt}\selectfont]
+        font=\sffamily\bfseries\fontsize{12pt}{15pt}\selectfont]
         at (tools) {TOOLS};
-      \node[anchor=north,text=DSHInk,
-        font=\sffamily\DSHHeadingFont\fontsize{10pt}{15pt}\selectfont]
-        at ($(dsh)+(0,-15mm)$) {连接模型、工具与真实任务};
-      \draw[DSHAccent,line width=2pt]
-        ($(current page.south)+(-12mm,20mm)$) -- ++(24mm,0);
+      \node[anchor=south,text=DSHMuted,
+        font=\sffamily\DSHHeadingFont\fontsize{13pt}{17pt}\selectfont]
+        at ($(current page.south)+(0,28mm)$)
+        {本书后续更新内容请关注 GitHub 仓库};
+      \node[anchor=south,inner sep=0pt,
+        font=\sffamily\fontsize{11.5pt}{15pt}\selectfont]
+        at ($(current page.south)+(0,18mm)$)
+        {\href{\DSHRepositoryURL}{%
+          \DSHGitHubMark\hspace{2mm}%
+          \textcolor{DSHAccentDark}{\nolinkurl{\DSHRepositoryURL}}}};
     \end{tikzpicture}
     \null
   \end{titlepage}
