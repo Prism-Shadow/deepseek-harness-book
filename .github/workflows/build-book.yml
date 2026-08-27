@@ -59,3 +59,67 @@ jobs:
         with:
           path: ~/.TinyTeX
           key: ${{ steps.cache-tex.outputs.cache-primary-key }}
+
+  typst-pdf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils
+
+      - name: Install Typst
+        env:
+          TYPST_VERSION: v0.15.1
+        run: |
+          curl -fsSL -o typst.tar.xz \
+            "https://github.com/typst/typst/releases/download/${TYPST_VERSION}/typst-x86_64-unknown-linux-musl.tar.xz"
+          tar xf typst.tar.xz
+          sudo install -m 755 typst-x86_64-unknown-linux-musl/typst /usr/local/bin/typst
+          rm -rf typst.tar.xz typst-x86_64-unknown-linux-musl
+          typst --version
+
+      # inelegant-note 指定思源宋体 / 思源黑体，Ubuntu 源里只有同源的 Noto CJK，
+      # 家族名对不上，所以直接取 Adobe 发行版。模板经 cuti 伪粗体渲染中文字重，
+      # 只需要 Regular 和 Bold 两个字重，缓存约 84MB。
+      - name: Restore Source Han fonts
+        id: cache-fonts
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/fonts/source-han
+          key: source-han-sc-serif-2.003R-sans-2.005R
+
+      - name: Install Source Han fonts
+        if: steps.cache-fonts.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/.local/share/fonts/source-han
+          install_family() {
+            curl -fsSL -o fonts.zip "$1"
+            unzip -j -o fonts.zip "OTF/SimplifiedChinese/$2-Regular.otf" \
+              "OTF/SimplifiedChinese/$2-Bold.otf" -d ~/.local/share/fonts/source-han
+            rm fonts.zip
+          }
+          install_family \
+            "https://github.com/adobe-fonts/source-han-serif/releases/download/2.003R/09_SourceHanSerifSC.zip" \
+            SourceHanSerifSC
+          install_family \
+            "https://github.com/adobe-fonts/source-han-sans/releases/download/2.005R/09_SourceHanSansSC.zip" \
+            SourceHanSansSC
+          ls -la ~/.local/share/fonts/source-han
+
+      - name: Check script
+        run: bash -n scripts/build_typst_pdf.sh
+
+      - name: Build PDF
+        run: ./scripts/build_typst_pdf.sh
+
+      - name: Inspect PDF
+        run: pdfinfo "output/pdf/DeepSeek Harness 实战指南.pdf"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dsh-book-pdf-typst
+          path: output/pdf/*.pdf
+          if-no-files-found: error
