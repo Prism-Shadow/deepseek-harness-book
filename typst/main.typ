@@ -1,44 +1,13 @@
-// 《从零开始玩转 DeepSeek Harness》Typst 版
-//
-// 排版基于 inelegant-note 模板，正文由 cmarker 从 book/*.md 直接载入，
-// 部分与章节顺序读取 book/outline.md（全书目录的唯一依据）。
-
 #import "@preview/inelegant-note:0.9.1": *
 #import "markdown.typ": render-markdown
+#import "cover.typ": accent, cover-page
 
-#let accent = rgb("#253A9B")
-#let muted = rgb("#5B6478")
+#set document(title: "从零开始玩转 DeepSeek Harness")
 
-// 封面主图：沿用现有 PDF 封面「模型 — Harness — 工具」的关系示意。
-#let cover-art = {
-  set text(font: ("Source Han Sans SC",), fill: muted, weight: "bold")
-  align(center + horizon)[
-    #v(1fr)
-    #text(size: 8.5pt, tracking: 2pt, fill: black)[DEEPSEEK HARNESS]
-    #v(2fr)
-    #grid(
-      columns: (auto, 14mm, auto, 14mm, auto),
-      align: horizon,
-      text(size: 11pt)[MODEL],
-      line(length: 100%, stroke: 0.8pt + muted),
-      box(
-        fill: accent,
-        radius: 2mm,
-        inset: (x: 6mm, y: 4mm),
-        text(size: 11pt, fill: white)[DeepSeek Harness],
-      ),
-      line(length: 100%, stroke: 0.8pt + muted),
-      text(size: 11pt)[TOOLS],
-    )
-    #v(3fr)
-  ]
-}
-
-#cover-environment(
-  title: [从零开始玩转 DeepSeek Harness],
-  subtitle: "面向普通用户的 Agent 实践指南",
-  author: "Prism-Shadow/dsh-book",
-  cover-image: cover-art,
+#cover-page(
+  lead: [从零开始玩转],
+  brand: [DeepSeek Harness],
+  subtitle: [面向普通用户的 Agent 实践指南],
 )
 
 #show: overall
