@@ -108,12 +108,12 @@ jobs:
           asset="$RUNNER_TEMP/DeepSeek-Harness-实战指南.pdf"
           cp "release/DeepSeek Harness 实战指南.pdf" "$asset"
 
-          if ! gh release view latest >/dev/null 2>&1; then
-            gh release create latest \
+          if gh release view latest-pdf >/dev/null 2>&1; then
+            gh release upload latest-pdf "$asset" --clobber
+          else
+            gh release create latest-pdf "$asset" \
               --target "$GITHUB_SHA" \
               --title "最新版（持续更新）" \
               --notes "由 main 分支自动构建，附件会随书稿更新。" \
               --prerelease
           fi
-
-          gh release upload latest "$asset" --clobber
