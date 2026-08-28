@@ -13,7 +13,7 @@
 </div>
 
 <div align="center">
-  <a href="https://github.com/Prism-Shadow/deepseek-harness-book/releases/download/latest-pdf/DeepSeek-Harness-实战指南.pdf">下载最新版 PDF</a>
+  <a href="https://github.com/Prism-Shadow/deepseek-harness-book/releases/download/latest-pdf/DeepSeek-Harness-Practical-Guide-zh-CN.pdf">下载最新版 PDF</a>
   ｜
   <a href="https://dshbook.penguin.ooo/">在线阅读</a>
 </div>
@@ -91,7 +91,7 @@ mkdocs serve
 
 ## 🔗 相关链接
 
-- [下载最新版 PDF](https://github.com/Prism-Shadow/deepseek-harness-book/releases/download/latest-pdf/DeepSeek-Harness-实战指南.pdf)
+- [下载最新版 PDF](https://github.com/Prism-Shadow/deepseek-harness-book/releases/download/latest-pdf/DeepSeek-Harness-Practical-Guide-zh-CN.pdf)
 - [本书在线阅读](https://dshbook.penguin.ooo/)
 - [DeepSeek Harness 官方介绍](https://www.deepseek.com/harness/)
 - [DeepSeek Harness 官方源码](https://github.com/deepseek-ai/deepseek-harness)
