@@ -1,0 +1,51 @@
+\documentclass[tikz,border=5pt]{standalone}
+\usepackage{fontspec}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,backgrounds,positioning}
+
+\setmainfont{Noto Sans CJK SC}
+\definecolor{accent}{HTML}{315EF5}
+\definecolor{light}{HTML}{EEF2FF}
+\definecolor{textcolor}{HTML}{273142}
+
+\begin{document}
+\begin{tikzpicture}[
+  show background rectangle,
+  background rectangle/.style={fill=white,draw=none},
+  node distance=12mm,
+  flow/.style={
+    draw=accent,
+    fill=light,
+    text=textcolor,
+    minimum width=32mm,
+    minimum height=11mm,
+    align=center,
+    font=\fontsize{11}{13}\selectfont
+  },
+  final/.style={
+    flow,
+    fill=accent,
+    text=white
+  },
+  arrow/.style={
+    draw=accent,
+    line width=0.8pt,
+    -{Latex[length=2.6mm,width=1.8mm]}
+  }
+]
+  \node[flow] (skill) {读取当前 Skill};
+  \node[flow, right=of skill] (draw) {生成 SVG 概念图};
+  \node[flow, right=of draw] (view) {渲染并查看图片};
+  \node[flow, below=14mm of view] (score) {取得评分};
+  \node[final, left=of score] (update) {更新或保留 Skill};
+
+  \draw[arrow] (skill) -- (draw);
+  \draw[arrow] (draw) -- (view);
+  \draw[arrow] (view) -- (score);
+  \draw[arrow] (score) -- (update);
+  \draw[arrow] (update.west) .. controls +(-25mm,0) and +(0,-16mm) ..
+    node[pos=0.28, above=1.5mm, text=textcolor,
+      font=\fontsize{9}{11}\selectfont] {下一轮}
+    (skill.south);
+\end{tikzpicture}
+\end{document}

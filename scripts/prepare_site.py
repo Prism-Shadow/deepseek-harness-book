@@ -109,14 +109,18 @@ DIAGRAMS: dict[str, str] = {
   <div class="diagram-compare-label">压缩前</div><div class="diagram-node diagram-node-flat">多条早期消息</div><div class="diagram-node diagram-node-flat">多条近期消息</div>
   <div class="diagram-compare-label">压缩后</div><div class="diagram-node diagram-node-accent">早期内容摘要</div><div class="diagram-node diagram-node-flat">多条近期消息</div>
 </div>""",
-    "概念图生成、评分与 Skill 更新循环，深蓝框中的结果会传给下一轮": """
-<div class="diagram-flow diagram-flow-row">
-  <div class="diagram-node">读取当前 Skill</div><span class="diagram-arrow">→</span>
-  <div class="diagram-node">生成 SVG 概念图</div><span class="diagram-arrow">→</span>
-  <div class="diagram-node">渲染并查看图片</div><span class="diagram-arrow">→</span>
-  <div class="diagram-node">取得三个分项得分</div><span class="diagram-arrow">→</span>
-  <div class="diagram-node">比较前后得分</div><span class="diagram-arrow">→</span>
-  <div class="diagram-node diagram-node-accent">更新或保留 Skill</div><span class="diagram-loop">↩ 下一轮</span>
+    "概念图生成、评分与 Skill 更新循环": """
+<div class="diagram-flow diagram-flow-vertical">
+  <div class="diagram-flow diagram-flow-row">
+    <div class="diagram-node">读取当前 Skill</div><span class="diagram-arrow">→</span>
+    <div class="diagram-node">生成 SVG 概念图</div><span class="diagram-arrow">→</span>
+    <div class="diagram-node">渲染并查看图片</div>
+  </div>
+  <span class="diagram-arrow">↓</span>
+  <div class="diagram-flow diagram-flow-row">
+    <div class="diagram-node diagram-node-accent">更新或保留 Skill</div><span class="diagram-arrow">←</span>
+    <div class="diagram-node">取得评分</div><span class="diagram-loop">↩ 下一轮</span>
+  </div>
 </div>""",
 }
 
