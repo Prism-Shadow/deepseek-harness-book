@@ -109,11 +109,11 @@ DIAGRAMS: dict[str, str] = {
   <div class="diagram-compare-label">压缩前</div><div class="diagram-node diagram-node-flat">多条早期消息</div><div class="diagram-node diagram-node-flat">多条近期消息</div>
   <div class="diagram-compare-label">压缩后</div><div class="diagram-node diagram-node-accent">早期内容摘要</div><div class="diagram-node diagram-node-flat">多条近期消息</div>
 </div>""",
-    "概念图生成、评分与 Skill 更新循环": """
+    "概念图绘制、评分与 Skill 更新流程": """
 <div class="diagram-flow diagram-flow-vertical">
   <div class="diagram-flow diagram-flow-row">
     <div class="diagram-node">读取当前 Skill</div><span class="diagram-arrow">→</span>
-    <div class="diagram-node">生成 SVG 概念图</div><span class="diagram-arrow">→</span>
+    <div class="diagram-node">画出概念图</div><span class="diagram-arrow">→</span>
     <div class="diagram-node">渲染并查看图片</div>
   </div>
   <span class="diagram-arrow">↓</span>
