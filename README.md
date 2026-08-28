@@ -13,9 +13,9 @@
 </div>
 
 <div align="center">
-  <a href="https://dshbook.penguin.ooo/">在线阅读</a>
+  <a href="https://github.com/Prism-Shadow/deepseek-harness-book/releases/download/latest/DeepSeek-Harness-实战指南.pdf">下载最新版 PDF</a>
   ｜
-  <a href="https://dshbook.penguin.ooo/chapter1/">从第 1 章开始</a>
+  <a href="https://dshbook.penguin.ooo/">在线阅读</a>
 </div>
 
 ## 📖 这本书写什么
@@ -91,6 +91,7 @@ mkdocs serve
 
 ## 🔗 相关链接
 
+- [下载最新版 PDF](https://github.com/Prism-Shadow/deepseek-harness-book/releases/download/latest/DeepSeek-Harness-实战指南.pdf)
 - [本书在线阅读](https://dshbook.penguin.ooo/)
 - [DeepSeek Harness 官方介绍](https://www.deepseek.com/harness/)
 - [DeepSeek Harness 官方源码](https://github.com/deepseek-ai/deepseek-harness)
