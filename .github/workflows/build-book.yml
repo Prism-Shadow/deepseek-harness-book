@@ -108,12 +108,22 @@ jobs:
           asset="$RUNNER_TEMP/DeepSeek-Harness-Practical-Guide-zh-CN.pdf"
           cp "release/DeepSeek Harness 实战指南.pdf" "$asset"
 
+          release_notes='由 main 分支自动构建，附件会随书稿更新。
+
+          - [下载最新版 PDF](https://github.com/Prism-Shadow/deepseek-harness-book/releases/download/latest-pdf/DeepSeek-Harness-Practical-Guide-zh-CN.pdf)
+          - [在线阅读](https://dshbook.penguin.ooo/)'
+
           if gh release view latest-pdf >/dev/null 2>&1; then
             gh release upload latest-pdf "$asset" --clobber
           else
             gh release create latest-pdf "$asset" \
               --target "$GITHUB_SHA" \
               --title "最新版（持续更新）" \
-              --notes "由 main 分支自动构建，附件会随书稿更新。" \
+              --notes "$release_notes" \
               --prerelease
           fi
+
+          gh release edit latest-pdf \
+            --title "最新版（持续更新）" \
+            --notes "$release_notes" \
+            --prerelease
