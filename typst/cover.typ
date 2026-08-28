@@ -1,47 +1,20 @@
-// 封面，移植自 book/preamble.tex 里的 \maketitle。
-//
-// LaTeX 版和本模板的开本都是 185×260mm，所以坐标 1:1 沿用。品牌色、鱼形标记
-// 的路径数据和仓库地址都直接从 preamble.tex 读，两版共用一份定义，改一处即可。
+// 全书 PDF 封面。
 
 #import "@preview/inelegant-note:0.9.1": page-all, sans-font
 
-#let _preamble = read("/book/preamble.tex")
+#let ink = rgb("#1C2530")
+#let muted = rgb("#667085")
+#let accent = rgb("#4D6BFE")
+#let accent-dark = rgb("#253A9B")
+#let rule-colour = rgb("#D9DEEF")
 
-#let _tex-value(pattern) = {
-  let hit = _preamble.match(regex(pattern))
-  assert(hit != none, message: "book/preamble.tex 里找不到：" + pattern)
-  hit.captures.at(0)
-}
+#let repository-url = "https://github.com/Prism-Shadow/deepseek-harness-book"
 
-// \definecolor{DSHAccent}{HTML}{4D6BFE}
-#let brand-color(name) = rgb(
-  "#" + _tex-value("\\\\definecolor\\{" + name + "\\}\\{HTML\\}\\{([0-9A-Fa-f]{6})\\}"),
-)
-
-#let ink = brand-color("DSHInk")
-#let muted = brand-color("DSHMuted")
-#let accent = brand-color("DSHAccent")
-#let accent-dark = brand-color("DSHAccentDark")
-#let rule-colour = brand-color("DSHRule")
-
-#let repository-url = _tex-value("\\\\newcommand\\{\\\\DSHRepositoryURL\\}\\{([^}]*)\\}")
-
-// dsh 官方鱼形标记，viewBox 0 0 23.16 17.04，路径数据取自 preamble.tex。
-#let _fish-path = _tex-value("\\\\newcommand\\{\\\\DSHFishPathData\\}\\{([^}]*)\\}")
-
-#let fish-mark(width: 10mm, fill: accent) = image(
-  bytes(
-    "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 23.16 17.04\">"
-      + "<path d=\"" + _fish-path + "\" fill=\"" + fill.to-hex() + "\"/>"
-      + "</svg>"
-  ),
-  format: "svg",
-  width: width,
-)
+#let fish-mark(width: 10mm) = image("/book/assets/fish-mark.svg", width: width)
 
 #let github-mark(width: 4.2mm) = image("/book/assets/github-mark.svg", width: width)
 
-// 竖直居中地放一段内容：TikZ 的 anchor=west / anchor=center 对应到这里。
+// 在指定坐标上竖直居中放置内容。
 #let _at(dx: 0mm, dy: 0mm, height: 10mm, body) = place(
   top + center,
   dx: dx,
@@ -61,7 +34,7 @@
   set text(font: sans-font, fill: ink)
 
   // 页眉的品牌签名：鱼形标记 + 字标 + 分隔线。
-  place(top + left, dx: 22mm, dy: 20mm, fish-mark(width: 10mm, fill: ink))
+  place(top + left, dx: 22mm, dy: 20mm, fish-mark(width: 10mm))
   place(
     top + left,
     dx: 36mm,

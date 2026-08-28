@@ -17,57 +17,6 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc poppler-utils fonts-noto-cjk librsvg2-bin
-
-      - uses: r-lib/actions/setup-tinytex@v2
-
-      - name: Restore TeX packages
-        id: cache-tex
-        uses: actions/cache/restore@v4
-        with:
-          path: ~/.TinyTeX
-          key: tinytex-${{ runner.os }}-${{ hashFiles('.github/workflows/build-book.yml') }}
-
-      - name: Install TeX packages
-        run: >-
-          tlmgr install elegantbook anyfontsize titlesec newtx tex-gyre ctex fandol needspace ragged2e fvextra setspace
-          csquotes logreq comment colortbl mwe enumitem esint footmisc jknapltx multirow makecell
-          lipsum hologo listings tocloft tcolorbox tikzfill pdfcol fixtounicode pgf microtype caption
-          bbding manfnt adforn collection-latexextra collection-langchinese collection-fontsrecommended
-
-      - name: Check scripts
-        run: |
-          python3 -m py_compile scripts/*.py
-          python3 -m unittest discover -s tests
-          bash -n scripts/build_pdf.sh
-
-      - name: Build PDF
-        run: ./scripts/build_pdf.sh
-
-      - name: Inspect PDF
-        run: pdfinfo "output/pdf/DeepSeek Harness 实战指南.pdf"
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: dsh-book-pdf
-          path: output/pdf/*.pdf
-          if-no-files-found: error
-
-      - name: Save TeX packages
-        if: always() && steps.cache-tex.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          path: ~/.TinyTeX
-          key: ${{ steps.cache-tex.outputs.cache-primary-key }}
-
-  typst-pdf:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
           sudo apt-get install -y poppler-utils
 
       - name: Install Typst
@@ -109,8 +58,11 @@ jobs:
             SourceHanSansSC
           ls -la ~/.local/share/fonts/source-han
 
-      - name: Check script
-        run: bash -n scripts/build_typst_pdf.sh
+      - name: Check scripts
+        run: |
+          python3 -m py_compile scripts/*.py
+          python3 -m unittest discover -s tests
+          bash -n scripts/build_typst_pdf.sh
 
       - name: Build PDF
         run: ./scripts/build_typst_pdf.sh
@@ -120,6 +72,6 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: dsh-book-pdf-typst
+          name: dsh-book-pdf
           path: output/pdf/*.pdf
           if-no-files-found: error

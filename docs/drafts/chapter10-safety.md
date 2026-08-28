@@ -51,21 +51,12 @@ presets:
     approval: never
 ```
 
-```{=latex}
-\begin{center}
-\begin{tikzpicture}[every node/.style={align=center, font=\sffamily\footnotesize}]
-  \node[dshnodeflat, minimum width=34mm] (s1) {沙箱模式\\ \scriptsize 三档};
-  \node[dshnodeflat, minimum width=34mm, below=9mm of s1] (s2) {审批策略\\ \scriptsize 两档};
-  \coordinate (mid) at ($(s1.east)!0.5!(s2.east)$);
-  \node[dshnode, right=10mm of mid, minimum width=24mm] (pair) {当前这一对\\ 取值};
-  \node[dshaccentnode, right=10mm of pair, minimum width=28mm] (hit) {命中预设表\\ \scriptsize 显示那一档的名字};
-  \node[dshseam, below=9mm of hit, minimum width=28mm] (miss) {没命中\\ \scriptsize 显示 custom，不能切过去};
-  \draw[dsharrow] (s1.east) -- (pair.west);
-  \draw[dsharrow] (s2.east) -- (pair.west);
-  \draw[dsharrow] (pair) -- (hit);
-  \draw[dshmutedarrow] (pair.east) -- (miss.west);
-\end{tikzpicture}
-\end{center}
+```mermaid
+flowchart LR
+  sandbox[沙箱模式：三档] --> pair[当前这一对取值]
+  approval[审批策略：两档] --> pair
+  pair --> hit[命中预设表：显示对应名称]
+  pair --> miss[未命中：显示 custom，不能切换]
 ```
 
 图里最下面那个 `custom` 需要解释一句。它不是第四档，是**派生出来的状态**。DSH 每次都从两个旋钮的实际生效值反推当前属于哪一档，反推不出来就报 `custom`。界面可以把它显示成当前值，但它永远不是一个可以切过去的目标（`docs/subsystems/permission-presets.zh.md` 第 48 行）。什么时候会出现这种状态，比如你在配置里把审批策略单独调成了 `never`，沙箱却还停在 `workspace-write`，这个组合不在随包的三档里，界面就只能如实说一句“自定义”。

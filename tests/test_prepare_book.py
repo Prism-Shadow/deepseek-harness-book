@@ -9,7 +9,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from prepare_book import assemble, parse_outline  # noqa: E402
+from prepare_book import parse_outline, validate_book  # noqa: E402
 
 
 OUTLINE = """# 第一部分　使用 DSH
@@ -53,24 +53,12 @@ class PrepareBookTest(unittest.TestCase):
         self.assertEqual([plan.part_title for plan in plans], ["使用 DSH", "理解 DSH"])
         self.assertEqual([plan.number for plan in plans], [1, 2])
 
-    def test_assembly_inserts_part_pages(self) -> None:
-        output = Path(self.temp.name) / "book.md"
-        assemble(self.book, self.book / "outline.md", output)
-        rendered = output.read_text(encoding="utf-8")
-        self.assertIn(r"\part{使用 DSH}", rendered)
-        self.assertIn(r"\part{理解 DSH}", rendered)
-        self.assertLess(rendered.index("# 初识 DSH"), rendered.index("# 工作原理"))
-
-    def test_assembly_skips_heading_only_chapter(self) -> None:
-        (self.book / "chapter2.md").write_text(
-            "# 工作原理 {#ch-2}\n\n## 消息与会话 {#sec-2-1}\n",
-            encoding="utf-8",
+    def test_validation_returns_sources_in_chapter_order(self) -> None:
+        sources = validate_book(self.book, self.book / "outline.md")
+        self.assertEqual(
+            [path.name for path in sources],
+            ["introduction.md", "chapter1.md", "chapter2.md"],
         )
-        output = Path(self.temp.name) / "book.md"
-        sources = assemble(self.book, self.book / "outline.md", output)
-        rendered = output.read_text(encoding="utf-8")
-        self.assertEqual([path.name for path in sources], ["introduction.md", "chapter1.md"])
-        self.assertNotIn("# 工作原理", rendered)
 
     def test_wrong_section_id_fails(self) -> None:
         (self.book / "chapter2.md").write_text(
@@ -78,7 +66,7 @@ class PrepareBookTest(unittest.TestCase):
             encoding="utf-8",
         )
         with self.assertRaises(SystemExit):
-            assemble(self.book, self.book / "outline.md", Path(self.temp.name) / "book.md")
+            validate_book(self.book, self.book / "outline.md")
 
 
 if __name__ == "__main__":

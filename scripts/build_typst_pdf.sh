@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # 用 Typst 构建全书 PDF：inelegant-note 模板 + cmarker 直接载入 book/*.md。
-# 与 build_pdf.sh（pandoc + XeLaTeX）是两条独立的构建链路。
 
 set -euo pipefail
 
@@ -26,6 +25,11 @@ for family in "Source Han Serif SC" "Source Han Sans SC"; do
 done
 
 mkdir -p "$OUTPUT_DIR"
+
+# 编译前检查目录、章节标题和图片引用。
+python3 "$SCRIPT_DIR/prepare_book.py" \
+  --book-dir "$ROOT_DIR/book" \
+  --outline "$ROOT_DIR/book/outline.md"
 
 # --root 指到仓库根目录，正文里的 /book/... 路径才能解析。
 typst compile --root "$ROOT_DIR" "$ROOT_DIR/typst/main.typ" "$OUTPUT_PDF"

@@ -24,13 +24,7 @@
 
 这九个指数分别覆盖全市场、沪深市场、市值层次和主要板块。后面的信号规则以中证全指为主，其余指数用于横向观察。dsh 读取最终 CSV 和复检报告，生成图 9-2 所示的结果卡，方便核对指数范围和数据日期。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.96\textwidth]{assets/chapter9/9-1-02-index-universe.png}
-\caption{九个指数及最终历史数据范围}
-\end{figure}
-```
+![九个指数及最终历史数据范围](assets/chapter9/9-1-02-index-universe.png){width=96%}
 
 中证全指是本章的主要观察对象。中证指数公司 2026 年 7 月 31 日发布的[指数资料](https://oss-ch.csindex.com.cn/static/html/csindex/public/uploads/indices/detail/files/zh_CN/000985factsheet.pdf)显示，其样本空间包括上交所、深交所和北交所符合条件的股票与存托凭证。北证 50 因本次接口没有返回历史数据而未单列。本次工作区也没有可用的 Wind 数据权限，因此没有纳入万得全 A，也没有用相似代码代替。
 
@@ -114,19 +108,9 @@ dsh 读取修正后的“backtest/backtest_report.md”和“backtest/results_su
 
 ![双均线回测的主要指标与最差三段](assets/chapter9/9-3-01-backtest-summary.png){width=72%}
 
-```{=latex}
-\Needspace{22\baselineskip}
-```
-
 净值曲线更直观。策略只在规则处于多头状态时持有，因此红线在空仓期间保持水平。蓝线表示持续跟踪指数的基准。样本末端，策略净值低于起点，也落后于基准。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.96\textwidth]{assets/chapter9/9-3-02-nav-curve.png}
-\caption{双均线策略与持续持有的净值曲线}
-\end{figure}
-```
+![双均线策略与持续持有的净值曲线](assets/chapter9/9-3-02-nav-curve.png){width=96%}
 
 回测脚本能够运行，但这套策略在当前样本中的结果并不好。回测未计交易成本和滑点，空仓收益按 0 计算。样本只覆盖一个指数、一组参数和 36 个完整持有段，也没有进行样本外检验。中证全指的指数点位本身不是可直接买卖的资产，本次回测结果也不代表任何跟踪产品的实际收益，历史结果不能外推到未来。
 
@@ -164,19 +148,9 @@ dsh 返回九个指数的实时快照，并保存中证全指分时图。本次�
 >
 > 请创建一个临时盯盘任务：从现在起到今天 11:30，每隔 5 分钟通过 headless 模式刷新九个指数的盘中行情，更新中证全指分时图，并生成一份带北京时间的简短分析报告。每次结果分别保存到“reports/intraday”，不要写入日线数据，也不要把盘中变化判定为正式日线信号。11:30 后停止运行，并告诉我任务配置、日志位置和清理方法。
 
-```{=latex}
-\Needspace{24\baselineskip}
-```
-
 脚本“scripts/intraday_monitor.py”使用纯 API 请求和 Matplotlib 的 Agg 后端运行。日志显示，后台进程在 11:06、11:10、11:15、11:20 和 11:24 分别生成一轮快照，并在 11:30 触发停止条件后退出。dsh 根据快照文件和日志生成图 9-10，汇总运行时间和数据边界。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.88\textwidth]{assets/chapter9/9-4-02-intraday-monitor.png}
-\caption{临时监控生成五轮快照并到点停止}
-\end{figure}
-```
+![临时监控生成五轮快照并到点停止](assets/chapter9/9-4-02-intraday-monitor.png){width=88%}
 
 dsh 把提示词中的 headless 实现为不打开浏览器窗口的 Python 进程，并用 Matplotlib 的无界面后端绘图。它没有调用 dsh Web 的 schedule、dsh CLI 的 headless profile，也没有配置系统 cron。日志记录了五轮快照，进程也在 11:30 退出。本次测试只验证了连续运行和按时停止。长期无人值守还需要测试调度方式、失败重试和告警。
 
@@ -204,24 +178,12 @@ dsh 最终生成“reports/stock_compare_002156_601899_20260820_v2.md”。报�
 
 dsh 根据详细报告生成了两张 HTML 页面。图 9-11 汇总规则状态、短期判断和改变条件，图 9-12 展示日 K 与均线位置。页面没有改变报告中的行情和指标，图中的短期判断属于 dsh 根据这些材料作出的条件推断。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.96\textwidth]{assets/chapter9/9-4-03-stock-analysis-overview-v4.png}
-\caption{两只股票的规则状态、短期判断及改变条件}
-\end{figure}
-```
+![两只股票的规则状态、短期判断及改变条件](assets/chapter9/9-4-03-stock-analysis-overview-v4.png){width=96%}
 
 图 9-11 对通富微电给出“短期反弹，波动较大”的判断。近 5 日涨幅转正，MACD 柱开始改善。报告收录的业绩预增公告转载和通富微电在[2025 年年度报告](https://static.cninfo.com.cn/finalpage/2026-04-17/1225112762.PDF)中披露的 AMD 战略合作关系，构成事件背景。它的 20/60 日均线仍为空头，ATR 占收盘价 8.4%，当前回升尚未形成上涨趋势。转强条件是放量站上 MA60 的 67.05，并等待 20/60 日均线重新金叉。
 
 图 9-11 对紫金矿业给出“短期上涨，多头延续”的判断。其 20/60 日均线保持多头，收盘价仍在 MA60 和 MA120 上方。有色指数与 ETF 的近 20 日涨幅、个股近 20 日资金净流入均为正。短线先看价格能否重新站上 MA20 的 33.04，并伴随成交量回升。若价格跌破近 20 日低点 30.97 或 MA60 的 30.02，这一判断失效。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.92\textwidth]{assets/chapter9/9-4-04-stock-analysis-charts-v4.png}
-\caption{两只股票最近约 120 个交易日的日 K 与均线}
-\end{figure}
-```
+![两只股票最近约 120 个交易日的日 K 与均线](assets/chapter9/9-4-04-stock-analysis-charts-v4.png){width=92%}
 
 图中的两项短期判断以报告生成后的 5 至 20 个交易日为观察期。以后每个交易日收盘后，都要重新取数、复算指标并核对最新公告。报告只用于整理研究线索，不构成交易建议。

@@ -44,10 +44,14 @@ book/assets/chapter2/
 
 1. 完整截图与裁剪图的编号和内容名能够对应。
 2. 裁剪范围没有切断任何文字或界面容器。
-3. 图片内部的左右留白和可见内容重心自然，不能只确认 Markdown 或 LaTeX 中的图片盒子已经居中。
+3. 图片内部的左右留白和可见内容重心自然，不能只确认 Markdown 或 Typst 中的图片盒子已经居中。
 4. 正文图片在预定显示宽度下清楚可读，也没有被异常放大。
 5. 图片说明描述可见结果，不写成操作口令，也不重复正文。
 6. 完整截图和裁剪图都不含敏感信息。
-7. 运行 `./scripts/build_pdf.sh`，检查图片所在的实际页面。
+7. 运行 `./scripts/build_typst_pdf.sh`，检查图片所在的实际页面。
 
-封面、目录和篇章页上的鲸鱼标识不是图片文件：它是从 DeepSeek Harness 源码（`packages/client/ui-primitives/src/FishLogo.tsx`）里的官方矢量路径抄来的，直接用 TikZ 画在 `book/preamble.tex` 的 `\DSHFishMark` 命令里，缩放到任何尺寸都不会糊。
+封面上的鱼形标识保存在 `book/assets/fish-mark.svg`。它使用 DeepSeek Harness 源码（`packages/client/ui-primitives/src/FishLogo.tsx`）中的官方矢量路径，缩放到任何尺寸都不会糊。
+
+## 流程图源文件
+
+使用 TeX 绘制流程图时，将可编辑的 `.tex` 源文件保存在对应章节的 `source/` 目录，并把生成的 SVG 放在章节目录根部供正文引用。`.tex` 文件只用于维护配图，不参与全书 PDF 的构建。

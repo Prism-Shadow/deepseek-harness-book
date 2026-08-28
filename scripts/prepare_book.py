@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the three-part outline and assemble the Markdown build input."""
+"""Validate the outline, chapter structure, and image references."""
 
 from __future__ import annotations
 
@@ -135,18 +135,6 @@ def validate_images(path: Path) -> None:
             raise SystemExit(f"{path}: 图片不存在: {target}")
 
 
-def has_body_content(path: Path) -> bool:
-    """Return whether a chapter contains anything beyond its heading skeleton."""
-    for line in path.read_text(encoding="utf-8").splitlines():
-        stripped = line.lstrip()
-        if stripped.startswith(("```", "~~~")):
-            return True
-        if not stripped or split_heading(line):
-            continue
-        return True
-    return False
-
-
 def validate_chapter(number: int, path: Path, plans: list[ChapterPlan]) -> None:
     if number > len(plans):
         raise SystemExit(f"{path}: 第 {number} 章未出现在 outline.md")
@@ -178,21 +166,7 @@ def validate_chapter(number: int, path: Path, plans: list[ChapterPlan]) -> None:
     validate_images(path)
 
 
-def latex_escape(text: str) -> str:
-    replacements = {
-        "\\": r"\textbackslash{}",
-        "&": r"\&",
-        "%": r"\%",
-        "$": r"\$",
-        "#": r"\#",
-        "_": r"\_",
-        "{": r"\{",
-        "}": r"\}",
-    }
-    return "".join(replacements.get(char, char) for char in text)
-
-
-def assemble(book_dir: Path, outline: Path, output: Path) -> list[Path]:
+def validate_book(book_dir: Path, outline: Path) -> list[Path]:
     introduction = book_dir / "introduction.md"
     if not introduction.is_file():
         raise SystemExit(f"缺少 {introduction}")
@@ -204,43 +178,15 @@ def assemble(book_dir: Path, outline: Path, output: Path) -> list[Path]:
     for number, path in chapters:
         validate_chapter(number, path, plans)
     validate_images(introduction)
-
-    parts = [introduction.read_text(encoding="utf-8").rstrip()]
-    active_part = ""
-    renderable_chapters = [
-        (number, path) for number, path in chapters if has_body_content(path)
-    ]
-
-    for number, path in renderable_chapters:
-        plan = plans[number - 1]
-        if plan.part_title != active_part:
-            active_part = plan.part_title
-            parts.extend(
-                ["", "```{=latex}", rf"\part{{{latex_escape(active_part)}}}", "```", ""]
-            )
-        parts.extend(
-            [
-                "",
-                "```{=latex}",
-                rf"\setcounter{{chapter}}{{{number - 1}}}",
-                "```",
-                "",
-                path.read_text(encoding="utf-8").rstrip(),
-            ]
-        )
-
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text("\n".join(parts) + "\n", encoding="utf-8")
-    return [introduction, *(path for _number, path in renderable_chapters)]
+    return [introduction, *(path for _number, path in chapters)]
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--book-dir", type=Path, required=True)
-    parser.add_argument("--outline", type=Path, required=True)
-    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--book-dir", type=Path, default=Path("book"))
+    parser.add_argument("--outline", type=Path, default=Path("book/outline.md"))
     args = parser.parse_args()
-    sources = assemble(args.book_dir, args.outline, args.output)
+    sources = validate_book(args.book_dir, args.outline)
     print("正文顺序：" + "、".join(path.name for path in sources))
 
 
