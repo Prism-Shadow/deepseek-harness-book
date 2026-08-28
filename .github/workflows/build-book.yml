@@ -4,6 +4,13 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: build-book-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pdf:
     runs-on: ubuntu-latest
@@ -75,3 +82,38 @@ jobs:
           name: dsh-book-pdf
           path: output/pdf/*.pdf
           if-no-files-found: error
+
+  release:
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      github.repository == 'Prism-Shadow/deepseek-harness-book'
+    needs: pdf
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dsh-book-pdf
+          path: release
+
+      - name: Publish rolling PDF release
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          asset="$RUNNER_TEMP/DeepSeek-Harness-实战指南.pdf"
+          cp "release/DeepSeek Harness 实战指南.pdf" "$asset"
+
+          if ! gh release view latest >/dev/null 2>&1; then
+            gh release create latest \
+              --target "$GITHUB_SHA" \
+              --title "最新版（持续更新）" \
+              --notes "由 main 分支自动构建，附件会随书稿更新。" \
+              --prerelease
+          fi
+
+          gh release upload latest "$asset" --clobber
