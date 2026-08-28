@@ -14,21 +14,11 @@
 >
 > 我是 2027 届市场营销专业本科生，暑假在一家宠物短视频公司做了两个月兼职，现在准备秋招，目标是互联网公司的内容运营岗。接下来想让你帮我盘点能力、调研岗位、写简历、模拟面试。先别开始做，列出你需要我提供哪些材料，按重要性排。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.92\textwidth]{assets/chapter8/8-1-01-material-list.png}
-\caption{dsh 按重要性列出求职材料}
-\end{figure}
-```
+![dsh 按重要性列出求职材料](assets/chapter8/8-1-01-material-list.png){width=92%}
 
 不用照着清单一次写完。已有的笔记、项目总结和作品先放进工作区，零散信息再通过聊天补充。以后继续使用同一 `job-hunt` 工作区，dsh 仍能读取这些文件。
 
 将兼职期间的笔记[“parttime-notes.md”](assets/chapter8/materials/parttime-notes.md)放进 `job-hunt` 工作区。这份笔记按周记录了八周兼职经历，既有脚本和视频的具体数据，也记下了两次直播的经过。校园经历较短，直接在对话里补充。
-
-```{=latex}
-\Needspace{22\baselineskip}
-```
 
 > <span class="prompt-title">提示词内容：</span>
 >
@@ -82,23 +72,11 @@
 
 这四项任务互不依赖，适合并行处理。运行时可以看到四个子 Agent 分别查找不同地区的 JD、薪资与技能变化，以及校招时间线。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.92\textwidth]{assets/chapter8/8-2-01-subagents-running.png}
-\caption{四个子 Agent 同时进行岗位调研}
-\end{figure}
-```
+![四个子 Agent 同时进行岗位调研](assets/chapter8/8-2-01-subagents-running.png){width=92%}
 
 每个子 Agent 都留下了一份报告，主 Agent 再把它们合并成“岗位调研.md”。这些报告保留了搜索过程和来源，后面抽查某条结论时还能回来核对。dsh 又把汇总路径和样本状态整理成图 8-4，完整网址和 JD 原文仍以“岗位调研.md”为准。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.98\textwidth]{assets/chapter8/8-2-02-research-summary.png}
-\caption{岗位调研的汇总路径和样本状态}
-\end{figure}
-```
+![岗位调研的汇总路径和样本状态](assets/chapter8/8-2-02-research-summary.png){width=98%}
 
 ### 先确认样本口径
 
@@ -134,10 +112,6 @@
 
 差距表反映的是这 10 份岗位样本的共性。准备写简历时，还要先选定一份具体 JD，再从现有经历中挑出最相关的内容。
 
-```{=latex}
-\Needspace{18\baselineskip}
-```
-
 ### 选择一份具体 JD
 
 > <span class="prompt-title">提示词内容：</span>
@@ -152,13 +126,7 @@ dsh 最后选择了转载页面中的快手媒体号运营实习岗位。该页�
 
 第一版 PDF 能打开，也只有一页，中文没有乱码，但事实和排版都有问题。它把两个月兼职写成了实习，加入了未经确认的到岗时间与六个月实习承诺，还把“第 4 周有两条脚本改动较少”概括成“稳定过稿”。版面上的分隔线穿过正文。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.82\textwidth]{assets/chapter8/8-3-02-first-resume.png}
-\caption{第一版 PDF 存在事实错误和排版问题}
-\end{figure}
-```
+![第一版 PDF 存在事实错误和排版问题](assets/chapter8/8-3-02-first-resume.png){width=82%}
 
 保留初版，再把修改稿另存为“resume-new.md”，后面还要用它更换模板。
 
@@ -172,10 +140,6 @@ dsh 最后选择了转载页面中的快手媒体号运营实习岗位。该页�
 
 第二版修正了这些事实，排版仍然简单，姓名还出现了重复。于是我们让 dsh 停用原来的 PDF 脚本，改用 RenderCV 生成三个模板。
 
-```{=latex}
-\Needspace{14\baselineskip}
-```
-
 > <span class="prompt-title">提示词内容：</span>
 >
 > 现在的简历排版还是不好看，而且姓名重复了。不要继续使用原来的 PDF 生成脚本。请安装并使用 RenderCV，把“resume-new.md”中的现有内容套入简历模板，分别使用 classic、moderncv、harvard 三种样式，各生成一份一页 A4 的 PDF，放入“resume-options”文件夹。使用本机可用的中文字体，姓名只出现一次，不要修改或补充简历内容。完成后列出三份 PDF 文件。
@@ -185,10 +149,6 @@ dsh 最后选择了转载页面中的快手媒体号运营实习岗位。该页�
 ![classic、moderncv 和 harvard 三种模板对比](assets/chapter8/8-3-03-template-comparison.png){width=98%}
 
 比较三份 PDF 后，我们选择 classic。它采用单栏，信息密度适中，中文经历从上到下读起来也顺。选定模板后，再围绕目标 JD 调整内容顺序和措辞。
-
-```{=latex}
-\Needspace{18\baselineskip}
-```
 
 > <span class="prompt-title">提示词内容：</span>
 >
@@ -226,10 +186,6 @@ dsh 保留 classic 模板，调整内容顺序，并生成“resume-final.pdf”
 
 dsh 将“面试题清单.md”中的六个考察维度整理成图 8-9，底部保留了实测中出现的文件缺失警告。dsh 报告文件缺失时，应先核对工作区和文件名，不能跳过警告继续假定文件存在。下面的提示词已经删掉了这个错误依赖。
 
-```{=latex}
-\Needspace{8\baselineskip}
-```
-
 > <span class="prompt-title">提示词内容：</span>
 >
 > 请读取“目标JD.md”和“resume-options/resume-final.yaml”，根据目标岗位一次性生成 6 个面试问题，覆盖岗位匹配、短视频爆款、数据分析、个人贡献、直播复盘和运营情景题。每题注明考察点，但先不要提供答案，保存为“面试题清单.md”。
@@ -244,34 +200,16 @@ dsh 将“面试题清单.md”中的六个考察维度整理成图 8-9，底部
 
 第一题追问 47 万播放视频的素材来源和选题依据。简历只写了素材由本人完成，面试官继续追问具体做了哪些工作。回答者补充说，自己负责搜集、筛选、拼接和剪辑，也承认当时没有留下选择“照镜子”方向的具体依据。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.96\textwidth]{assets/chapter8/8-4-02-deep-follow-up.png}
-\caption{面试官继续追问素材来源和选题依据}
-\end{figure}
-```
+![面试官继续追问素材来源和选题依据](assets/chapter8/8-4-02-deep-follow-up.png){width=96%}
 
 第二题围绕后台数据展开。此前提出过“周四晚上数据更好”的猜想，却没有留下验证结果。继续追问时，回答者提到数据透视表和几个 Excel 函数，但这些方法没有写进简历，能力档案里也没有相应的实操记录。面试前要亲手练习，现场回答只讲自己真正会用的功能。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.96\textwidth]{assets/chapter8/8-4-03-data-round.png}
-\caption{回答列出 Excel 工具并说明涨粉口径}
-\end{figure}
-```
+![回答列出 Excel 工具并说明涨粉口径](assets/chapter8/8-4-03-data-round.png){width=96%}
 
 第三题追问第二场直播为什么“流程更顺”。回答者说明，这一判断来自本人做场控时的现场观察。第二场没有再观察到连续 20 分钟的提醒空窗，但没有后台数据或完整记录，不能确认完全没有遗漏。由于没有保存后台数据，不能声称在线人数或成交数据得到提升。
 
 三轮结束后，dsh 把需要准备的内容写进“面试复盘.md”。爆款视频的完播率和互动数据、第二场直播的后台数据都没有保留。回答时要说明素材处理、现场观察和账号涨粉的口径。Excel 分析方法还需要补做练习。图 8-12 汇总了三轮追问中发现的问题和面试前行动，完整记录仍以“面试复盘.md”为准。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\includegraphics[width=0.98\textwidth]{assets/chapter8/8-4-05-debrief-summary.png}
-\caption{三轮追问中发现的问题和面试前行动}
-\end{figure}
-```
+![三轮追问中发现的问题和面试前行动](assets/chapter8/8-4-05-debrief-summary.png){width=98%}
 
 模拟结束后，dsh 生成了“面试复盘.md”。本次没有继续修改简历或重新导出 PDF，因此当前的“resume-final.pdf”只能用于模拟面试。实际投递前，还要补入真实个人信息，根据复盘修正简历中有关素材来源、直播结果和涨粉口径的表述，重新核对岗位状态，完成最后检查后再导出“resume-final.pdf”。

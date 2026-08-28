@@ -115,35 +115,30 @@
 
 最终，Skill 保留了犬类、白色毛发、简单道具和保持画面简洁四条策略。浅蓝背景和增强脸部对比没有带来稳定提升，因此没有保留。整个实验中，模型参数始终未变，画面变化来自 dsh 对 Skill 的不断修改。下面选取四个关键轮次，直观展示这些修改如何影响绘画结果。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\begin{minipage}{0.43\textwidth}
-  \centering
-  \includegraphics[width=0.88\linewidth]{assets/chapter12/12-2-02-round00.png}
-  \par\smallskip\sffamily\footnotesize 第0轮｜橘猫｜19.73 分
-\end{minipage}\hfill
-\begin{minipage}{0.43\textwidth}
-  \centering
-  \includegraphics[width=0.88\linewidth]{assets/chapter12/12-2-03-round01.png}
-  \par\smallskip\sffamily\footnotesize 第1轮｜橘色狗｜33.16 分
-\end{minipage}
+<figure class="book-figure book-figure-grid" markdown>
 
-\vspace{4mm}
+<div class="book-figure-item" markdown>
+![第0轮的橘猫](assets/chapter12/12-2-02-round00.png){.book-figure-image width=88%}
+<span class="book-figure-note">第0轮｜橘猫｜19.73 分</span>
+</div>
 
-\begin{minipage}{0.43\textwidth}
-  \centering
-  \includegraphics[width=0.88\linewidth]{assets/chapter12/12-2-04-round03.png}
-  \par\smallskip\sffamily\footnotesize 第3轮｜白色狗｜68.57 分
-\end{minipage}\hfill
-\begin{minipage}{0.43\textwidth}
-  \centering
-  \includegraphics[width=0.88\linewidth]{assets/chapter12/12-2-05-round08.png}
-  \par\smallskip\sffamily\footnotesize 第8轮｜白色狗与简单道具｜74.81 分
-\end{minipage}
-\caption{同一次任务中的四张宠物概念图}
-\end{figure}
-```
+<div class="book-figure-item" markdown>
+![第1轮的橘色狗](assets/chapter12/12-2-03-round01.png){.book-figure-image width=88%}
+<span class="book-figure-note">第1轮｜橘色狗｜33.16 分</span>
+</div>
+
+<div class="book-figure-item" markdown>
+![第3轮的白色狗](assets/chapter12/12-2-04-round03.png){.book-figure-image width=88%}
+<span class="book-figure-note">第3轮｜白色狗｜68.57 分</span>
+</div>
+
+<div class="book-figure-item" markdown>
+![第8轮的白色狗与简单道具](assets/chapter12/12-2-05-round08.png){.book-figure-image width=88%}
+<span class="book-figure-note">第8轮｜白色狗与简单道具｜74.81 分</span>
+</div>
+
+<figcaption>同一次任务中的四张宠物概念图</figcaption>
+</figure>
 
 四张图展示了 Skill 逐步变化的过程。画面中的宠物从猫变为狗，毛色由橘色和棕色逐步调整为白色，后续几轮则继续优化轮廓和画面元素。后期图片已经明显接近评测器的偏好，说明 dsh 通过修改 Skill 完成了一次有效的自进化。
 
@@ -157,22 +152,20 @@
 >
 > 读取并使用当前工作区中的 animal-drawing Skill，绘制一张 512×512 的 SVG 宠物概念图并保存为 candidate.svg。只生成这一张图，不调用评测器，不修改 Skill，不参考其他会话或已有图片。完成后检查 SVG 能正常打开，并用中文简短报告文件路径。
 
-```{=latex}
-\begin{figure}[H]
-\centering
-\begin{minipage}{0.43\textwidth}
-  \centering
-  \includegraphics[width=0.88\linewidth]{assets/chapter12/12-2-05-round08.png}
-  \par\smallskip\sffamily\footnotesize 第8轮的最高分概念图
-\end{minipage}\hfill
-\begin{minipage}{0.43\textwidth}
-  \centering
-  \includegraphics[width=0.88\linewidth]{assets/chapter12/12-2-07-skill-reuse.png}
-  \par\smallskip\sffamily\footnotesize 新会话复用 Skill 的结果
-\end{minipage}
-\caption{第8轮高分图与新会话复用最终 Skill 画出的概念图}
-\end{figure}
-```
+<figure class="book-figure book-figure-grid" markdown>
+
+<div class="book-figure-item" markdown>
+![第8轮的最高分概念图](assets/chapter12/12-2-05-round08.png){.book-figure-image width=88%}
+<span class="book-figure-note">第8轮的最高分概念图</span>
+</div>
+
+<div class="book-figure-item" markdown>
+![新会话复用 Skill 的结果](assets/chapter12/12-2-07-skill-reuse.png){.book-figure-image width=88%}
+<span class="book-figure-note">新会话复用 Skill 的结果</span>
+</div>
+
+<figcaption>第8轮高分图与新会话复用最终 Skill 画出的概念图</figcaption>
+</figure>
 
 上图右侧的概念图由新会话画出。这个会话没有读过前面的图片和评分，也没有调用评测器，只根据最终的 Skill 画图。这里将它与自进化过程中得分最高的第8轮概念图放在一起比较。
 

@@ -81,13 +81,13 @@ mkdocs serve
 
 ### 构建 PDF
 
-本地安装 Pandoc、XeLaTeX 和脚本提示的 TeX 组件后，运行：
+运行：
 
 ```bash
-./scripts/build_pdf.sh
+./scripts/build_typst_pdf.sh
 ```
 
-脚本会校验目录和章节标题，并在 `output/pdf/` 中生成 PDF。
+脚本会先检查目录、章节标题和图片引用，再使用 `typst/main.typ` 排版全书，并在 `output/pdf/` 中生成 PDF。
 
 ## 🔗 相关链接
 
