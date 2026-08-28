@@ -48,7 +48,7 @@ DeepSeek Harness（简称 dsh）是一套由插件组装而成的 Agent Harness�
 | [第 4 章 用 dsh 完成日常办公](https://dshbook.penguin.ooo/chapter4/) | 处理 Excel、Word、PPT 和 PDF。 | [Demo](demo/chapter4-office-workflow/) |
 | [第 5 章 让 dsh 成为飞书里的数字秘书](https://dshbook.penguin.ooo/chapter5/) | 连接飞书，处理文档、任务、日程和审批。 | [Demo](demo/chapter5-feishu-assistant/) |
 | [第 6 章 让 dsh 设计活动海报](https://dshbook.penguin.ooo/chapter6/) | 用 Design 插件生成并调整活动海报。 | [Demo](demo/chapter6-poster-design/) |
-| [第 7 章 让 dsh 制作短剧](https://dshbook.penguin.ooo/chapter7/) | 编写剧本，生成分镜并制作短剧。 |  |
+| [第 7 章 让 dsh 制作短剧](https://dshbook.penguin.ooo/chapter7/) | 编写剧本，生成分镜并制作短剧。 | [Demo](demo/chapter7-drama-design/) |
 | [第 8 章 让 dsh 帮你找工作](https://dshbook.penguin.ooo/chapter8/) | 分析岗位，优化简历并进行模拟面试。 | [Demo](demo/chapter8-job-hunt/) |
 | [第 9 章 用 dsh 构建市场投研助手](https://dshbook.penguin.ooo/chapter9/) | 定义信号，回测策略并生成市场报告。 | [Demo](demo/chapter9-a-share-research/) |
 | [第 10 章 用 dsh 和 AgentTeams 组建 OPC 代码审查团队](https://dshbook.penguin.ooo/chapter10/) | 用 AgentTeams 并行审查仓库更新。 | [Demo](demo/chapter10-agentteams-repo-review/) |
