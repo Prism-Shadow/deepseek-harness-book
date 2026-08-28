@@ -34,7 +34,7 @@
   }
 ]
   \node[flow] (skill) {读取当前 Skill};
-  \node[flow, right=of skill] (draw) {生成 SVG 概念图};
+  \node[flow, right=of skill] (draw) {画出概念图};
   \node[flow, right=of draw] (view) {渲染并查看图片};
   \node[flow, below=14mm of view] (score) {取得评分};
   \node[final, left=of score] (update) {更新或保留 Skill};
