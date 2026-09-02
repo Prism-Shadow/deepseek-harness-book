@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">本书的三条阅读路径</title>
+  <desc id="desc">先通过第1至11章认识并学会使用 dsh，再通过第12至13章扩展能力，最后通过第14至15章拆解 Harness 与 Cordis。熟悉实战的读者也可以从后两部分直接进入。</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#315EF5"/>
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#7B8798"/>
+    </marker>
+    <style>
+      .zh { font-family: SimSun, "Songti SC", serif; }
+      .mix { font-family: "Times New Roman", SimSun, "Songti SC", serif; }
+      .title { font-size: 50px; font-weight: 700; fill: #273142; }
+      .subtitle { font-size: 25px; fill: #526071; }
+      .part { font-size: 24px; font-weight: 700; fill: #315EF5; }
+      .node-title { font-size: 36px; font-weight: 700; fill: #273142; }
+      .node-title-light { font-size: 36px; font-weight: 700; fill: #FFFFFF; }
+      .node-body { font-size: 24px; fill: #526071; }
+      .node-body-light { font-size: 24px; fill: #FFFFFF; }
+      .note { font-size: 23px; fill: #526071; }
+      .main-arrow { stroke: #315EF5; stroke-width: 6; fill: none; marker-end: url(#arrow-blue); }
+      .optional { stroke: #7B8798; stroke-width: 4; stroke-dasharray: 12 10; fill: none; marker-end: url(#arrow-gray); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="80" y="92" class="zh title">本书的三条阅读路径</text>
+  <text x="80" y="138" class="zh subtitle">从完成任务开始，逐步走到能力扩展与运行机制</text>
+
+  <rect x="100" y="230" width="400" height="360" rx="28" fill="#315EF5"/>
+  <text x="300" y="288" text-anchor="middle" class="zh node-body-light">第一部分 · 第 1 至 11 章</text>
+  <text x="300" y="382" text-anchor="middle" class="zh node-title-light">认识并会用 dsh</text>
+  <text x="300" y="445" text-anchor="middle" class="zh node-body-light">概念、安装、调研与创作</text>
+  <text x="300" y="486" text-anchor="middle" class="zh node-body-light">从要求走到可检查的产物</text>
+
+  <rect x="600" y="230" width="400" height="360" rx="28" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="800" y="288" text-anchor="middle" class="zh part">第二部分 · 第 12 至 13 章</text>
+  <text x="800" y="382" text-anchor="middle" class="zh node-title">扩展 dsh</text>
+  <text x="800" y="445" text-anchor="middle" class="zh node-body">Skill、MCP 与插件</text>
+  <text x="800" y="486" text-anchor="middle" class="zh node-body">把经验与工具接入任务</text>
+
+  <rect x="1100" y="230" width="400" height="360" rx="28" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="1300" y="288" text-anchor="middle" class="zh part">第三部分 · 第 14 至 15 章</text>
+  <text x="1300" y="382" text-anchor="middle" class="zh node-title">拆解 dsh</text>
+  <text x="1300" y="445" text-anchor="middle" class="mix node-body">Harness 与 Cordis</text>
+  <text x="1300" y="486" text-anchor="middle" class="zh node-body">理解消息、工具与插件装配</text>
+
+  <path d="M500 410H590" class="main-arrow"/>
+  <path d="M1000 410H1090" class="main-arrow"/>
+
+  <path d="M800 715V610" class="optional"/>
+  <path d="M1300 715V610" class="optional"/>
+  <text x="1050" y="756" text-anchor="middle" class="zh note">熟悉实战的读者可以直接进入扩展或原理部分</text>
+
+  <rect x="285" y="800" width="1030" height="60" rx="18" fill="#F3F4F6"/>
+  <text x="800" y="839" text-anchor="middle" class="zh note">每条路径都回到同一个检查标准：调用过什么、留下了什么、依据从哪里来</text>
+</svg>

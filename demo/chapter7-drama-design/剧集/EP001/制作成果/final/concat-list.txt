@@ -1,8 +1,0 @@
-file '../videos/SHOT-001.mp4'
-file '../videos/SHOT-002.mp4'
-file '../videos/SHOT-003.mp4'
-file '../videos/SHOT-004.mp4'
-file '../videos/SHOT-005.mp4'
-file '../videos/SHOT-006.mp4'
-file '../videos/SHOT-007.mp4'
-file '../videos/SHOT-008.mp4'

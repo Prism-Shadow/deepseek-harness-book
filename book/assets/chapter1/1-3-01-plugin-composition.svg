@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">dsh 的插件装配与清理</title>
+  <desc id="desc">模型适配器、工具、会话与 Agent Loop 作为插件进入 Cordis 运行时。运行时按依赖激活组件，并在插件卸载或更新时调用 disposer 清理注册项与资源。</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#315EF5"/>
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#7B8798"/>
+    </marker>
+    <style>
+      .zh { font-family: SimSun, "Songti SC", serif; }
+      .mix { font-family: "Times New Roman", SimSun, "Songti SC", serif; }
+      .title { font-size: 50px; font-weight: 700; fill: #273142; }
+      .subtitle { font-size: 25px; fill: #526071; }
+      .node-title { font-size: 29px; font-weight: 700; fill: #273142; }
+      .node-title-light { font-size: 30px; font-weight: 700; fill: #FFFFFF; }
+      .node-body { font-size: 23px; fill: #526071; }
+      .node-body-light { font-size: 23px; fill: #FFFFFF; }
+      .note { font-size: 23px; fill: #526071; }
+      .main-arrow { stroke: #315EF5; stroke-width: 5; fill: none; marker-end: url(#arrow-blue); }
+      .dependency { stroke: #7B8798; stroke-width: 4; fill: none; marker-end: url(#arrow-gray); }
+      .dispose { stroke: #7B8798; stroke-width: 4; stroke-dasharray: 12 10; fill: none; marker-end: url(#arrow-gray); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="80" y="92" class="mix title">dsh 的插件装配与清理</text>
+  <text x="80" y="138" class="zh subtitle">能力通过插件进入运行时，卸载时同时撤销注册项并释放资源</text>
+
+  <rect x="80" y="230" width="270" height="155" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="215" y="293" text-anchor="middle" class="zh node-title">模型适配器</text>
+  <text x="215" y="338" text-anchor="middle" class="zh node-body">提供模型调用接口</text>
+
+  <rect x="390" y="230" width="240" height="155" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="510" y="293" text-anchor="middle" class="zh node-title">工具</text>
+  <text x="510" y="338" text-anchor="middle" class="zh node-body">注册 schema 与执行器</text>
+
+  <rect x="670" y="230" width="240" height="155" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="790" y="293" text-anchor="middle" class="zh node-title">会话</text>
+  <text x="790" y="338" text-anchor="middle" class="zh node-body">保存消息与执行记录</text>
+
+  <rect x="950" y="230" width="270" height="155" rx="20" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="1085" y="293" text-anchor="middle" class="mix node-title">Agent Loop</text>
+  <text x="1085" y="338" text-anchor="middle" class="zh node-body">推动任务继续运行</text>
+
+  <rect x="1260" y="230" width="260" height="155" rx="20" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="1390" y="293" text-anchor="middle" class="zh node-title">其他插件</text>
+  <text x="1390" y="338" text-anchor="middle" class="zh node-body">替换或扩展能力</text>
+
+  <path d="M215 405V470" class="dependency"/>
+  <path d="M510 405V470" class="dependency"/>
+  <path d="M790 405V470" class="dependency"/>
+  <path d="M1085 405V470" class="dependency"/>
+  <path d="M1390 405V470" class="dependency"/>
+
+  <rect x="180" y="485" width="860" height="210" rx="26" fill="#315EF5"/>
+  <text x="610" y="560" text-anchor="middle" class="mix node-title-light">Cordis 运行时</text>
+  <text x="610" y="610" text-anchor="middle" class="zh node-body-light">按服务依赖激活插件，记录 effect 与生命周期</text>
+  <text x="610" y="651" text-anchor="middle" class="zh node-body-light">配置变化后重新判断哪些组件可以运行</text>
+
+  <rect x="1120" y="485" width="400" height="210" rx="26" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="1320" y="555" text-anchor="middle" class="zh node-title">卸载或更新</text>
+  <text x="1320" y="605" text-anchor="middle" class="mix node-body">调用 disposer</text>
+  <text x="1320" y="646" text-anchor="middle" class="zh node-body">撤销注册项并释放资源</text>
+
+  <path d="M1040 590H1110" class="dispose"/>
+  <text x="1075" y="555" text-anchor="middle" class="zh note">变化</text>
+
+  <rect x="325" y="755" width="950" height="72" rx="18" fill="#F3F4F6"/>
+  <text x="800" y="801" text-anchor="middle" class="zh note">系统既要知道装入了什么，也要知道撤下时如何恢复可解释的状态</text>
+</svg>

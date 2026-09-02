@@ -27,7 +27,11 @@
 )
 
 #front-matter[
-  #render-markdown("/book/introduction.md", label-prefix: "intro-")
+  // 导言中的二级标题只用于阅读导航，不占用第一章的节编号。
+  #{
+    show heading.where(level: 2): set heading(numbering: none)
+    render-markdown("/book/introduction.md", label-prefix: "intro-")
+  }
 
   #my-outline()
 ]

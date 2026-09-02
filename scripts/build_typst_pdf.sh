@@ -15,7 +15,7 @@ fi
 
 # 模板 inelegant-note 指定思源宋体 / 思源黑体，缺字体会退化成默认字体。
 for family in "Source Han Serif SC" "Source Han Sans SC"; do
-  if ! typst fonts | grep -qx "$family"; then
+  if ! typst fonts | grep -x "$family" >/dev/null; then
     echo "缺少中文字体：$family" >&2
     echo "可从 Adobe 下载后解压到 ~/.local/share/fonts 并运行 fc-cache -f：" >&2
     echo "  https://github.com/adobe-fonts/source-han-serif/releases (09_SourceHanSerifSC.zip)" >&2
