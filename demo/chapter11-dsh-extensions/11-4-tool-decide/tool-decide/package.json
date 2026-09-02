@@ -1,6 +1,0 @@
-{
-  "name": "tool-decide",
-  "private": true,
-  "type": "module",
-  "main": "index.js"
-}

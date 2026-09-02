@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Harness 如何持续推进任务</title>
+  <desc id="desc">Harness 组装用户要求、会话历史和工具说明，模型据此判断并调用工具，工具结果和错误信息写回会话，再进入下一次判断。</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#315EF5"/>
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#7B8798"/>
+    </marker>
+    <style>
+      .zh { font-family: SimSun, "Songti SC", serif; }
+      .mix { font-family: "Times New Roman", SimSun, "Songti SC", serif; }
+      .title { font-size: 50px; font-weight: 700; fill: #273142; }
+      .subtitle { font-size: 25px; fill: #526071; }
+      .node-title { font-size: 30px; font-weight: 700; fill: #273142; }
+      .node-title-light { font-size: 30px; font-weight: 700; fill: #FFFFFF; }
+      .node-body { font-size: 23px; fill: #526071; }
+      .node-body-light { font-size: 23px; fill: #FFFFFF; }
+      .note { font-size: 23px; fill: #526071; }
+      .main-arrow { stroke: #315EF5; stroke-width: 5; fill: none; marker-end: url(#arrow-blue); }
+      .loop-arrow { stroke: #7B8798; stroke-width: 4; fill: none; marker-end: url(#arrow-gray); }
+      .error-arrow { stroke: #7B8798; stroke-width: 4; stroke-dasharray: 12 10; fill: none; marker-end: url(#arrow-gray); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="80" y="92" class="mix title">Harness 如何持续推进任务</text>
+  <text x="80" y="138" class="zh subtitle">工具执行结束后，结果会回到会话，成为模型下一步判断的新输入</text>
+
+  <rect x="80" y="240" width="270" height="245" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="215" y="315" text-anchor="middle" class="zh node-title">当前上下文</text>
+  <text x="215" y="365" text-anchor="middle" class="zh node-body">用户要求</text>
+  <text x="215" y="402" text-anchor="middle" class="zh node-body">会话历史与文件</text>
+  <text x="215" y="439" text-anchor="middle" class="zh node-body">工具说明</text>
+
+  <rect x="405" y="215" width="300" height="295" rx="24" fill="#315EF5"/>
+  <text x="555" y="305" text-anchor="middle" class="zh node-title-light">Harness 组装</text>
+  <text x="555" y="355" text-anchor="middle" class="zh node-body-light">选择模型此刻需要</text>
+  <text x="555" y="392" text-anchor="middle" class="zh node-body-light">看到的消息与能力</text>
+  <text x="555" y="449" text-anchor="middle" class="mix node-body-light">Prompt + Tools</text>
+
+  <rect x="760" y="240" width="250" height="245" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="885" y="330" text-anchor="middle" class="zh node-title">模型判断</text>
+  <text x="885" y="380" text-anchor="middle" class="zh node-body">直接回复</text>
+  <text x="885" y="417" text-anchor="middle" class="zh node-body">或选择工具</text>
+
+  <rect x="1065" y="240" width="220" height="245" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="1175" y="330" text-anchor="middle" class="zh node-title">工具执行</text>
+  <text x="1175" y="380" text-anchor="middle" class="zh node-body">搜索、命令</text>
+  <text x="1175" y="417" text-anchor="middle" class="zh node-body">文件操作</text>
+
+  <rect x="1340" y="240" width="180" height="245" rx="22" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="1430" y="330" text-anchor="middle" class="zh node-title">结果写回</text>
+  <text x="1430" y="380" text-anchor="middle" class="zh node-body">成功结果</text>
+  <text x="1430" y="417" text-anchor="middle" class="zh node-body">错误信息</text>
+
+  <path d="M350 362H395" class="main-arrow"/>
+  <path d="M705 362H750" class="main-arrow"/>
+  <path d="M1010 362H1055" class="main-arrow"/>
+  <path d="M1285 362H1330" class="main-arrow"/>
+
+  <path d="M1430 505V650C1430 715 555 715 555 525" class="loop-arrow"/>
+  <rect x="820" y="635" width="390" height="52" rx="26" fill="#FFFFFF"/>
+  <text x="1015" y="669" text-anchor="middle" class="zh note">结果进入会话，触发下一步</text>
+
+  <path d="M1430 485V555" class="error-arrow"/>
+  <text x="1470" y="548" class="zh note">失败也保留</text>
+
+  <rect x="330" y="770" width="940" height="72" rx="18" fill="#F3F4F6"/>
+  <text x="800" y="816" text-anchor="middle" class="zh note">Harness 负责连接每一步，人可以查看过程、补充要求或停止任务</text>
+</svg>

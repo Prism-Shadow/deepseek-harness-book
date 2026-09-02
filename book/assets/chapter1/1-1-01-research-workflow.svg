@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">调研任务如何走到可信报告</title>
+  <desc id="desc">问题界定、调研计划、搜索资料、来源核验和报告交付依次推进。来源核验发现证据不足时，返回搜索资料继续补查。</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#315EF5"/>
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#7B8798"/>
+    </marker>
+    <style>
+      .zh { font-family: SimSun, "Songti SC", serif; }
+      .mix { font-family: "Times New Roman", SimSun, "Songti SC", serif; }
+      .title { font-size: 50px; font-weight: 700; fill: #273142; }
+      .subtitle { font-size: 25px; fill: #526071; }
+      .node-title { font-size: 30px; font-weight: 700; fill: #273142; }
+      .node-title-light { font-size: 30px; font-weight: 700; fill: #FFFFFF; }
+      .node-body { font-size: 23px; fill: #526071; }
+      .node-body-light { font-size: 23px; fill: #FFFFFF; }
+      .note { font-size: 23px; fill: #526071; }
+      .main-arrow { stroke: #315EF5; stroke-width: 5; fill: none; marker-end: url(#arrow-blue); }
+      .return-arrow { stroke: #7B8798; stroke-width: 4; stroke-dasharray: 12 10; fill: none; marker-end: url(#arrow-gray); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+  <text x="80" y="92" class="zh title">调研任务如何走到可信报告</text>
+  <text x="80" y="138" class="zh subtitle">每一步都留下可检查的材料，证据不足时回到检索继续补查</text>
+
+  <rect x="80" y="255" width="250" height="205" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="205" y="330" text-anchor="middle" class="zh node-title">问题界定</text>
+  <text x="205" y="378" text-anchor="middle" class="zh node-body">明确范围与交付物</text>
+
+  <rect x="380" y="255" width="250" height="205" rx="22" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="505" y="330" text-anchor="middle" class="zh node-title">调研计划</text>
+  <text x="505" y="378" text-anchor="middle" class="zh node-body">拆问题并安排顺序</text>
+
+  <rect x="680" y="255" width="250" height="205" rx="22" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="805" y="330" text-anchor="middle" class="zh node-title">搜索资料</text>
+  <text x="805" y="378" text-anchor="middle" class="zh node-body">收集来源与原始材料</text>
+
+  <rect x="980" y="230" width="250" height="255" rx="22" fill="#315EF5"/>
+  <text x="1105" y="320" text-anchor="middle" class="zh node-title-light">来源核验</text>
+  <text x="1105" y="368" text-anchor="middle" class="zh node-body-light">检查出处与说法冲突</text>
+  <text x="1105" y="408" text-anchor="middle" class="zh node-body-light">区分事实和推断</text>
+
+  <rect x="1280" y="255" width="240" height="205" rx="22" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="1400" y="330" text-anchor="middle" class="zh node-title">报告交付</text>
+  <text x="1400" y="378" text-anchor="middle" class="zh node-body">正文、引用与材料</text>
+
+  <path d="M330 357H370" class="main-arrow"/>
+  <path d="M630 357H670" class="main-arrow"/>
+  <path d="M930 357H970" class="main-arrow"/>
+  <path d="M1230 357H1270" class="main-arrow"/>
+
+  <path d="M1105 505V645C1105 700 805 700 805 480" class="return-arrow"/>
+  <rect x="805" y="620" width="315" height="52" rx="26" fill="#FFFFFF"/>
+  <text x="962" y="654" text-anchor="middle" class="zh note">证据不足或说法冲突</text>
+
+  <rect x="350" y="750" width="900" height="72" rx="18" fill="#F3F4F6"/>
+  <text x="800" y="796" text-anchor="middle" class="zh note">行动、材料与结论彼此对应，后来的人才能复核报告</text>
+</svg>

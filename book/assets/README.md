@@ -5,10 +5,10 @@
 完整截图的存档要求适用于本规范生效后新增或重拍的图片，不要求为已有截图补齐原图。
 
 ```text
-book/assets/chapter2/
+book/assets/chapter3/
 ├── source/
-│   └── 2-1-01-tech-editor-created-full.png
-└── 2-1-01-tech-editor-created.png
+│   └── 3-1-01-tech-editor-created-full.png
+└── 3-1-01-tech-editor-created.png
 ```
 
 正文截图使用 `章-节-序号-内容.png`，完整截图沿用相同编号和内容名，并在末尾增加 `-full`。Markdown 只引用章节目录根部的裁剪图，`source/` 中的文件用于以后重新裁剪，不直接进入书稿。

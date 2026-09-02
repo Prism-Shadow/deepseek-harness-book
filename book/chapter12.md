@@ -1,172 +1,361 @@
-# 让 dsh 通过自进化画出概念图 {#ch-12}
+# 扩展 dsh 的能力 {#ch-12}
 
-在进入案例之前，让我们先介绍一下自进化这个概念。Agent 执行任务时会和环境交互，并从用户或者环境中获得反馈。它根据反馈分析问题，并修改自身，以达到更好的效果。这个过程就称之为自进化。
+前面几章使用的都是 dsh 已经提供的能力。本章开始动手扩展 dsh，依次编写 Skill、接入 MCP 服务器、安装第三方插件，并完成一个几十行的自定义插件。每节结束时，读者都可以在界面或工具列表中确认新增能力已经生效。
 
-自进化通常包括下面几个步骤：
+## 用 Skill 让 dsh 做得更好 {#sec-12-1}
 
-![Agent 根据反馈分析问题并修改自身](assets/chapter12/12-0-01-self-evolution-loop.svg){.book-technical-figure width=68%}
+先看一个常见的周报整理场景。准备周报时，工作区中已经有一份 `本周工作草记.md`。它按星期记下了登录超时问题的修复、Excel 导出功能的进度，以及仍在等待确认或排查的事项。记录足以说明本周做过什么，但已完成、进行中和待处理的内容混在一起，还不能直接作为周报使用。现在要用 dsh 整理这份草稿。
 
-这里的“自身”不限于模型参数。Prompt、Skill、工具以及 Harness 的结构都会影响 Agent 如何完成任务，也都可以成为自进化的对象。
+直接在对话中说明格式当然可以，但这类要求只对当前任务有效。下周再次生成周报时，仍要重新说明段落结构、标题和日期格式。Skill 可以把这些规则保存成文件，由 dsh 在任务匹配时自动加载。下面用同一份草稿生成两次周报：第一次不提供 Skill，让 dsh 自行组织内容；随后写入一份周报 Skill，再次生成并核对格式变化。
 
-对于一类任务，Agent 可以在试错中发现任务说明里没有写出的偏好和规律，再把经过验证的经验存进 Skill。新任务读取这份 Skill 时，便能沿用已有经验。这便是自进化的一种应用。本章将通过进化概念图绘画 Skill 的实验，讲解自进化的整个过程。
+### 未使用 Skill 时
 
-## 一个自进化实验 {#sec-12-1}
+草稿内容如下：
 
-设想你是一名设计师，正在为甲方绘制概念图。甲方想要一张宠物图，不过说不清应该画哪种宠物、使用什么毛色，以及画面画哪些细节，只能在看到设计稿以后判断好还是不好。于是，设计师先给出一个方案，甲方再根据画面反馈自己的偏好。几轮往返以后，甲方原本模糊的想法才会逐渐清楚。
+```md
+周一到周五的一些记录，随手记的，还没整理：
 
-我们让 dsh 扮演这位设计师。为了观察 dsh 能否从反馈中找到这些偏好，本章把这段协作过程改造成一个自进化实验。dsh 负责绘制宠物概念图，评测器则负责模拟甲方给概念图评分。在本实验中，我们采用 CLIP 模型作为评测器，用图片和偏好的相关程度作为评分的依据。
-
-实验开始时，dsh 只知道要画一只宠物。初始 Skill 也只规定画布尺寸、文件格式和基本绘画方式，没有指定物种、毛色或构图。评测器则预先设置了三项没有公开的偏好：宠物种类、毛色和细节（在这个例子中，评测器青睐细节丰富的白色狗）。评测器会对一张图片给出这三项的分数，这些分数反映了图片与三项偏好的符合程度。dsh 能看到这三项的分数，却不知道具体的偏好。
-
-每一轮，dsh 都会读取当前 Skill，按照已经记录的策略画图，同时对 Skill 中尚未确定的物种、毛色或画面细节进行尝试。图片完成后，dsh 将它交给评测器评分，再根据分数判断这次尝试是否值得写入 Skill。经过多轮尝试，Skill 会逐渐记录得到评分支持的经验，dsh 也会逐步摸清评测器的偏好。下面这张图展示了整个实验流程：
-
-![概念图绘制、评分与 Skill 更新流程](assets/chapter12/12-1-01-evolution-loop.svg){.book-technical-figure width=72%}
-
-以宠物毛色为例。dsh 读取当前 Skill，里面没有规定毛色，于是先尝试棕色，画出一只棕色狗并交给评测器评分。由于毛色分很低，dsh 在下一轮改画了一只白色狗。确认毛色分明显上升后，dsh 把“犬类优先采用白色毛色基调”写进 Skill。之后的轮次会读取更新后的 Skill，画狗时便会优先使用白色毛色。
-
-由于评测器对于 dsh 是一个黑箱，所以 Skill 中新增的规则必须来自实际尝试和分数变化。对于真实项目，可以把 CLIP 换成甲方、设计负责人或评审小组。
-
-## 自进化运行与分析 {#sec-12-2}
-
-### 从一份简单的 Skill 开始
-
-实验开始时，我们只给 dsh 一份简单的 Skill。它保留 SVG 的基本绘制要求，绘画策略暂时为空，等待 dsh 在运行中更新。
-
-```markdown
-# 用 SVG 画宠物
-
-- 画布为 512×512，`viewBox` 为 `0 0 512 512`。
-- 使用 SVG 图形画一只宠物。
-- 不得嵌入或引用外部图片。
-
-## 绘画策略
-
-暂无。
+- 周一 把用户反馈里提到的登录超时问题复现了，是 session 过期时间设太短，改成 2 小时
+- 周二 跟进上面那个问题，把修复合并到 dev 分支，写了两个单元测试
+- 周三 开会讨论下个月的排期，确定先做导出 Excel 功能
+- 周四 导出 Excel 功能写了一半，卡在合并单元格的库选型上，对比了 exceljs 与 xlsx-populate
+- 周五上午 定下来用 exceljs，写了基础的导出逻辑
+- 周五下午 帮产品那边核对了一版需求文档，提了三条修改意见，还没等他们确认
+- 这周还有个遗留问题，测试环境的数据库连接偶尔会断，还没找到原因，先记一下
 ```
 
-同时，我们用任务提示约定自进化流程、循环轮数和评测规则。下面截取任务提示中最关键的一段。
+在还没有任何 Skill 的工作区中，输入下面的提示词：
 
 > <span class="prompt-title">提示词内容：</span>
 >
-> 读取并使用当前绘画 Skill，画出一张 512×512 的 SVG 宠物概念图。渲染并查看图片后，只调用一次固定评测。评测返回宠物种类、毛色和画面细节三项得分。结合历史图片与分数，每轮优先只改一项；创下新高并且能说清提升来自哪里时，立即把可复用规则写入 Skill。达到本次轮数上限后停止。
+> 参考本周工作草记.md 里的内容，帮我写一份这周的周报
 
-接下来我们把任务提示词交给 dsh。它会自动继续整个自进化的流程，包括连续绘图、查看结果、取得评分并修改 Skill。
+dsh 读取文件后，会自行确定段落结构和标题。
 
-### 自进化结果
+![没有 Skill 时，dsh 自己决定文件名、结构和小标题](assets/chapter12/12-1-01-baseline-no-skill.png){width=86%}
 
-我们设定实验共运行十轮，每轮留下一张图片及其评分，因此最终得到十张图片和十组评分。由于评测器偏好细节丰富的白色狗，dsh 会根据反馈逐步向这个方向调整。
+这次生成的文件名是 `本周周报.md`，正文以“本周工作周报”为标题，下面使用中文序号划分“本周完成”“会议与排期”“风险与遗留问题”和“下周计划”。内容基本完整，但文件名没有日期，章节名称也由模型临时决定。下周再次运行时，格式仍可能变化。
 
-下表记录了一次自进化实验的主要改动，以及宠物种类、毛色和画面细节三项得分。
+### 写一份 Skill
 
-| 轮次 | 本轮主要变化 | 种类匹配分 | 毛色匹配分 | 画面细节分 | 总分 |
-|---|---|---:|---:|---:|---:|
-| 0 | 橘色虎斑猫 | 0.32 | 0.21 | 19.20 | 19.73 |
-| 1 | 改画橘色狗 | 13.70 | 0.20 | 19.27 | 33.16 |
-| 2 | 改为棕色狗 | 16.46 | 1.61 | 18.69 | 36.75 |
-| 3 | 改为白色狗 | 26.89 | 21.45 | 20.23 | 68.57 |
-| 4 | 用描边补足白色轮廓 | 27.92 | 25.11 | 19.39 | 72.41 |
-| 5 | 增加浅蓝背景 | 21.67 | 22.58 | 21.46 | 65.71 |
-| 6 | 撤回背景并提纯白色 | 26.54 | 26.15 | 19.34 | 72.03 |
-| 7 | 增加地面、骨头和红球 | 28.33 | 26.94 | 18.94 | 74.21 |
-| 8 | 清理零碎线段 | 28.50 | 26.97 | 19.34 | **74.81** |
-| 9 | 增强脸部对比 | 28.22 | 27.49 | 18.56 | 74.27 |
+Skill 是一个遵循约定格式的 Markdown 文件，放入 dsh 扫描的目录后即可被发现。项目内的 `.dsh/skills/skill-name/SKILL.md` 只对当前项目生效，适合随代码库共享给团队；`$DSH_HOME/skills/skill-name/SKILL.md` 是用户级 Skill，可用于这台机器上的所有项目，适合保存个人反复使用的方法。将 `skill-name` 替换为自定义名称即可。本例的周报格式只用于当前工作区，因此采用项目级 Skill。
 
-下图把总分单独画成折线，方便观察每次改动之后的整体变化。
+在工作区中新建 `.dsh/skills/weekly-report/SKILL.md`：
 
-![概念图实验从橘猫起步，逐步找到白色狗并继续调整画面细节](assets/chapter12/12-2-06-score-evolution.png){width=94%}
+```md
+---
+name: weekly-report
+description: 把本周零散的工作记录整理成固定格式的周报。用户要求"写周报"、"整理本周工作"、"周报"时使用。
+---
 
+# 周报整理方法
 
-从表格和折线图可以看到，总分虽然中间有所回落，但整体呈上升趋势。这说明 dsh 能够根据评分不断调整 Skill，逐步形成更适合这项任务的绘画策略，并画出符合评测器偏好的图片，完成了一次有效的自进化。整个探索过程大致可以分为三个阶段：先确定宠物种类，再尝试不同毛色，最后调整画面细节。
+把用户提供的原始记录，改写成下面这个固定格式的周报，不要自己发明新的章节。
 
-### 物种
+## 输出格式
 
-第0轮画出的是一只橘色虎斑猫。虽然画面细节不错，宠物种类和毛色却几乎没有得分。dsh 随后改画狗，物种分和总分随之上升，由此判断犬类更接近评测器的偏好，并把“宠物种类不确定时，优先选择犬类”写进 Skill。
+~~~
+# 周报 YYYY-MM-DD
 
-第2轮又把毛色改成棕色。总分虽然继续上升，但物种分也发生了变化，毛色分依然很低，无法证明棕色更合适。因此，这次尝试没有写入 Skill。
+## 本周完成
+- 已经做完、有结果的事，一行一条，动词开头
 
-### 毛色
+## 进行中
+- 开始了但还没做完的事，一行一条，说明卡在哪或者进度到哪
 
-第3轮把棕色狗改成白色狗，总分从36.75升到68.57，出现了整个实验中最大的一次跃升。这一轮主要改变了毛色，毛色分也明显提高，因此 dsh 把“犬类优先采用白色毛色基调”写进 Skill。
+## 下周计划
+- 根据本周进行中和遗留的事，推出下周打算做的 1-3 件事
 
-下图记录了这次更新。dsh 渲染并查看 SVG、取得评分后，随即编辑了 Skill。
+## 风险与阻塞
+- 需要别人配合、还没解决的问题；没有的话写"无"
+~~~
 
-![第3轮的毛色分明显上升后，dsh 立即修改绘画 Skill](assets/chapter12/12-2-01-dsh-run09.png){width=88%}
+## 规则
 
-### 画面细节
-
-找到白色狗以后，dsh 开始调整轮廓、背景和画面元素。这一阶段的反馈更加复杂：灰色描边降低了细节分；浅蓝背景虽然提高了细节分，却让其他两项得分下降；简单道具和画面清理则带来了小幅提升。
-
-经过几轮尝试，dsh 最终把简单道具和保持画面简洁写进 Skill，没有保留浅蓝背景和增强脸部对比等效果不佳的改动。
-
-### 自进化最终得到的 Skill
-
-运行结束后，最初空白的策略区留下四条规则。
-
-```markdown
-## 绘画策略
-
-- 宠物种类不确定时，优先选择犬类。
-- 犬类优先采用白色毛色基调。
-- 犬类场景可搭配浅色地面与简单道具（如骨头、红球），
-  强化宠物主题。
-- 画面保持简洁，避免零碎细小线段；重要特征用较大、
-  清晰的形状表达。
+- 日期用原始记录里能推断出的周五日期；推不出来就用今天。
+- 每条不超过一行，不写"这周"、"本周"这种在标题里已经说明的词。
+- "本周完成"和"进行中"要能对应到原始记录里的具体内容，不要编造原始记录里没有的事。
+- 原始记录里如果提到还没解决的问题（比如卡住、等别人确认、故障排查中），归到"风险与阻塞"，不要漏掉。
+- 写完之后把周报保存成一个新文件，文件名是 `周报-YYYY-MM-DD.md`。
 ```
 
-最终，Skill 保留了犬类、白色毛发、简单道具和保持画面简洁四条策略。浅蓝背景和增强脸部对比没有带来稳定提升，因此没有保留。整个实验中，模型参数始终未变，画面变化来自 dsh 对 Skill 的不断修改。下面选取四个关键轮次，直观展示这些修改如何影响绘画结果。
+`name` 字段必须使用 kebab-case，并与目录名一致。`name` 和 `description` 是必填项。dsh 根据 Skill 名称和 `description` 判断任务是否匹配。触发条件可以写进 `description`。
 
-<figure class="book-figure book-figure-grid" markdown>
+保存文件后无需重启 dsh，也不需要执行额外的注册操作。dsh 会监听这些 Skill 目录，新的 Skill 保存后会立即出现在可用目录中。新建对话便可验证效果。
 
-<div class="book-figure-item" markdown>
-![第0轮的橘猫](assets/chapter12/12-2-02-round00.png){.book-figure-image width=88%}
-<span class="book-figure-note">第0轮｜橘猫｜19.73 分</span>
-</div>
+### 使用 Skill 后
 
-<div class="book-figure-item" markdown>
-![第1轮的橘色狗](assets/chapter12/12-2-03-round01.png){.book-figure-image width=88%}
-<span class="book-figure-note">第1轮｜橘色狗｜33.16 分</span>
-</div>
-
-<div class="book-figure-item" markdown>
-![第3轮的白色狗](assets/chapter12/12-2-04-round03.png){.book-figure-image width=88%}
-<span class="book-figure-note">第3轮｜白色狗｜68.57 分</span>
-</div>
-
-<div class="book-figure-item" markdown>
-![第8轮的白色狗与简单道具](assets/chapter12/12-2-05-round08.png){.book-figure-image width=88%}
-<span class="book-figure-note">第8轮｜白色狗与简单道具｜74.81 分</span>
-</div>
-
-<figcaption>同一次任务中的四张宠物概念图</figcaption>
-</figure>
-
-四张图展示了 Skill 逐步变化的过程。画面中的宠物从猫变为狗，毛色由橘色和棕色逐步调整为白色，后续几轮则继续优化轮廓和画面元素。后期图片已经明显接近评测器的偏好，说明 dsh 通过修改 Skill 完成了一次有效的自进化。
-
-## 验证进化后的 Skill {#sec-12-3}
-
-### 在新会话中复用 Skill
-
-前面的 Skill 一直在同一个会话中更新和使用。要确认 Skill 能够脱离原会话复用，还需要排除会话历史的影响。为此，我们新建一个没有前文记录的会话，只把最终的 Skill 放进工作区，再发送下面的提示词。
+新建对话，再次输入：
 
 > <span class="prompt-title">提示词内容：</span>
 >
-> 读取并使用当前工作区中的 animal-drawing Skill，绘制一张 512×512 的 SVG 宠物概念图并保存为 candidate.svg。只生成这一张图，不调用评测器，不修改 Skill，不参考其他会话或已有图片。完成后检查 SVG 能正常打开，并用中文简短报告文件路径。
+> 参考本周工作草记.md 里的内容，帮我写一份这周的周报
 
-<figure class="book-figure book-figure-grid" markdown>
+![有 Skill 之后，dsh 先加载 Skill 再按固定格式整理](assets/chapter12/12-1-02-skill-loaded.png){width=86%}
 
-<div class="book-figure-item" markdown>
-![第8轮的最高分概念图](assets/chapter12/12-2-05-round08.png){.book-figure-image width=88%}
-<span class="book-figure-note">第8轮的最高分概念图</span>
-</div>
+这次对话开头出现一条“上下文注入 · skill-catalog”。这是 dsh 提供给模型的 Skill 目录，其中包含当前可用的 Skill 名称和简短说明。模型发现任务匹配后会主动调用。随后出现的“Skill · weekly-report”表明模型已经加载这份格式说明。由于草记中没有明确的周五日期，dsh 按照 Skill 规则先执行命令确认当天日期，再生成 `周报-2026-08-28.md`。该文件名与 Skill 中的命名规则一致。
 
-<div class="book-figure-item" markdown>
-![新会话复用 Skill 的结果](assets/chapter12/12-2-07-skill-reuse.png){.book-figure-image width=88%}
-<span class="book-figure-note">新会话复用 Skill 的结果</span>
-</div>
+打开这份文件核对内容：
 
-<figcaption>第8轮高分图与新会话复用最终 Skill 画出的概念图</figcaption>
-</figure>
+```md
+# 周报 2026-08-28
 
-上图右侧的概念图由新会话画出。这个会话没有读过前面的图片和评分，也没有调用评测器，只根据最终的 Skill 画图。这里将它与自进化过程中得分最高的第8轮概念图放在一起比较。
+## 本周完成
+- 复现用户反馈的登录超时问题，定位为 session 过期时间过短，已调整为 2 小时
+- 将登录超时修复合并到 dev 分支，补充两个单元测试
+- 参与下月排期讨论，确定优先开发导出 Excel 功能
+- 对比 exceljs 与 xlsx-populate，确定选型 exceljs 并完成基础导出逻辑
+- 核对产品需求文档，提出三条修改意见
 
-两张概念图虽然不完全相同，但主体和关键元素基本一致。右图仍然画出了白色犬类，并保留了浅色地面、红球和清晰的大轮廓，这些都是评测器偏好的画面特征。这说明新会话能够采用 Skill 中的绘画策略，同时采用新的构图。下一次再画同类概念图时，dsh 可以直接从这些经验出发，不必重新摸索宠物种类和毛色。最终，我们得到了一份可以复用的画图 Skill。
+## 进行中
+- 导出 Excel 功能开发中：已完成库选型和基础导出逻辑，合并单元格部分待实现
+
+## 下周计划
+- 完成导出 Excel 功能，实现合并单元格及剩余逻辑
+- 跟进需求文档修改意见，确认后更新文档
+
+## 风险与阻塞
+- 需求文档三条修改意见尚未获得产品确认
+- 测试环境数据库连接偶尔断开，原因尚未定位
+```
+
+四个小标题与 Skill 中的定义完全一致。草记中尚未解决的产品确认和数据库连接问题，也都归入“风险与阻塞”，没有遗漏。将格式规则保存为 Skill 后，便可以反复使用。这份文件还可以复制到其他项目或机器，也可以随代码提交并分享给同事。对于无关任务，dsh 只读取 Skill 的名称和说明；只有确认任务匹配时，才会加载完整内容。
+
+## 让 MCP 接入更多工具 {#sec-12-2}
+
+dsh 内置文件读写、命令执行和网页搜索等工具。MCP（Model Context Protocol）是一套开放协议，开发者可以实现独立的服务进程，并通过该协议向 dsh 提供工具。接入后，模型调用这些工具的方式与内置工具相同。本节接入官方维护、免费且无需密钥的文件系统服务 `@modelcontextprotocol/server-filesystem`，让 dsh 读取当前工作区之外的目录。
+
+先在当前工作区之外准备一份调研笔记，放在你的 `dsh-mcp-notes` 目录：
+
+```md
+# 数据库偶尔断连排查.md
+
+现象：跑集成测试时，大概每天出现 1-2 次连接被服务端主动断开。
+
+已排除：本地网络问题（同网段其它服务没断过）。
+怀疑方向：连接池空闲超时比数据库 wait_timeout 长，连接在池里变成死连接。
+下一步：把连接池的 idleTimeout 调到比 wait_timeout 短，观察两天。
+```
+
+MCP 服务器的配置写在当前 profile 的 `cordis.patch.yml` 中，也就是启动 `dsh web` 时使用的配置文件，路径为 `$DSH_HOME/profiles/web/cordis.patch.yml`。打开该文件，加入以下配置：
+
+```yaml
+- insert:
+    - id: mcp-notes
+      name: '@deepseek-ai/dsh-mcp-client'
+      config:
+        serverName: notes
+        transport: stdio
+        command: npx
+        args: ['-y', '@modelcontextprotocol/server-filesystem', '你的 dsh-mcp-notes 目录的绝对路径']
+```
+
+`@deepseek-ai/dsh-mcp-client` 是 dsh 内置的桥接插件。每接入一个 MCP 服务器，都需要按照该结构增加一个实例。`serverName` 用于设置服务器的命名空间。`transport: stdio` 表示服务器以本地子进程运行，dsh 根据 `command` 和 `args` 启动进程，并通过标准输入输出与它通信。将 `args` 的最后一项替换为你的 `dsh-mcp-notes` 目录的绝对路径。
+
+如果服务器通过 HTTP 提供服务，可以改用 `transport: streamable-http`，再配置 `url` 和可选的 `headers`。需要密钥时，将密钥放入 `headers` 或 `env` 字段，并通过 `!!js process.env.对应变量名` 引用环境变量，不要在配置文件中写入明文密钥。YAML 依靠缩进表示层级。如果 `config` 下的字段少缩进一级，就会被解析为与 `config` 平级，导致 dsh 启动失败。遇到解析错误时，应先对照示例检查缩进。
+
+保存后无需重启 `dsh web`。dsh 会监听该补丁文件，检测到改动后会断开并重新连接对应的服务器。新建对话，输入：
+
+> <span class="prompt-title">提示词内容：</span>
+>
+> 用 mcp 文件系统工具看看笔记目录里有什么文件，然后读一下数据库偶尔断连排查这份笔记，告诉我下一步排查方向是什么
+
+![模型依次调用三个 mcp__notes__ 前缀的工具](assets/chapter12/12-2-01-mcp-tool-calls.png){width=86%}
+
+调用记录中依次出现三个工具。
+
+- `mcp__notes__list_allowed_directories`
+- `mcp__notes__directory_tree`
+- `mcp__notes__read_text_file`
+
+工具名称由 `mcp__`、服务器名和原始工具名组成，各部分使用两条下划线连接。这里的 `notes` 就是配置中的 `serverName`。这三个工具都来自新接入的服务器，接入前不会出现在工具列表中。
+
+三个工具调用结束后，回答先复述笔记里的验证方法，再补充需要核对的配置值和日志。
+
+![基于笔记内容给出的排查建议](assets/chapter12/12-2-02-mcp-result.png){width=86%}
+
+最终回答沿用了笔记中“怀疑连接池空闲超时比 wait_timeout 长”这一排查方向，并补充验证步骤和判断标准。回答中的建议可以在笔记原文中找到依据，说明 MCP 服务器已经接入成功。
+
+## 使用社区插件 {#sec-12-3}
+
+本节安装一个发布在 npm 上的第三方插件包，将其加入 profile，并在重启后从设置页确认加载状态。
+
+### 生态调查
+
+安装前先了解当前的社区插件生态。查阅 dsh 仓库和官方文档后，没有发现官方维护的插件市场或插件目录。以 `dsh-plugin` 等关键词搜索 npm，可以找到少量独立开发者发布的包。部分插件使用 `dsh-` 前缀，或者在包信息中加入 `dsh-plugin` 关键词。GitHub 上还有作者为仓库添加 `dsh-plugin` topic，社区也据此整理了 `awesome-dsh-plugin` 列表。
+
+目前社区规模较小，插件主要由个人开发者维护，也没有统一的审核和评分机制。安装第三方插件前应当审查源码，确认它会访问哪些文件、网络地址和配置。
+
+本节选择 `dsh-find-plugin`。该插件已发布到 npm，采用 MIT 许可证，源码只有几个文件，核心逻辑也只有几十行。它只注册一个供模型调用的工具，用于实时搜索 GitHub 上带有 `dsh-plugin` 标签的仓库。该插件不会读写本机文件，也不会修改配置之外的内容，适合作为第一个社区插件示例。
+
+### 安装插件
+
+dsh 提供了专门的插件安装命令，可以同时将依赖安装到 profile 并注册到插件树，无需手动修改 `package.json` 和 `cordis.patch.yml`：
+
+```sh
+dsh plugin --profile web add dsh-find-plugin
+```
+
+该命令会在 `$DSH_HOME/profiles/web/` 目录中执行一次 `pnpm add`。安装完成后，打开该 profile 的 `package.json` 可以看到以下变化：
+
+```json
+{
+  "dependencies": {
+    "dsh-find-plugin": "^0.3.7"
+  },
+  "dsh": {
+    "profile": {
+      "bundles": [
+        "@deepseek-ai/dsh-base",
+        "@deepseek-ai/dsh-web-app",
+        "dsh-find-plugin"
+      ]
+    }
+  }
+}
+```
+
+`dsh-find-plugin` 会同时出现在依赖列表和 `bundles` 数组中。该包声明了 `dsh.bundle.patch`，其 patch 层会随 `bundles` 列表自动加载，无需像上一节的 MCP 服务器那样手动修改 `cordis.patch.yml`。
+
+这里有一点容易忽略。`cordis.patch.yml` 修改后会自动热更新，但 `package.json` 中的依赖和 `bundles` 列表不在监听范围内，因此新安装的插件不会立即生效。如果安装后直接测试，dsh 仍会使用原有的插件配置。
+
+![重启之前，dsh 尚未加载新工具，只能搜索网页和查阅源码](assets/chapter12/12-3-01-before-restart-no-tool.png){width=86%}
+
+调用记录中没有出现新工具，dsh 改为搜索网页并查阅本地源码，说明插件尚未注册到工具列表。返回终端，按 `Ctrl+C` 停止 `dsh web`，重新运行 `npx -y @deepseek-ai/dsh web`，再打开页面。
+
+新建对话，输入：
+
+> <span class="prompt-title">提示词内容：</span>
+>
+> 我想要一个能帮我管理剪贴板历史的 dsh 插件，市面上有类似的吗，帮我搜一下
+
+![这次模型直接调用了新安装插件提供的 find_dsh_plugin 工具](assets/chapter12/12-3-02-find-tool-call.png){width=86%}
+
+重启后，调用记录中出现了 `find_dsh_plugin`。该工具由 `dsh-find-plugin` 注册，安装前不会出现在这台机器的工具列表中。它会实时搜索 GitHub 上带有 `dsh-plugin` 标签的仓库。
+
+工具返回候选仓库后，dsh 整理出两个同名插件，并给出各自的安装命令和源码审查建议。
+
+![带安装命令和安全提醒的搜索结果](assets/chapter12/12-3-03-find-result.png){width=86%}
+
+回答列出了两个候选插件和可直接执行的安装命令，并提醒用户在安装前审查源码，必要时锁定到具体的 commit。候选仓库的 star 很少，搜索结果也给出了相应的风险提示。
+
+最后在设置页确认插件状态。打开左下角“设置”，切换到“插件”标签，再进入“插件列表”，在搜索框中输入 `find`。
+
+![设置页的插件列表中可以找到新安装的插件，状态为已启用](assets/chapter12/12-3-04-settings-plugin-list.png){width=68%}
+
+`find-plugin` 的状态显示为“已启用”，说明该第三方插件已经被 dsh 识别并成功加载。内置插件和第三方插件都可以从同一页面查看。
+
+## 写一个自己的插件 {#sec-12-4}
+
+前三节使用的都是现有扩展，本节编写一个自定义插件。dsh 内置的 `tool-todo` 插件不到 250 行，只实现“待办事项”工具。本节参考它的结构，实现一个规模更小、可以实际运行的“随机做决定”插件，让 dsh 从用户提供的选项中随机选择一个。整个插件使用普通 JavaScript 编写，无需掌握 TypeScript。
+
+### 写代码
+
+新建 `$DSH_HOME/profiles/web/plugins/tool-decide/package.json`：
+
+```json
+{
+  "name": "tool-decide",
+  "private": true,
+  "type": "module",
+  "main": "index.js"
+}
+```
+
+再建同目录下的 `index.js`：
+
+```js
+// tool-decide 插件，为 dsh 添加一个"随机做决定"工具。
+import { defineTool } from '@deepseek-ai/dsh-tools'
+
+// 插件名称可以自行指定，配置文件中的 name 字段需要与它一致。
+export const name = 'tool-decide'
+// 声明插件依赖工具注册表服务，dsh 会在 ctx.tools 可用后启动插件。
+export const inject = ['tools']
+
+export function apply(ctx) {
+  ctx.tools.register(defineTool({
+    // 提供给模型的工具名称。
+    name: 'pick_one',
+    // 提供给模型的工具说明，用于判断何时调用该工具。
+    description: '当用户在几个选项里纠结、想随机选一个而不是要理性建议时，从给定的选项列表里随机选出一个。',
+    // 模型调用工具时需要传入的参数。
+    parameters: {
+      options: {
+        type: 'array',
+        required: true,
+        description: '待选项，至少两个。',
+        items: { type: 'string' },
+      },
+    },
+    // 定义返回给模型的结果结构。
+    output: {
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          picked: { type: 'string', required: true },
+        },
+      },
+      render: (_args, value) => [{ type: 'text', text: `随机选中：${value.picked}` }],
+    },
+    // 工具的执行逻辑。
+    execute(args) {
+      const options = args.options
+      if (!Array.isArray(options) || options.length < 2) {
+        throw new Error('pick_one 至少需要两个选项')
+      }
+      const picked = options[Math.floor(Math.random() * options.length)]
+      return Promise.resolve({ picked })
+    },
+  }))
+}
+```
+
+与 `tool-todo` 对照可以发现，两者结构相同。`name` 和 `inject` 两个导出分别声明插件名称与依赖服务。`apply` 函数通过 `ctx.tools.register` 注册工具。`defineTool` 中的 `name`、`description` 和 `parameters` 供模型读取，用于判断是否调用工具以及如何传入参数。`execute` 包含实际执行逻辑，模型无法直接读取这段代码。
+
+初次编写 `output.schema` 时，容易遗漏一个必要字段。`type: 'object'` 的 schema 必须显式设置 `additionalProperties: false` 或 `true`。如果省略该字段，dsh 会在启动时拒绝加载插件，并输出以下错误：
+
+```text
+Error: dsh: plugin tree failed to load: failed to apply loader entry
+tool-decide (tool-decide): unsupported JSON schema:
+schema.additionalProperties must be explicitly true or false
+```
+
+这段报错来自本地实际运行。补上 `additionalProperties: false` 后，插件即可正常加载。
+
+### 加入配置并重启验证
+
+在 profile 的 `package.json` 中将本地包声明为依赖，方法与第 3 章的“翡翠绿主题”插件相同：
+
+```json
+{
+  "dependencies": {
+    "tool-decide": "file:./plugins/tool-decide"
+  }
+}
+```
+
+在 `cordis.patch.yml` 中加入以下配置：
+
+```yaml
+- insert:
+    - id: tool-decide
+      name: 'tool-decide'
+```
+
+执行 `pnpm install`，将 `file:` 依赖链接到 `node_modules`，然后重启 `dsh web`。这里还有一个容易忽略的问题。`pnpm install` 会将 `plugins/tool-decide/` 中的文件同步到 `node_modules/tool-decide/`，通常采用硬链接。之后如果修改 `index.js`，`node_modules` 中的文件不会自动更新，需要再次执行 `pnpm install`。代码修改没有生效时，应先确认是否已经执行该命令。
+
+重启后新建对话，输入：
+
+> <span class="prompt-title">提示词内容：</span>
+>
+> 中午不知道吃沙县小吃还是黄焖鸡米饭，帮我随机选一个
+
+![dsh 调用了自定义的 pick_one 工具并给出结果](assets/chapter12/12-4-01-pick-one-result.png){width=78%}
+
+调用记录中的 `pick_one · {"options": ["沙县小吃", "黄焖鸡米饭"]}` 来自前文实现的工具。模型从用户输入中提取两个选项作为参数，工具随机选择其中一个，再由模型写入最终回复。这说明自定义插件已经被 dsh 加载并正常调用。
+
+第 3 章曾用创造模式定义一个修改主题色的动态插件，与本节使用的是同一套插件能力。动态插件经过审批后立即生效，但只在当前进程中保留，适合快速验证。配置式插件安装到 `node_modules` 后需要重启，之后会随 dsh 启动继续加载，更适合长期使用。`pick_one` 属于后一种方式。
+
+本节在 `cordis.patch.yml` 中新增的配置，与 dsh 内置的 `agent-loop`、`tool-todo` 插件结构相同，都包含 `id`、`name` 和可选的 `config`。内置插件与本节新增的插件采用相同的配置和加载方式。

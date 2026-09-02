@@ -1,5 +1,0 @@
-{
-  "dependencies": {
-    "tool-decide": "file:./plugins/tool-decide"
-  }
-}

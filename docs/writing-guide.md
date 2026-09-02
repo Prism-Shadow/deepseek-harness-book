@@ -46,7 +46,7 @@
 Markdown 使用相对路径和描述可见结果的说明文字，例如：
 
 ```markdown
-![dsh 完成模型调用并显示 token 统计](assets/chapter1/1-1-08-hello-reply.png){width=86%}
+![dsh 完成模型调用并显示 token 统计](assets/chapter2/2-1-08-hello-reply.png){width=86%}
 ```
 
 图片说明中不要手写“图 1.1”一类编号。PDF 与网页会分别根据图片在本章中的出现顺序自动添加编号，手写会造成重复。

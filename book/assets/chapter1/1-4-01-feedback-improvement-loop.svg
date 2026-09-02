@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">dsh 的任务执行与规则改进</title>
+  <desc id="desc">上层展示目标、上下文、模型、工具和结果构成的任务执行循环；下层展示 Agent 读取当前 Skill、执行任务、获得评测结果、比较结果和更新 Skill 的规则改进过程。</desc>
+  <defs>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#315EF5"/>
+    </marker>
+    <marker id="arrow-gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#7B8798"/>
+    </marker>
+    <style>
+      .zh { font-family: SimSun, "Songti SC", serif; }
+      .mix { font-family: "Times New Roman", SimSun, "Songti SC", serif; }
+      .title { font-size: 50px; font-weight: 700; fill: #273142; }
+      .subtitle { font-size: 25px; fill: #526071; }
+      .band-title { font-size: 32px; font-weight: 700; fill: #273142; }
+      .node-title { font-size: 28px; font-weight: 700; fill: #273142; }
+      .node-title-light { font-size: 28px; font-weight: 700; fill: #FFFFFF; }
+      .node-body { font-size: 22px; fill: #526071; }
+      .node-body-light { font-size: 22px; fill: #FFFFFF; }
+      .pill { font-size: 22px; font-weight: 700; fill: #315EF5; }
+      .note { font-size: 21px; fill: #526071; }
+      .main-arrow { stroke: #315EF5; stroke-width: 4; fill: none; marker-end: url(#arrow-blue); }
+      .loop-arrow { stroke: #7B8798; stroke-width: 4; fill: none; marker-end: url(#arrow-gray); }
+      .gap-arrow { stroke: #7B8798; stroke-width: 4; stroke-dasharray: 11 9; fill: none; marker-end: url(#arrow-gray); }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#FFFFFF"/>
+
+  <text x="80" y="76" class="mix title">dsh：任务执行与规则改进</text>
+  <text x="80" y="119" class="zh subtitle">Harness 推动当前任务，Agent 根据反馈更新 Skill，后续任务继续使用</text>
+
+  <rect x="1080" y="43" width="130" height="48" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="2"/>
+  <text x="1145" y="75" text-anchor="middle" class="zh pill">看见结果</text>
+  <rect x="1225" y="43" width="130" height="48" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="2"/>
+  <text x="1290" y="75" text-anchor="middle" class="zh pill">修改规则</text>
+  <rect x="1370" y="43" width="130" height="48" rx="24" fill="#EEF2FF" stroke="#315EF5" stroke-width="2"/>
+  <text x="1435" y="75" text-anchor="middle" class="zh pill">再次验证</text>
+
+  <rect x="80" y="155" width="1440" height="315" rx="26" fill="#FFFFFF" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="115" y="205" class="zh band-title">任务执行循环</text>
+
+  <rect x="125" y="255" width="220" height="120" rx="18" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="235" y="292" text-anchor="middle" class="zh node-title">目标与边界</text>
+  <text x="235" y="329" text-anchor="middle" class="zh node-body">目标与权限</text>
+  <text x="235" y="359" text-anchor="middle" class="zh node-body">验收标准</text>
+
+  <rect x="395" y="235" width="260" height="160" rx="20" fill="#315EF5"/>
+  <text x="525" y="290" text-anchor="middle" class="zh node-title-light">Harness 组装上下文</text>
+  <text x="525" y="328" text-anchor="middle" class="zh node-body-light">历史消息、工具列表</text>
+  <text x="525" y="361" text-anchor="middle" class="zh node-body-light">文件与当前状态</text>
+
+  <rect x="705" y="255" width="220" height="120" rx="18" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="815" y="300" text-anchor="middle" class="zh node-title">模型判断</text>
+  <text x="815" y="335" text-anchor="middle" class="zh node-body">回复或选择工具</text>
+
+  <rect x="975" y="255" width="220" height="120" rx="18" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="1085" y="292" text-anchor="middle" class="zh node-title">工具执行</text>
+  <text x="1085" y="329" text-anchor="middle" class="zh node-body">搜索与命令</text>
+  <text x="1085" y="359" text-anchor="middle" class="zh node-body">文件操作</text>
+
+  <rect x="1245" y="255" width="220" height="120" rx="18" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="1355" y="300" text-anchor="middle" class="zh node-title">记录结果</text>
+  <text x="1355" y="335" text-anchor="middle" class="zh node-body">写回会话与工作区</text>
+
+  <path d="M345 315H385" class="main-arrow"/>
+  <path d="M655 315H695" class="main-arrow"/>
+  <path d="M925 315H965" class="main-arrow"/>
+  <path d="M1195 315H1235" class="main-arrow"/>
+  <path d="M1355 388C1355 445 610 445 535 407" class="loop-arrow"/>
+  <text x="940" y="441" text-anchor="middle" class="zh note">结果返回上下文，模型继续下一步</text>
+
+  <path d="M1440 382V495H220V610" class="gap-arrow"/>
+  <rect x="1120" y="475" width="255" height="39" rx="19" fill="#FFFFFF"/>
+  <text x="1248" y="502" text-anchor="middle" class="zh note">任务结果进入评测</text>
+
+  <rect x="80" y="535" width="1440" height="275" rx="26" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="115" y="585" class="zh band-title">规则改进循环</text>
+
+  <rect x="120" y="625" width="210" height="115" rx="18" fill="#FFFFFF" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="225" y="670" text-anchor="middle" class="zh node-title">读取当前 Skill</text>
+  <text x="225" y="705" text-anchor="middle" class="zh node-body">载入已有经验</text>
+
+  <rect x="385" y="625" width="210" height="115" rx="18" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="490" y="670" text-anchor="middle" class="zh node-title">执行任务</text>
+  <text x="490" y="705" text-anchor="middle" class="zh node-body">生成概念图</text>
+
+  <rect x="650" y="625" width="210" height="115" rx="18" fill="#315EF5"/>
+  <text x="755" y="662" text-anchor="middle" class="zh node-title-light">获得评测结果</text>
+  <text x="755" y="697" text-anchor="middle" class="zh node-body-light">评测器给出分数</text>
+  <text x="755" y="726" text-anchor="middle" class="zh node-body-light">记录本轮结果</text>
+
+  <rect x="915" y="625" width="210" height="115" rx="18" fill="#FFFFFF" stroke="#9AA7B8" stroke-width="3"/>
+  <text x="1020" y="670" text-anchor="middle" class="zh node-title">比较与判断</text>
+  <text x="1020" y="705" text-anchor="middle" class="zh node-body">对照历史结果</text>
+
+  <rect x="1180" y="610" width="290" height="145" rx="18" fill="#EEF2FF" stroke="#315EF5" stroke-width="3"/>
+  <text x="1325" y="657" text-anchor="middle" class="zh node-title">更新 Skill</text>
+  <text x="1325" y="694" text-anchor="middle" class="zh node-body">写入验证有效的规则</text>
+  <text x="1325" y="727" text-anchor="middle" class="zh node-body">效果不稳定则不保留</text>
+
+  <path d="M330 683H375" class="main-arrow"/>
+  <path d="M595 683H640" class="main-arrow"/>
+  <path d="M860 683H905" class="main-arrow"/>
+  <path d="M1125 683H1170" class="main-arrow"/>
+
+  <path d="M1325 768V855H225V750" class="loop-arrow"/>
+  <rect x="665" y="826" width="470" height="39" rx="19" fill="#FFFFFF"/>
+  <text x="900" y="853" text-anchor="middle" class="zh note">新任务继续使用已经验证的规则</text>
+</svg>

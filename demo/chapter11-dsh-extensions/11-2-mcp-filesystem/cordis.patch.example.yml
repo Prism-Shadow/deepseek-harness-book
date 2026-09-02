@@ -1,8 +1,0 @@
-- insert:
-    - id: mcp-notes
-      name: '@deepseek-ai/dsh-mcp-client'
-      config:
-        serverName: notes
-        transport: stdio
-        command: npx
-        args: ['-y', '@modelcontextprotocol/server-filesystem', '/absolute/path/to/dsh-mcp-notes']

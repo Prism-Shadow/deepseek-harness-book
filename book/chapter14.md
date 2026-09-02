@@ -1,766 +1,176 @@
-# dsh 的核心：Cordis {#ch-14}
+# Harness 的工作原理 {#ch-14}
 
-上一章沿着一次任务的执行过程，介绍了模型、工具、会话和 Agent Loop 怎样配合完成任务。在 dsh 中，这些能力由不同插件提供，Cordis 负责组织这些插件的运行。
+前几章已经用 dsh 完成了文件操作、多 Agent 协作等任务。本章把视角从操作界面转向内部过程，看看 dsh 怎样完成一次任务：模型如何在 Agent Loop 中反复调用工具，会话怎样被记录和恢复，工具调用如何经过权限检查，越来越长的上下文又怎样被控制在模型窗口以内。弄清这些机制后，再看界面上的轮次、步骤、Session log、token 和上下文占用，就容易理解它们分别在记录什么。
 
-本章从 Cordis 本身讲起，先用小示例看清插件的生命周期、依赖和通信，再回到 dsh 的配置与工具调用过程。
+## 从聊天助手到 Harness {#sec-14-1}
 
-## 认识 Cordis {#sec-14-1}
+回看我们在第 2 章向 dsh 打招呼时，模型直接回了一句话，状态栏显示“1 轮 · 1 步”。后来我们又让 dsh 新建 `about-dsh.md`，消息流里则多出一张 Write 工具卡片。文件写好以后，dsh 才给出回复。
 
-Cordis 是一个用于组织 TypeScript 插件的运行时框架。dsh 中的模型、工具、会话和 Agent Loop 等能力可以分别由不同插件实现，而 Cordis 负责把这些插件加载起来，并管理它们的运行、依赖和卸载。
+把这些执行过程串起来的运行框架，就是 Harness。它维护任务状态、组装模型请求、执行工具，并根据执行结果继续推动模型，直到任务结束。
 
-Cordis 自己不实现模型调用、工具执行或会话管理。它更像这些插件共同运行的基础设施：插件什么时候启动、需要哪些能力、怎样与其他插件通信，以及停止时怎样清理资源，都由 Cordis 提供相应的机制。
+在 dsh 的工作流程里，模型负责判断下一步，Agent Loop 负责把任务往前推。每一步开始时，Agent Loop 根据当前会话组装模型请求。模型可以直接回复，也可以申请调用工具。工具执行完成后，结果被写回会话，Agent Loop 再次请求模型。这个过程不断重复，直到模型给出最终回复。下图展示了这套循环。
 
-本章会陆续遇到下面这些概念。现在不需要全部记住，先分清 **Plugin、Fiber 和 Context** 就够了。
+![模型与工具在 agent loop 中循环交接](assets/chapter14/14-1-01-agent-loop.svg){.book-technical-figure width=72%}
 
-| 概念    | 先这样理解                              |
-| ------- | --------------------------------------- |
-| Plugin  | 一份可以被 Cordis 加载的功能代码        |
-| Fiber   | Plugin 被挂载一次后产生的运行实例       |
-| Context | 插件与 Cordis 运行时交互的入口          |
-| Loader  | 按配置加载、更新和卸载插件              |
-| Service | 一个插件提供给其他插件使用的能力        |
-| Event   | 插件围绕某件事发送通知或参与处理的机制  |
-| Effect  | 需要跟随 Fiber 一起清理的资源或注册操作 |
+turn 和 step 记录的是两个不同层次。一个**轮次**（turn）对应 dsh 对一条用户消息的完整处理：用户发出消息时开始，任务结束时结束。一个**步骤**（step）对应其中的一次模型请求，以及这次请求可能触发的工具调用。因此，一个 turn 通常包含一个或多个 step。
 
-其中最需要先分清的是 Plugin 和 Fiber：
+第 2 章那次“你好”只请求了一次模型，也没有调用工具，所以显示“1 轮 · 1 步”。如果用户要求整理文件，仍然只算一个 turn，但模型可能先查看目录，再读取文件，最后修改文件。每次根据新的工具结果重新请求模型，都会产生新的 step，因此界面可能显示“1 轮 · 多步”。
 
-```text
-Plugin            挂载            Fiber
-功能代码  ─────────────────►  一次运行实例
-```
+多 Agent 任务也服从同样的结构。第 4 章用过的多 Agent 调研，在主 Agent 看来可以表现为一次工具调用；工具内部再运行自己的 agent loop，完成任务后把最终结果返回给主 Agent。
 
-同一个 Plugin 可以被多次挂载，每次都会产生一个独立的 Fiber。简单来说，**Plugin 是可以反复使用的功能代码，Fiber 是这份代码的一次运行**。
+> **深入一点。** turn 和 step 的边界并不完全重合。用户消息进入处理流程后，dsh 会先记录 `turn/start`；正式请求模型时才产生 `step/start`。如果插件在 `agent/pre-step` 阶段终止任务，这次处理仍然有 turn，但没有 step。界面的“轮”采用更接近实际模型执行的统计口径，只统计至少完成过一个 step 的 turn。
+>
+> 一旦一步已经开始，结束时就会写入 `step/end`，即使中途失败或被取消。因此，界面的步数应当按照 `step/end` 统计，而不是按照聊天界面中可见的消息或工具卡片统计。
 
-Context 则是这个 Fiber 与 Cordis 运行时交互的入口。插件后面要访问 Service、监听 Event、注册 Effect，都会通过 Context 完成。
+**亲手验证。** 给 dsh 一个需要读取并修改文件的任务。任务结束后打开 Session log，比较界面显示的步数与日志中 `step/end` 的数量。两者应当一致；不要按照聊天气泡或工具卡片计数，因为失败或取消的步骤也可能被记录。
 
-下面先从一个最小插件开始，看一个 Plugin 是怎样被加载、运行和卸载的。Service、Event 和 Effect 会在后面的例子中分别引入，最后再回到 dsh，看看这些机制怎样组合成完整的 Harness。
+## 消息与会话 {#sec-14-2}
 
-## 插件如何加载和卸载 {#sec-14-2}
+完成一次任务后，即使退出 dsh，过一会儿再打开同一个会话，前面的消息仍然能够恢复。这是因为任务进行过程中，dsh 会持续把用户消息、模型输出、工具调用等内容写入会话日志。重新打开会话时，它再从这份日志恢复之前的状态，不需要用户另外执行“保存”。
 
-完整的 dsh 一次会加载许多插件，不容易看清单个插件是怎样运行的。本节先把环境缩到最小，从一个 `hello` 插件开始，看配置怎样变成一个正在运行的 Fiber；随后再给插件加入配置和需要清理的资源，观察 Fiber 卸载时会发生什么。
+要查看这些原始记录，可以点击右上角的“Session log”。下载并解压 ZIP 归档后，先看顶层的 `session.jsonl`。子 Agent 的日志位于 `subagents/<id>/`，会话引用过的图片位于 `media/`。磁盘上的日志默认使用 zstd 压缩；导出的 `session.jsonl` 已经解码，可以直接用文本编辑器打开。
 
-### 从 Plugin 到 Fiber
+`session.jsonl` 的每一行都是一条事件。一个轮次由 `turn/start` 和 `turn/end` 划定，其中可能包含一个或多个步骤，每个步骤又有 `step/start` 和 `step/end`。用户消息记录为 `user/message`；模型流式生成时会连续产生 `assistant/chunk`，完成后再用 `assistant/message` 保存完整回复；工具调用则对应 `tool/call` 和 `tool/result`。
 
-配套示例位于 `demo/chapter14-cordis/14-2-lifecycle`，目录中有四个文件：
+这些事件把一次任务的完整运行过程都留了下来，但下一次请求模型时，dsh 并不会把整份日志原样塞进上下文。例如 `turn/start`、`step/end` 和流式生成产生的 `assistant/chunk` 都是运行记录，本身没有必要再次交给模型。
 
-```text
-12-2-lifecycle/
-├── package.json      # 项目依赖
-├── pnpm-lock.yaml    # 依赖版本锁定文件
-├── cordis.yml        # Cordis 加载配置
-└── hello.js          # 插件代码
-```
+dsh 会先从日志中整理出一份供会话继续使用的消息视图，这就是 **surface**。它主要包含用户消息、模型的完整回复和工具结果，也可以包含 dsh 或插件注入并记录的运行状态。随后，`deriveMessages()` 再根据这些内容构造下一次模型请求中的消息历史。
 
-先看插件代码 `hello.js`：
+下图展示了这两个层次之间的关系。
 
-```js
-export function apply(ctx) {
-  console.log('hello from my first plugin')
-}
-```
+![dsh 从会话日志中整理下一次模型请求所需的历史](assets/chapter14/14-2-01-session-surface.svg){.book-technical-figure width=72%}
 
-`apply()` 是插件开始运行时执行的入口。参数 `ctx` 是这个 Fiber 使用的 Context；插件以后访问 Service、监听 Event 或注册需要清理的资源，都会通过它完成。
+会话继续时，新内容会通过 `append` 加入 surface。surface 也可以通过 `replace` 更新已有内容，例如后面会看到的历史压缩。无论哪种操作，原始事件仍然保留在会话日志中，因此 surface 的变化不会破坏完整的运行记录。
 
-同一目录中还有一份 `cordis.yml`：
+这也解释了 dsh 会话机制中的一条重要规则：**模型能够看到的内容，应当已经被记录下来。** 只有这样，进程退出后重新恢复会话时，dsh 才能重新构造模型此前看到的历史，而不是依赖只存在于内存中的临时状态。
 
-```yaml
-- name: './hello.js'
-```
+> **深入一点。** surface 最终会被整理成带有 `role` 和内容的模型消息。`role` 包括 `system`、`user` 和 `assistant`，内容可以由文本、图片、工具调用等不同类型的块组成。工具结果也使用 `user` role，但内容是 `tool-result` 块，并带有对应工具调用的 `callId`，因此 dsh 和模型能够把它与普通的用户输入区分开来。
+>
+> 会话在异常退出后也可以继续恢复。重新加载时，dsh 会保留已经完整写入日志的事件。如果存在没有返回结果的工具调用，会补上一条表示中断的 `tool/result`；尚未结束的步骤和轮次也会分别补上 `step/end` 和 `turn/end {interrupted}`。如果日志最后只有一条写到一半的记录，这条不完整事件会被丢弃。
 
-`cordis.yml` 告诉 Loader 这次需要加载哪些插件。这里只有一项，`name` 的值 `./hello.js` 是相对于当前配置文件的模块路径，因此 Loader 会导入同一目录中的 `hello.js`。
+**亲手验证。** 打开一个做过文件操作的会话，点击“Session log”并解压下载的 ZIP。在根目录的 `session.jsonl` 中搜索 `tool/call`，记下其中的 `callId`，再查找对应的 `tool/result`。两条记录应当使用相同的 `callId`，从而把一次工具调用和它的执行结果对应起来。
 
-在这个目录中安装依赖，再运行示例：
+## 工具调用与结果返回 {#sec-14-3}
 
-```bash
-pnpm install
-pnpm exec cordis
-```
+模型需要使用工具时，会在回复中给出工具名和一组参数。每次模型请求都会附上当前可用的工具表，其中写明名称、用途和参数格式。模型据此决定是否调用工具，以及传入什么参数。
 
-终端会输出：
+收到调用后，dsh 会先把它写入日志，再经过权限规则和 hook 检查。检查可能直接放行，也可能拒绝调用，或者要求用户确认。通过检查以后，工具才会按照自己的执行环境和权限约束运行。
 
-```text
-hello from my first plugin
-```
+工具运行成功、失败或被拒绝，dsh 都会把相应结果写入会话日志。下一次请求时，这条结果会进入消息历史。模型可以据此继续任务，也可以在调用被拒绝后读取原因，调整后续行动。下图展示了这条完整路径。
 
-`pnpm exec cordis` 会启动当前项目依赖中的 Cordis 命令行程序。启动后，配置文件、Loader、Plugin 和 Fiber 会按下面的顺序连接起来：
+![dsh 处理一次工具调用的过程](assets/chapter14/14-3-01-tool-call-pipeline.svg){.book-technical-figure width=72%}
 
-```text
-pnpm exec cordis
-    │ (1) 启动 Cordis，并挂载 Loader
-    ▼
-  Loader
-    │ (2) 读取 cordis.yml，得到 ./hello.js
-    │ (3) 导入 hello.js
-    ▼
-  Plugin
-    │ (4) 挂载 Plugin，创建 Fiber
-    ▼
-  Fiber
-    │ (5) 调用入口函数，并传入 ctx
-    ▼
-apply(ctx)
-    │
-    ▼
-hello from my first plugin
-```
+不同工具还会受到各自的执行约束。文件和 Shell 工具会应用相应的沙箱与访问规则，其他工具则按照各自定义的权限运行。也就是说，模型提出工具调用，并不意味着它自动获得了工具能够触及的全部资源。
 
-这里的 `hello.js` 是磁盘上的代码文件。Loader 导入它之后，文件导出的 `apply()` 等内容构成 Plugin；Cordis 每挂载一次这个 Plugin，就创建一个 Fiber，表示这份代码的一次运行。Fiber 开始运行时，Cordis 调用 `apply(ctx)`，并把这个 Fiber 使用的 Context 作为 `ctx` 传入，代码中的 `console.log()` 随后产生终端输出。
+输入框旁的权限模式可以直接观察这种限制。例如，在 **Workspace Write** 下，文件工具可以修改当前工作区和指定的临时目录；如果操作需要访问其他位置，dsh 会先询问用户。切换到 **Read Only** 后，同样的写文件请求会被拒绝。拒绝本身仍然会形成工具结果并返回给模型，因此不会打断前面介绍的 agent loop。
 
-这里先记住这条路径：**配置告诉 Loader 加载哪个 Plugin；Plugin 被挂载后形成一个 Fiber；Fiber 开始运行时执行 `apply(ctx)`。** 同一个 Plugin 可以被多次挂载，每次挂载都会形成一个独立的 Fiber。
+> **深入一点。** 模型一次回复中也可能提出多个工具调用。dsh 默认依次执行；只有工具明确允许本次调用并发时，相关调用才会同时运行。
+>
+> dsh 还会检查模型是否反复提交完全相同的工具调用。如果同一个工具以相同参数连续出现，在第 3、5、8 次时，dsh 会在后续模型请求中加入提醒，让模型重新判断是否有必要继续。这个提醒不会直接取消调用，工具仍然需要经过正常的权限检查和执行流程。
 
-### 用 config 为插件传入参数
+**亲手验证。** 先在 Workspace Write 下让 dsh 新建一个文件，再打开 Session log。对应记录中应先出现 `tool/call`，随后出现带有相同 `callId` 的 `tool/result`。然后切换到 Read Only，再次请求写文件。第二次调用同样会留下 `tool/result`，但其中记录的是写入被拒绝的结果。
 
-前面的 `hello` 插件没有参数，因此每次运行都会输出同一句话。实际插件往往需要根据配置改变行为。Cordis 允许在 `cordis.yml` 的插件条目中写入 `config`，并在插件启动时把它作为第二个参数传给 `apply(ctx, config)`。
+## 上下文管理 {#sec-14-4}
 
-`name` 决定加载哪个 Plugin，`config` 决定这个 Plugin 这一次怎样运行。同一个 Plugin 因此可以用不同配置多次挂载，每次挂载得到的 Fiber 使用各自的 `config`。
+任务越长，模型需要回看的内容通常越多。系统说明、工具描述、之前的消息和刚刚得到的工具结果都会占用上下文窗口，而模型能够接收的上下文长度有限。因此，dsh 不仅要决定每次请求向模型提供哪些内容，还要在历史不断增长时控制它的长度。
 
-直接使用 YAML 中的配置还有一个问题：字段可能缺失，也可能写错类型。为此，插件可以导出一个名为 `Config` 的 Schema。Cordis 会先用它检查配置并补上默认值，通过后才执行 `apply()`。
+### 一次请求包含什么
 
-```typescript
-import type { Context } from '@deepseek-ai/cordis'
-import Schema from '@deepseek-ai/schemastery'
-
-export interface Config {
-  greeting: string
-  targets: string[]
-}
+一次模型请求可以先看成三个主要部分：**system prompt、工具描述和消息历史**。
 
-export const Config: Schema<Config> = Schema.object({
-  greeting: Schema.string().default('Hello'),
-  targets: Schema.array(String).default(['world']),
-})
+system prompt 位于最前面，用来说明 dsh 的身份、基本行为和工作方式。工具描述告诉模型当前有哪些工具可用，以及每个工具的用途和参数格式。消息历史则来自上一节介绍的 surface，包含用户消息、模型回复、工具结果等已经记录的内容。
 
-export function apply(_ctx: Context, config: Config) {
-  for (const target of config.targets) {
-    console.log(`${config.greeting}, ${target}!`)
-  }
-}
-```
+运行过程中还会出现一些会变化的状态，例如当前权限模式或插件补充的环境信息。按照上一节“模型可见即已记录”的原则，这些状态不会只在请求模型时临时拼进去，而是先作为带来源的消息记录下来，再通过 surface 进入后续请求。状态没有变化时，也不需要在每一步重复加入相同内容。
 
-这里出现了两个同名的 `Config`：
+下图展示了这些内容在一次模型请求中的关系。
 
-| 写法               | 作用                                           |
-| ------------------ | ---------------------------------------------- |
-| `interface Config` | 给 TypeScript 看，检查代码中 `config` 的字段和类型 |
-| `const Config`     | 给 Cordis 看，在运行时校验实际配置并补默认值   |
+![一次模型请求中的主要上下文](assets/chapter14/14-4-01-request-context.svg){.book-technical-figure width=72%}
 
-两者虽然同名，但工作在不同阶段。`interface Config` 只负责类型检查；真正处理 `cordis.yml` 中配置的是运行时的 Schema。
+### 如何统计 token 数
 
-```text
-cordis.yml 中的 config
-        │
-        ▼
-      Schema
-  校验并补默认值
-        │
-        ▼
-apply(ctx, config)
-```
+模型能够接收的上下文长度有限，服务商返回的实际 token 用量却要等请求完成后才能得到。发送请求前，dsh 还不知道内容是否已经接近上限，所以会先估算 system prompt、工具描述和消息历史占用的 token 数。空间不足时，需要先缩短历史。
 
-例如，只配置 `targets`：
+对于文本块，dsh 使用下面的公式快速估算：
 
-```yaml
-- name: './config-demo.ts'
-  config:
-    targets: ['alpha', 'beta']
-```
+$$
+t(\text{文本})=
+\left\lceil
+\dfrac{\text{字符数}}{4}
+\right\rceil+4
+$$
 
-运行后会得到：
+也就是每 4 个字符粗略折算成 1 个 token，再加上 4 个 token 的块开销。工具调用还会分别估算工具名和 JSON 参数，工具结果则估算其中包含的内容块；每条消息的 `role` 等结构信息也会产生额外开销。
 
-```text
-Hello, alpha!
-Hello, beta!
-```
+这个公式给出的只是请求前的近似估计，并不等同于模型实际使用的 tokenizer。对于中文、JSON Schema 等内容，估算值和实际值可能有较大差异。请求成功后，dsh 会记录服务商返回的实际 token 用量。后续请求再以这个数字为基准，只估算新增或被替换的部分，从而减少误差。
 
-这里没有提供 `greeting`，Schema 会自动补上默认值 `Hello`。因此 `apply()` 实际收到的 `config` 已经是：
+这里还要区分界面上的两类数字。
 
-```typescript
-{ greeting: 'Hello', targets: ['alpha', 'beta'] }
-```
+**聊天统计行**记录已经发生的模型请求，并把各步的 token 用量累计起来。一个任务如果经过五个 step，就会累计五次模型请求产生的输入、输出和缓存用量。因此，这个数字会随着任务执行不断增加。
 
-如果把 `targets` 错写成字符串：
+**上下文占用面板**关注的则是下一次准备发送给模型的内容。它估算当前 system prompt、工具描述和消息历史一共占据多少上下文，用来判断模型窗口还剩多少空间。
 
-```yaml
-config:
-  targets: 'not-an-array'
-```
+因此，两处数字回答的是不同问题：
 
-它就不符合 Schema 对 `targets` 的要求。配置会在 `apply()` 执行之前校验失败，对应的 Fiber 进入 `FAILED`，插件不会继续启动。
+- 统计行：到目前为止一共用了多少 token；
+- 上下文占用：下一次请求将占用多少上下文。
 
-### 让资源跟随 Fiber 清理
+前者是累计用量，后者是当前请求的大小，两者通常不会相等。
 
-插件开始运行后，还可能创建定时器、连接或文件监视器。如果插件已经卸载，这些资源却还在运行，就可能留下无效的任务或连接。因此，这些资源也应该随着对应的 Fiber 一起停止。
+### 如何计算缓存命中率
 
-Cordis 用 **Effect** 管理这类需要跟随 Fiber 一起清理的资源。插件可以通过 `ctx.effect()` 创建资源，并同时提供一个清理函数：
+除了普通输入 token，模型服务商还可能提供**前缀缓存**。如果后续请求与已经缓存的请求共享一段相同前缀，服务商就可能复用这部分计算。
 
-```typescript
-ctx.effect(() => {
-  const timer = setInterval(() => console.log('tick'), 200)
+统计行中的缓存命中率按照下面的方式计算：
 
-  return () => {
-    clearInterval(timer)
-    console.log('heartbeat cleaned up')
-  }
-})
-```
+$$
+\text{命中率}=
+\dfrac{\text{缓存读取 token 数}}
+{\text{未缓存输入 token 数}
++\text{缓存读取 token 数}
++\text{缓存写入 token 数}}
+$$
 
-传给 `ctx.effect()` 的函数会立即执行，因此这里的定时器马上开始运行。它返回的函数称为 **disposer**，负责清理刚刚创建的资源。当前 Fiber 卸载时，Cordis 会自动调用 disposer。
+这里的缓存属于模型服务商，与上一节介绍的 dsh 会话日志是两套不同的机制。会话日志解决的是“怎样记录和恢复任务”，前缀缓存解决的是“相同的模型输入怎样减少重复计算”。
 
-```text
-ctx.effect(...)
-      │
-      ├── 创建资源
-      │
-      └── 返回 disposer
-              │
-              │ Fiber 卸载
-              ▼
-           自动执行
-              │
-              ▼
-           释放资源
-```
+前面展示的请求结构正好有利于这种缓存。system prompt 和工具描述通常比较稳定，消息历史也主要随着任务推进向后增长，因此连续请求往往共享很长的开头。一个前缀第一次出现时通常还没有可复用的缓存，因此命中率可能为 0%；后续请求继续沿用这段前缀时，就可能产生更多缓存读取。
 
-`ctx.effect()` 自身也会返回一个函数，可以提前结束这项 Effect；多数情况下不需要主动调用，因为 Fiber 卸载时会自动清理。
+统计行显示的是整个任务执行至今的累计命中率，因此其中也包含第一次建立缓存时产生的成本。切换模型、改变可用工具，或者压缩并替换较早的消息历史，都可能改变请求前缀，使之后的缓存命中率下降。
 
-下面把定时器放进一个 `heartbeat` 插件，再由外层插件在 700 毫秒后调用 `fiber.dispose()`，主动卸载它：
+### 上下文过长时的处理
 
-```typescript
-import type { Context } from '@deepseek-ai/cordis'
+把模型的上下文窗口记为 $W$。本章所用版本将 DeepSeek-V4-Flash 和 DeepSeek-V4-Pro 的上下文窗口登记为 1,000,000 token，也就是说，一次请求中的 system prompt、工具描述、消息历史和预留输出空间都必须受到这个窗口限制。“最大输出”则是另一项限制，它只约束模型一次最多生成多少 token。
 
-function heartbeat(ctx: Context) {
-  console.log('heartbeat plugin loading')
+当上下文不断增长时，dsh 不会立刻摘要整个会话，而是按照从局部到整体的顺序逐步缩短内容。
 
-  ctx.effect(() => {
-    const timer = setInterval(() => console.log('tick'), 200)
+第一层是 **spill**。如果某次工具调用返回了特别大的文本，dsh 会把完整内容保存到 spill（溢出）文件，只在后续上下文中保留部分开头、结尾以及取回完整内容的方法。这样，一次异常大的命令输出不会直接占满模型窗口。
 
-    return () => {
-      clearInterval(timer)
-      console.log('heartbeat cleaned up')
-    }
-  })
-}
+第二层是**裁剪较早的大型工具结果**。随着会话继续增长，dsh 会优先缩短历史中体积较大的旧工具输出，只留下其中较有代表性的开头和结尾。近期消息和普通对话尽量保持不变。
 
-export function apply(ctx: Context) {
-  const fiber = ctx.plugin(heartbeat)
+如果这样仍然无法腾出足够空间，才进入第三层：**历史摘要**。dsh 让模型概括一段较早的消息，用一条摘要替代这些内容，同时保留较近期的消息原文。下图用一个简化的例子表示这种变化。
 
-  ctx.effect(() => {
-    const timer = setTimeout(async () => {
-      await fiber.dispose()
-      console.log('disposed')
-    }, 700)
+![用摘要替代较早历史，同时保留近期消息原文](assets/chapter14/14-4-02-history-compaction.svg){.book-technical-figure width=72%}
 
-    return () => clearTimeout(timer)
-  })
-}
-```
+这三层处理都只改变模型后续看到的内容，不会删除会话日志中的原始记录。spill 文件仍保存完整工具输出，已经写入的 `tool/result` 和旧消息也仍然存在。因此，上下文变短并不意味着会话历史本身被删除。
 
-`heartbeat` 启动后每 200 毫秒输出一次 `tick`。700 毫秒后，外层插件调用 `fiber.dispose()`；Fiber 开始卸载，之前通过 `ctx.effect()` 注册的 disposer 随即执行并停止定时器。
+**本版本默认值。** 下面的阈值可以由 profile 或模型策略调整。
 
-终端会显示：
+| **设置**             | **默认值**                                                |
+| -------------------- | --------------------------------------------------------- |
+| 工具结果 spill       | 文本超过 50,000 个 UTF-8 字节                             |
+| 较早工具结果裁剪     | 文本超过 8192 个 Unicode 码点；保留前 4096 个和后 1024 个 |
+| 历史摘要触发         | 上下文占用达到约 $0.8W$                                   |
+| 摘要后保留的近期原文 | 约 $0.16W$                                                |
 
-```text
-heartbeat plugin loading
-tick
-tick
-tick
-heartbeat cleaned up
-disposed
-```
+除了自动处理，用户也可以主动压缩历史。在一个已经积累较多消息的会话中执行 `/compact`，dsh 会尝试把可压缩的较早历史整理成摘要。压缩完成后，界面会显示本次处理了多少条历史；下一次模型请求中的上下文占用也会相应下降。
 
-因此，插件停止运行时，它创建的定时器不会继续留在后台。
+这种摘要会改变模型请求的较早前缀，因此上一节介绍的前缀缓存也可能受到影响：可复用的相同前缀变短后，缓存命中率可能暂时下降。
 
-Fiber 的主要状态包括：
+> **深入一点。** 自动压缩会在下一次模型请求之前，根据估算出的上下文占用判断是否需要执行。由于这里使用的是估算值，它和服务商实际使用的 tokenizer 并不完全一致。因此，即使估算值尚未达到阈值，服务商仍可能返回“上下文过长”的错误。
+>
+> 遇到这种情况，dsh 会在当前 step 中再次尝试压缩。如果压缩确实缩短了上下文，就使用新的历史重新请求模型，而不会重新开始 turn 或 step；如果仍然无法释放足够空间，原来的错误才会返回。
 
-```text
-LOADING → ACTIVE → UNLOADING → DISPOSED
-   ↘
-   FAILED
-```
+**亲手验证。** 找一个历史较长的 Web 会话，在输入框中执行 `/compact`。压缩成功后导出 Session log，搜索 `compaction/start`、`compaction/summary` 和 `compaction/end`，查看这次压缩的完整记录。再观察上下文占用面板，预计用量应当下降。
 
-正常情况下，Fiber 从 `LOADING` 进入 `ACTIVE`；卸载时进入 `UNLOADING`，等 disposer 全部执行完成后成为 `DISPOSED`。如果配置校验或插件启动失败，则进入 `FAILED`。下一节还会加入一个 `PENDING` 状态，用来表示“依赖尚未准备好”。
+如果界面提示 `No compactable history yet.`，说明当前还没有足够的旧历史可供压缩。继续对话一段时间后再试。
 
-`ctx.effect()` 主要用于 Cordis 不知道怎样清理的外部资源，例如定时器、连接和文件监视器。对于 Cordis 自己提供的注册 API，通常不需要手动写 disposer：例如 `ctx.on()` 注册的事件监听、`ctx.plugin()` 挂载的子插件，以及 Service 注册，都会自动跟当前 Fiber 绑定，并在 Fiber 卸载时撤销。dsh 中的 `ctx.tools.register()` 也是如此。
-
-**因此，Effect 的核心作用就是把资源的生命周期和 Fiber 绑在一起：Fiber 在，资源就在；Fiber 卸载，资源也随之清理。**
-
-## 插件如何依赖、通信和更新 {#sec-14-3}
-
-前面只看了一个插件从加载到卸载的生命周期。真实的 dsh 中，插件很少完全独立运行：工具插件可能要使用工具运行时，Agent Loop 需要模型、会话等服务，其他插件还可能监听某个过程，或者在其中插入自己的处理逻辑。
-
-Cordis 主要用两套机制处理这些关系：
-
-```text
-需要长期使用另一项能力
-         │
-         ▼
-  Service + inject
-
-某件事发生时需要通知、观察或介入
-         │
-         ▼
-       Event
-```
-
-简单来说，**Service + `inject` 处理“我长期需要另一项能力”，Event 处理“某件事发生时我想参与”**。下面先看 Service 和 `inject`。
-
-### 用 Service 和 `inject` 建立依赖
-
-插件经常需要使用其他插件提供的能力。例如，一个插件提供问候功能，另一个插件需要调用它。Cordis 用 **Service** 表示这种需要长期使用的能力，用 `inject` 声明插件运行时需要哪些 Service。
-
-如果写过 Python，可以用 `import` 做一个类比，但两者解决的问题不同：`import` 找的是代码，`inject` 等的是运行时能力。
-
-|                  | Python `import` | Cordis `inject`                                  |
-| ---------------- | --------------- | ------------------------------------------------ |
-| 找什么           | 模块代码        | 一个具名 Service                                 |
-| 不可用时         | 导入报错        | Fiber 等在 `PENDING`                             |
-| 是否管理运行状态 | 不负责          | Service 消失或恢复时会影响依赖它的 Fiber         |
-
-**`import` 解决“代码从哪里来”，`inject` 解决“运行时有没有这项能力”。** **`inject` 不会帮你加载提供 Service 的插件。** 提供方仍然必须由配置加载，或者由其他插件通过 `ctx.plugin()` 挂载；如果所需 Service 暂时不存在，使用方 Fiber 会留在 `PENDING`。
-
-Service 是一个插件提供给其他插件使用的具名能力。例如，可以注册一个名为 `greeter` 的 Service：
-
-```js
-import { Service } from '@deepseek-ai/cordis'
-
-export class GreeterService extends Service {
-  constructor(ctx) {
-    super(ctx, 'greeter')
-  }
-
-  greet(who) {
-    return `Hello, ${who}!`
-  }
-}
-
-export const name = 'greeter'
-
-export function apply(ctx) {
-  ctx.plugin(GreeterService)
-}
-```
-
-Cordis 运行时会执行两步：`super(ctx, 'greeter')` 注册名为 `greeter` 的 Service，`ctx.plugin(GreeterService)` 把这个 Service 插件挂载起来。如果改用 TypeScript，通常还会通过 `declare module` 为 `ctx.greeter` 补充类型；这只影响类型检查，不参与 Service 注册。
-
-另一个插件需要使用这项能力时，可以声明：
-
-```js
-export const name = 'consumer'
-export const inject = ['greeter']
-
-export function apply(ctx) {
-  console.log(ctx.greeter.greet('world'))
-}
-```
-
-`inject = ['greeter']` 表示这个插件依赖 `greeter` Service。只有这项 Service 可用时，Cordis 才会调用 `apply()`；因此进入 `apply()` 后，可以直接使用 `ctx.greeter`。
-
-在 `cordis.yml` 中组合两个插件：
-
-```yaml
-- name: './consumer.js'
-- name: './greeter.js'
-```
-
-本书配套目录 `demo/chapter14-cordis/14-3-relations` 已经准备好这两个文件。进入该目录后运行：
-
-```bash
-pnpm install
-pnpm exec cordis
-```
-
-运行后会看到：
-
-```text
-Hello, world!
-```
-
-为什么 `consumer` 写在 `greeter` 前面，却没有提前执行？因为 `inject` 把 Service 是否可用变成了 Fiber 的运行条件。
-
-```text
-greeter 不可用
-      │
-      ▼
-consumer: PENDING
-      │
-      │ greeter 可用
-      ▼
-consumer: LOADING → ACTIVE
-```
-
-`PENDING` 表示“插件已经存在，但它需要的 Service 还没有准备好”。使用方依赖的是 `greeter` 这项能力，提供能力的具体文件可以变化。只要新的 Service 实现保持相同接口，使用方代码就不需要改变。
-
-### 依赖变化时重新加载
-
-如果 `greeter` Service 的提供方消失，`consumer` Fiber 会先从 `ACTIVE` 进入 `UNLOADING`，执行 disposer 并清理自己的 Effects。清理完成后，它进入 `PENDING` 等待依赖。`greeter` 恢复后，同一个 Fiber 再经过 `LOADING` 回到 `ACTIVE`，并重新执行 `apply()`。
-
-```text
-greeter 消失
-      │
-      ▼
-consumer: ACTIVE → UNLOADING
-      │
-      │ 执行 disposer，清理 Effects
-      ▼
-consumer: PENDING
-      │
-      │ greeter 恢复
-      ▼
-consumer: LOADING → ACTIVE
-```
-
-### 用 Event 观察或介入运行过程
-
-Service 适合插件调用一项长期存在的能力。另一种情况是：程序运行到某个时刻时，其他插件希望收到通知，或者参与这一步的处理。Cordis 用 **Event** 处理这种协作。
-
-Event 可以有不同的分发方式。本章重点看两种：**`emit` 用于通知，`waterfall` 用于组成处理链。**
-
-例如，一个插件可以用 `ctx.emit()` 发出 `stats/report` 事件：
-
-```ts
-ctx.emit('stats/report', name, count)
-```
-
-其他插件通过 `ctx.on()` 监听：
-
-```ts
-ctx.on('stats/report', (name, count) => {
-  console.log(`[stats] ${name} -> ${count}`)
-})
-```
-
-`ctx.emit()` 发出事件，所有通过 `ctx.on()` 注册的监听器都会收到通知。发送方不需要知道有哪些监听器，因此以后增加新的监听插件时，不需要修改发送方。
-
-```text
-                 ┌──► listener B
-plugin A ──Event─┤
-                 └──► listener C
-```
-
-在 TypeScript 中，示例开头还可以通过 `declare module ... interface Events` 补充事件名称和参数类型。这段声明只用于类型检查；运行时由 `ctx.emit()` 和 `ctx.on()` 完成事件的发送和监听。
-
-`ctx.on()` 注册的监听器也跟当前 Fiber 绑定。Fiber 卸载时，监听器会自动撤销，因此不需要手动清理。
-
-Cordis 还提供其他几种分发方式。这里先了解它们的区别即可，本章后面只会继续使用 `emit` 和 `waterfall`。
-
-| 模式        | 行为                                           |
-| ----------- | ---------------------------------------------- |
-| `emit`      | 同步通知所有监听器，不使用返回值               |
-| `parallel`  | 并行执行并等待所有监听器完成                   |
-| `serial`    | 按顺序执行，得到第一个可用结果后停止           |
-| `bail`      | `serial` 的同步版本                            |
-| `waterfall` | 监听器组成处理链，可以继续、包装或截断后续处理 |
-
-下面重点看 `waterfall`。在 waterfall 中，每个监听器都像包在下一层外面的一层处理器。调用 `await next()` 会把控制权交给下一层；下一层返回后，当前监听器再从 `await next()` 后面继续执行。
-
-```text
-A 进入
-  ↓
-B 进入
-  ↓
-默认处理
-  ↓
-B 返回
-  ↓
-A 返回
-```
-
-配套示例使用两个监听器。A 调用 `next()` 并包装下一层的结果；B 可以继续调用 `next()`，也可以直接返回并截断后面的处理。
-
-```js
-export const name = 'waterfall-demo'
-
-export function apply(ctx) {
-  ctx.on('demo/transform', async (_input, next) => {
-    console.log('A enter')
-    const downstream = await next()
-    console.log('A leave')
-    return `A(${downstream})`
-  })
-
-  ctx.on('demo/transform', async (input, next) => {
-    console.log('B enter')
-    if (input.includes('blocked')) {
-      console.log('B short-circuit')
-      return 'blocked'
-    }
-    const downstream = await next()
-    console.log('B leave')
-    return `B(${downstream})`
-  })
-
-  void (async () => {
-    console.log(await ctx.waterfall(
-      'demo/transform',
-      'hello',
-      async () => {
-        console.log('default')
-        return 'hello'
-      },
-    ))
-
-    console.log(await ctx.waterfall(
-      'demo/transform',
-      'blocked words',
-      async () => {
-        console.log('default')
-        return 'blocked words'
-      },
-    ))
-  })()
-}
-```
-
-`cordis.yml` 只加载这个文件：
-
-```yaml
-- name: './waterfall-demo.js'
-```
-
-进入 `demo/chapter14-cordis/14-3-waterfall`，依次执行：
-
-```bash
-pnpm install
-pnpm exec cordis
-```
-
-运行时会先输出第一组结果：
-
-```text
-A enter
-B enter
-default
-B leave
-A leave
-A(B(hello))
-```
-
-第一组中，A 和 B 都调用 `next()`，因此处理进入默认函数；默认函数返回后，再按 B、A 的顺序返回。
-
-随后，第二次调用继续输出：
-
-```text
-A enter
-B enter
-B short-circuit
-A leave
-A(blocked)
-```
-
-第二组中，B 发现输入包含 `blocked` 后直接返回，没有调用 `next()`。因此默认函数不会执行，但已经进入的 A 仍然会收到 B 的结果并继续执行。
-
-**waterfall 最需要记住的是 `next()`：调用它就继续进入下一层，不调用它就从当前层直接返回。**
-
-dsh 的工具运行过程就使用了 waterfall。例如，`tools/pre-execute`、`tools/execute` 和 `tools/post-execute` 分别让插件在工具执行前、执行时和执行后介入处理。下一节回到 dsh 时，我们会沿着一次真实工具调用继续看这三条处理链。
-
-到这里，插件之间的两种主要关系就清楚了：**Service + `inject` 负责长期能力依赖，Event 负责运行过程中某一步的通知和协作。** 前者会影响 Fiber 能否运行，后者的监听器则跟随所属 Fiber 一起注册和撤销。下一节回到 dsh，看看这些机制怎样出现在真实的工具调用中。
-
-## Cordis 如何组装 dsh {#sec-14-4}
-
-前面看到的例子都只有少量插件。真实的 dsh 则需要同时组织模型、工具、会话和 Agent Loop 等许多插件。本节先看 **dsh 怎样生成插件配置，Cordis 又怎样把这份配置变成正在运行的插件**，再沿着一次工具调用观察这些插件怎样协作。
-
-### 从 profile 得到插件配置树
-
-dsh 启动时会读取当前 profile。profile 描述这次运行采用哪些配置，其中可以引用一个或多个 bundle。
-
-bundle 可以理解为一组可复用的插件配置。不同 bundle 和用户自己的 patch 会按顺序叠加，最终得到一棵完整的插件配置树。patch 可以加入新的插件配置，也可以修改已有配置。
-
-```text
-dsh 配置层
-
-profile
-  ├── bundle
-  ├── bundle
-  └── patch
-       │
-       ▼
-   插件配置树
-
-Cordis 运行时
-
-   插件配置树
-       │
-       ▼
-  Root Context
-       │
-     Loader
-   ┌───┼───┐
-   ▼   ▼   ▼
-Plugin Plugin Plugin
-   │    │    │
- Fiber Fiber Fiber
-```
-
-**这里有一个重要的边界：dsh 负责决定运行哪些插件以及使用什么配置；Cordis 的 Loader 负责根据这份配置挂载 Plugin，并产生对应的 Fiber。**
-
-### 配置变化时热更新插件
-
-dsh 运行后，插件配置还可以继续变化。例如，修改 `cordis.patch.yml` 后，不需要重新启动整个 dsh。dsh 会重新合成配置，Loader 比较新旧配置，只处理发生变化的插件。
-
-Loader 用稳定的 `id` 识别“这是之前的同一个插件配置”，从而判断某一项是新增、删除还是修改。新增配置会挂载新的插件，删除或禁用配置会卸载插件，修改配置则只更新对应的插件。其他没有变化的插件继续运行。
-
-如果被更新的插件提供了 Service，依赖它的 Fiber 也可能暂时进入 `PENDING`，等 Service 恢复后重新运行。插件卸载时，它之前注册的 Effect 也会随 Fiber 一起清理。
-
-下面的命令会打印 Web profile 静态合成后的配置树，随后直接退出，不会启动应用：
-
-```bash
-npx -y @deepseek-ai/dsh --profile web --dump-config
-```
-
-实际输出中可以找到下面这样的片段：
-
-```yaml
-- id: tool-todo
-  name: '@deepseek-ai/dsh-tool-todo'
-  config:
-    allowParallelInProgress: true
-  disabled: true
-
-# 中间省略其他配置项
-
-- id: agent-loop
-  name: '@deepseek-ai/dsh-agent-loop'
-  config:
-    agents: []
-```
-
-这里看到的还只是配置。`--dump-config` 打印完成后会直接退出，因此这些 Plugin 并没有真正挂载，也不会产生 Fiber。`tool-todo` 在这份配置中还带有 `disabled: true`，Loader 真正启动应用时也不会挂载它。
-
-模型适配器、工具、会话、沙箱和 Agent Loop 等能力，也都通过插件进入 Cordis 运行时。
-
-![dsh 的各项能力通过 Cordis Context 协作](assets/chapter14/14-1-01-everything-is-plugin.svg){.book-technical-figure width=68%}
-
-图中的 `Context` 表示插件共同使用的运行环境，箭头表示协作关系，不代表实际加载顺序。
-
-配置树解决了“这些插件怎样进入 dsh”。接下来再看它们运行起来之后怎样协作。下面以 `tools` Service 为例，沿着一次工具调用，把前面介绍的 Service、Event 和 Effect 对应到真实的 dsh 运行过程。
-
-### 向 tools Service 注册工具
-
-下面的 `greet-tool.ts` 声明对 `tools` Service 的依赖，再通过 `ctx.tools.register()` 注册一个名为 `greet` 的工具。文件末尾的测试代码代替模型发起一次调用，并打印返回内容：
-
-```ts
-import type { Context } from '@deepseek-ai/cordis'
-import { defineTool } from '@deepseek-ai/dsh-tools'
-import { CallId } from '@deepseek-ai/dsh-llm'
-
-export const name = 'greet-tool'
-export const inject = ['tools']
-
-export function apply(ctx: Context) {
-  ctx.tools.register(defineTool({
-    name: 'greet',
-    description: 'Greet the named person.',
-    parameters: {
-      name: {
-        type: 'string',
-        required: true,
-        description: 'Who to greet',
-      },
-    },
-    output: {
-      schema: { type: 'string' },
-      render: (_args, value) => [{ type: 'text', text: value }],
-    },
-    async execute(args) {
-      return `Hello, ${args.name}!`
-    },
-  }))
-
-  void (async () => {
-    const result = await ctx.tools.execute({
-      callId: CallId('demo-1'),
-      name: 'greet',
-      arguments: { name: 'Cordis' },
-      signal: new AbortController().signal,
-    })
-    console.log('tool replied:', JSON.stringify(result.content))
-  })()
-}
-```
-
-这里的 `ctx.tools` 是 dsh 提供的工具注册表 Service，`inject` 保证插件运行时这项能力已经可用。调用 `ctx.tools.register()` 后，工具定义会被加入注册表，Agent Loop 此后便能找到并调用 `greet`。
-
-### 让真实工具流水线执行一次
-
-实际运行时，Agent Loop 会通过 `ctx.tools.execute()` 发起工具调用。上面的测试代码使用同一个入口调用 `greet`，因此也会经过完整的工具执行流程：
-
-这次调用会经过 dsh 的工具执行扩展点：
-
-```text
-ctx.tools.execute()
-        ↓
-tools/pre-execute（waterfall 事件）
-  A1 → A2 → A3 → 默认允许 → A3 → A2 → A1
-        ↓
-审批处理与工具调用守卫
-        ↓
-tools/execute（waterfall 事件）
-  B1 → B2 → greet.execute() → B2 → B1
-        ↓
-规范化工具结果
-        ↓
-tools/post-execute（waterfall 事件）
-  C1 → C2 → C3 → 默认接受 → C3 → C2 → C1
-        ↓
-最终内容整理
-        ↓
-tools/result（emit 事件）
-```
-
-`tools/pre-execute`、`tools/execute` 和 `tools/post-execute` 都是 Cordis Event，采用 waterfall 分发模式，监听器可以调用 `next()` 把处理交给下一层。图中的横向链路先向右进入各层，默认处理完成后再按相反顺序返回。`tools/result` 采用 emit 模式，它在最终结果确定后通知所有监听器，监听器只能观察结果，不能改变这次工具调用的返回值。
-
-`tools/pre-execute` 负责执行前的检查，可以允许、拒绝或要求审批。随后工具调用守卫继续约束这次调用。`tools/execute` 包住工具本身的执行，适合加入超时、重试和指标统计。
-
-工具返回后，tools Service 会校验并渲染结果，再经过 `tools/post-execute` 和最终内容整理做最后处理。结果确定后，tools Service 发出 `tools/result` 事件，通知观察者。
-
-### 观察工具结果
-
-另一个名为 `tool-logger` 的插件可以监听 `tools/result`，观察已经完成的工具调用。事件参数 `exec.name` 表示本次调用的工具名称，在这个例子中是 `greet`：
-
-```typescript
-import type { Context } from '@deepseek-ai/cordis'
-import type {} from '@deepseek-ai/dsh-tools'
-
-export const name = 'tool-logger'
-export const inject = ['tools']
-
-export function apply(ctx: Context) {
-  ctx.on('tools/result', (exec, result) => {
-    const text = result.content
-      .map(block => block.type === 'text' ? block.text : '')
-      .join('')
-    console.log(`[tool-logger] ${exec.name} -> ${text}`)
-  })
-}
-```
-
-如果把 logger 和前面的 `greet` 工具一起加入配置：
-
-```yaml
-- name: '@deepseek-ai/dsh-system-prompt'
-- name: '@deepseek-ai/dsh-tools'
-- name: './tool-logger.ts'
-- name: './greet-tool.ts'
-```
-
-一次成功调用中，`tool-logger` 先打印事件中收到的结果，测试代码随后打印 `ctx.tools.execute()` 的返回内容：
-
-```text
-[tool-logger] greet -> Hello, Cordis!
-tool replied: [{"type":"text","text":"Hello, Cordis!"}]
-```
-
-`tools/result` 会在 `ctx.tools.execute()` 返回之前发出，因此 logger 先收到并打印结果。`greet-tool` 和 `tool-logger` 没有直接依赖彼此：前者通过 `ctx.tools` 注册能力，后者通过 Event 观察执行结果，两者在同一条工具流水线中协作。
-
-把这次调用对应回前面几节，Cordis 的几个核心概念都有了具体位置：
-
-| **Cordis 概念** | **在 dsh 工具系统中的位置**                                  |
-| --------------- | ------------------------------------------------------------ |
-| Service         | `ctx.tools` 提供工具注册和执行能力                           |
-| `inject`        | 工具插件声明自己依赖 `tools`                                 |
-| Effect          | `ctx.tools.register()` 和 `ctx.on()` 随所属 Fiber 一起撤销   |
-| Event           | `tools/result` 用于观察结果，执行前后的 waterfall 事件可以介入处理 |
-| Plugin          | tools、工具、logger 和策略都可以由独立插件提供               |
-| Fiber           | Plugin 挂载后形成自己的运行实例                             |
-
-从 Agent Loop 接收模型给出的工具调用，到 tools Service 执行工具，再到会话日志保存调用和结果，一次工具调用把多个插件串在了一起。Agent Loop 负责调度，工具插件完成具体工作，审批、策略和日志插件通过 Event 参与过程，会话插件保存调用记录。每个插件只承担其中一段职责，Cordis 用 Service、`inject`、Event 和 Effect 管理它们之间的连接与生命周期。dsh 正是通过这种协作方式，把各自独立的插件组装成一套完整的 Agent Harness。
+回看本章，一次 dsh 任务并不是模型单独完成的。Harness 用 agent loop 推动模型和工具反复交接，用会话日志保存执行过程，用权限机制约束工具行为，再通过 surface、token 估算和历史压缩控制模型实际看到的上下文。界面上的轮次、步骤、Session log、token 和上下文占用，正是这套运行机制在用户侧留下的不同视图。
