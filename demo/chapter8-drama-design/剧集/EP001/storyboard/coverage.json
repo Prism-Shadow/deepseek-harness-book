@@ -1,0 +1,64 @@
+{
+  "sources": {
+    "shots": {
+      "owner": "short-drama-storyboard",
+      "artifact": "剧集/EP001/storyboard/shots.jsonl"
+    },
+    "screenplay-index": {
+      "owner": "short-drama-write",
+      "artifact": "剧集/EP001/screenplay-index.jsonl"
+    },
+    "short-drama": {
+      "owner": "short-drama",
+      "artifact": "short-drama.json"
+    }
+  },
+  "episode_id": "EP001",
+  "dispositions": [
+    {"block_id": "BLK-EP001-SC001-H01", "status": "covered", "reason": "雨夜店外场景，SHOT-001 的外景机位落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-001", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC001-A01", "status": "covered", "reason": "开场钩子动作段，SHOT-001 落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-001", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC001-P01", "status": "covered", "reason": "字幕『雨夜 · 23:47』作为后期叠层随 SHOT-001 呈现", "shot_refs": [{"src": "shots", "record_id": "SHOT-001", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC001-P02", "status": "covered", "reason": "雨声与关东煮咕嘟声随 SHOT-001 声轨呈现", "shot_refs": [{"src": "shots", "record_id": "SHOT-001", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC002-H01", "status": "covered", "reason": "店内雨夜场景，SHOT-002 的内景机位落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-002", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC002-A01", "status": "covered", "reason": "店员听见猫叫停手侧头，SHOT-002 落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-002", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC002-P01", "status": "covered", "reason": "门外短促猫叫随 SHOT-002 声轨呈现", "shot_refs": [{"src": "shots", "record_id": "SHOT-002", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC003-H01", "status": "covered", "reason": "店内门口雨夜场景，SHOT-003 的内景机位落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-003", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC003-A01", "status": "covered", "reason": "开门惊猫后退，SHOT-003 落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-003", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC003-A02", "status": "covered", "reason": "店员松手合门、看猫蹭回门垫，SHOT-003 落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-003", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC004-H01", "status": "covered", "reason": "店内门口雨夜场景，SHOT-004 的内景机位落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-004", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC004-A01", "status": "covered", "reason": "取箱、蹲下、从门缝推出小屋并垫报纸，SHOT-004 落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-004", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC004-P01", "status": "covered", "reason": "字幕『先住一晚吧。』作为后期叠层随 SHOT-004 呈现", "shot_refs": [{"src": "shots", "record_id": "SHOT-004", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC004-P02", "status": "covered", "reason": "纸箱沿地面摩擦声随 SHOT-004 声轨呈现", "shot_refs": [{"src": "shots", "record_id": "SHOT-004", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC005-H01", "status": "covered", "reason": "店外雨夜场景，SHOT-005 的外景机位落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-005", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC005-A01", "status": "covered", "reason": "猫嗅探钻入小屋蜷起，SHOT-005 落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-005", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC005-P01", "status": "covered", "reason": "猫钻箱窸窣声与呼噜声随 SHOT-005 声轨呈现", "shot_refs": [{"src": "shots", "record_id": "SHOT-005", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC006-H01", "status": "covered", "reason": "店外深夜场景，SHOT-006 的外景机位落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-006", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC006-A01", "status": "covered", "reason": "深夜小屋透暖光、猫探头眯眼望店内，SHOT-006 落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-006", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC006-P01", "status": "covered", "reason": "连续性：猫毛由湿转干，SHOT-006 以干燥造型（LOOK-CAT-BASE）落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-006", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC006-P02", "status": "covered", "reason": "雨声渐弱、屋檐滴水随 SHOT-006 声轨呈现", "shot_refs": [{"src": "shots", "record_id": "SHOT-006", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC007-H01", "status": "covered", "reason": "店外清晨场景，SHOT-007 的外景机位落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-007", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC007-A01", "status": "covered", "reason": "猫叼鱼干放下、摆正、抬头、跑开回望，SHOT-007 落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-007", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC007-P01", "status": "covered", "reason": "转场：雨声隐去鸟鸣接上、冷蓝切暖阳，SHOT-007 的 transition_intent 落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-007", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC007-P02", "status": "covered", "reason": "字幕『谢谢你。』作为后期叠层随 SHOT-007 呈现", "shot_refs": [{"src": "shots", "record_id": "SHOT-007", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC008-H01", "status": "covered", "reason": "内外·清晨场景，SHOT-008 以外景机位正对门口落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-008", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC008-A01", "status": "covered", "reason": "店员推门见鱼干、蹲下捡起、抬头见猫微笑，SHOT-008 落实", "shot_refs": [{"src": "shots", "record_id": "SHOT-008", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC008-P01", "status": "covered", "reason": "字幕『早安。』作为后期叠层随 SHOT-008 呈现", "shot_refs": [{"src": "shots", "record_id": "SHOT-008", "authority": "candidate"}]},
+    {"block_id": "BLK-EP001-SC008-P02", "status": "covered", "reason": "门铃轻响与明亮猫叫随 SHOT-008 声轨呈现", "shot_refs": [{"src": "shots", "record_id": "SHOT-008", "authority": "candidate"}]}
+  ],
+  "episode_duration": {
+    "shot_seconds_total": 40,
+    "counted_shot_ids": ["SHOT-001", "SHOT-002", "SHOT-003", "SHOT-004", "SHOT-005", "SHOT-006", "SHOT-007", "SHOT-008"],
+    "unresolved_durations": [],
+    "target_ref": {
+      "src": "short-drama",
+      "field": "/format/target_seconds_per_episode"
+    },
+    "target_seconds": 40,
+    "delta_seconds": 0,
+    "disposition": "within_creator_tolerance"
+  },
+  "screenplay_ref": {
+    "src": "screenplay-index"
+  },
+  "status": "candidate"
+}

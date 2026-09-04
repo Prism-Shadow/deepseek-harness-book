@@ -1,15 +1,32 @@
 .DS_Store
-deepseek-harness/
-/demo/
-output/pdf/*.pdf
-output/html/
-output/site/
-output/site-src/
-output/rendered/
-tmp/
-svg-inkscape/
+
+# Local reference checkout and scratch work
+/deepseek-harness/
+/tmp/
+/svg-inkscape/
+
+# Local environments and credentials
+.env
+.env.*
+!.env.example
+.credentials.yaml
+.venv/
+
+# Generated book output
+/output/pdf/*.pdf
+/output/html/
+/output/site/
+/output/site-src/
+/output/rendered/
+
+# Language and build caches
 __pycache__/
-*.pyc
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 node_modules/
 dist/
 *.log
