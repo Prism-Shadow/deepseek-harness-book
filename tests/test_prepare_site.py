@@ -17,6 +17,24 @@ from prepare_site import (  # noqa: E402
 
 
 class PrepareSiteTest(unittest.TestCase):
+    def test_numbers_only_sections_and_preserves_anchors_and_code(self) -> None:
+        source = """# 示例 {#ch-15}
+## 服务 {#sec-15-3}
+### 共享功能
+#### 准备文件
+````markdown
+## 代码中的标题 {#sec-15-4}
+```
+## 仍在代码中 {#sec-15-5}
+````
+## 工具 {#sec-15-4}
+"""
+        rendered = transform_markdown(source, chapter_number=15)
+        self.assertEqual(rendered, source.replace(
+            "## 服务 {#sec-15-3}", "## 15.3 服务 {#sec-15-3}"
+        ).replace("## 工具 {#sec-15-4}", "## 15.4 工具 {#sec-15-4}"))
+        self.assertEqual(transform_markdown(source), source)
+
     def test_prepares_readme_as_web_homepage(self) -> None:
         source = """# 示例
 

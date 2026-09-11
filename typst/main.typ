@@ -38,6 +38,12 @@
 
 #show: main-matter
 
+// 只为章与第一层节标题编号，更深层标题保留原有排版。
+#show heading.where(level: 3): set heading(numbering: none)
+#show heading.where(level: 4): set heading(numbering: none)
+#show heading.where(level: 5): set heading(numbering: none)
+#show heading.where(level: 6): set heading(numbering: none)
+
 // 从 outline.md 解析「部分 / 章」的顺序。
 #let book-plan = {
   let items = ()

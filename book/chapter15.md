@@ -1,120 +1,509 @@
 # dsh 的核心：Cordis {#ch-15}
 
-上一章沿着一次任务的执行过程，介绍了模型、工具、会话和 Agent Loop 怎样配合完成任务。在 dsh 中，这些能力由不同插件提供，Cordis 负责组织这些插件的运行。
+第 12 章里，我们已经写过自己的插件；第 14 章介绍了模型、工具和会话怎样配合完成任务。这一章接着看：插件怎样启动，怎样使用其他插件提供的功能，以及停用时怎样清理资源。
 
-本章从 Cordis 本身讲起，先用小示例看清插件的生命周期、依赖和通信，再回到 dsh 的配置与工具调用过程。
+本章从一个打印问候语的插件开始，逐步加入定时器、共享功能和事件通知，介绍插件的启动与卸载、服务、事件、配置和热重载。最后的示例将问候功能注册为 `greet` 工具，通过 harness 的工具服务调用它，并用监听器记录调用过程和结果。所有示例都不调用大模型，也不需要 API 密钥。
+
+对于每组示例，本章会先给出需要准备的文件和运行方法，再结合终端输出解释代码。涉及的 TypeScript 写法会在对应位置说明，示例后的语法速查表可供查阅。
 
 ## 认识 Cordis {#sec-15-1}
 
-Cordis 是一个用于组织 TypeScript 插件的运行时框架。dsh 中的模型、工具、会话和 Agent Loop 等能力可以分别由不同插件实现，而 Cordis 负责把这些插件加载起来，并管理它们的运行、依赖和卸载。
+### 环境准备与示例目录
 
-Cordis 自己不实现模型调用、工具执行或会话管理。它更像这些插件共同运行的基础设施：插件什么时候启动、需要哪些能力、怎样与其他插件通信，以及停止时怎样清理资源，都由 Cordis 提供相应的机制。
+运行本章示例需要先下载 deepseek-harness 源码，并安装仓库依赖。
 
-本章会陆续遇到下面这些概念。现在不需要全部记住，先分清 **Plugin、Fiber 和 Context** 就够了。
+环境准备好后，将本书 `demo/` 目录下的 `chapter15-cordis` 文件夹完整复制到 deepseek-harness 仓库根目录。示例使用这个仓库已有的依赖和配置，无需在各示例目录中单独安装依赖。
 
-| 概念    | 先这样理解                              |
-| ------- | --------------------------------------- |
-| Plugin  | 一份可以被 Cordis 加载的功能代码        |
-| Fiber   | Plugin 被挂载一次后产生的运行实例       |
-| Context | 插件与 Cordis 运行时交互的入口          |
-| Loader  | 按配置加载、更新和卸载插件              |
-| Service | 一个插件提供给其他插件使用的能力        |
-| Event   | 插件围绕某件事发送通知或参与处理的机制  |
-| Effect  | 需要跟随 Fiber 一起清理的资源或注册操作 |
-
-其中最需要先分清的是 Plugin 和 Fiber：
+复制后的目录结构如下。每组示例都有独立的代码和 `cordis.yml`，可以分别运行。
 
 ```text
-Plugin            挂载            Fiber
-功能代码  ─────────────────►  一次运行实例
+deepseek-harness/              ← 源码仓库根目录
+├── node_modules/              ← 已安装的仓库依赖
+├── vendor/cordis/bin.js       ← 仓库已有启动器
+└── chapter15-cordis/
+    ├── 01-first-plugin/
+    ├── 02-lifecycle/
+    ├── 03-services/
+    ├── 04-events/
+    ├── 05-config/
+    ├── 06-hmr/
+    └── 07-tools/
 ```
 
-同一个 Plugin 可以被多次挂载，每次都会产生一个独立的 Fiber。简单来说，**Plugin 是可以反复使用的功能代码，Fiber 是这份代码的一次运行**。
+每节运行示例时，先从 deepseek-harness 仓库根目录进入该节文件夹，再启动程序。
 
-Context 则是这个 Fiber 与 Cordis 运行时交互的入口。插件后面要访问 Service、监听 Event、注册 Effect，都会通过 Context 完成。
 
-下面先从一个最小插件开始，看一个 Plugin 是怎样被加载、运行和卸载的。Service、Event 和 Effect 会在后面的例子中分别引入，最后再回到 dsh，看看这些机制怎样组合成完整的 Harness。
+### 第一个插件
 
-## 插件如何加载和卸载 {#sec-15-2}
+我们先从打印一句问候语开始。你可能会想到：写一个 `hello` 函数，再调用 `hello()` 就够了。确实如此。不过，等程序里有了很多功能，你还得安排哪些要启动、在哪里启动，以及停用时怎么清理。
 
-完整的 dsh 一次会加载许多插件，不容易看清单个插件是怎样运行的。本节先把环境缩到最小，从一个 `hello` 插件开始，看配置怎样变成一个正在运行的 Fiber；随后再给插件加入配置和需要清理的资源，观察 Fiber 卸载时会发生什么。
+用 Cordis 时，可以把这些功能分别写成插件，在配置里选出要启动的插件，由 Cordis 调用它们的入口函数。我们先把打印问候语写成一个插件，跑起来看看。
 
-### 从 Plugin 到 Fiber
+#### 准备文件并运行
 
-配套示例位于 `demo/chapter15-cordis/15-2-lifecycle`，目录中有四个文件：
+我们先在 `01-first-plugin` 中创建 `hello.ts`，写入以下代码：
 
-```text
-12-2-lifecycle/
-├── package.json      # 项目依赖
-├── pnpm-lock.yaml    # 依赖版本锁定文件
-├── cordis.yml        # Cordis 加载配置
-└── hello.js          # 插件代码
-```
+```typescript
+import type { Context } from '@deepseek-ai/cordis'
 
-先看插件代码 `hello.js`：
-
-```js
-export function apply(ctx) {
-  console.log('hello from my first plugin')
+export function apply(ctx: Context) {
+  console.log('Hello, Cordis!')
 }
 ```
 
-`apply()` 是插件开始运行时执行的入口。参数 `ctx` 是这个 Fiber 使用的 Context；插件以后访问 Service、监听 Event 或注册需要清理的资源，都会通过它完成。
-
-同一目录中还有一份 `cordis.yml`：
+还需要一份配置，告诉启动器加载哪个插件。我们在同一目录中创建 `cordis.yml`，内容如下：
 
 ```yaml
-- name: './hello.js'
+- name: './hello.ts'
 ```
 
-`cordis.yml` 告诉 Loader 这次需要加载哪些插件。这里只有一项，`name` 的值 `./hello.js` 是相对于当前配置文件的模块路径，因此 Loader 会导入同一目录中的 `hello.js`。
+我们看一下配置中的 `name`：这里填 `./hello.ts`，启动器就会加载同一目录下的这个文件。后面用到已经安装好的插件时，这里也可以填插件包的名字。
 
-在这个目录中安装依赖，再运行示例：
+两个文件准备好后，我们进入这组示例的文件夹，启动程序：
 
 ```bash
-pnpm install
-pnpm exec cordis
+cd chapter15-cordis/01-first-plugin
+node --import tsx ../../vendor/cordis/bin.js
 ```
-
-终端会输出：
 
 ```text
-hello from my first plugin
+Hello, Cordis!
 ```
 
-`pnpm exec cordis` 会启动当前项目依赖中的 Cordis 命令行程序。启动后，配置文件、Loader、Plugin 和 Fiber 会按下面的顺序连接起来：
+`--import tsx` 让 Node 能加载 TypeScript 文件；`../../vendor/cordis/bin.js` 指向仓库中的启动器，它会读取当前示例的 `cordis.yml`。
+
+下图展示了启动器读取配置、加载插件并调用入口函数的流程。
+
+![启动器读取配置并调用插件入口](assets/chapter15/15-1-02-plugin-start.svg){.book-technical-figure width=60%}
+
+回头看 `hello.ts`，我们只定义了 `apply`，没有直接调用它。启动器加载这个文件后，会把它导出的 `apply` 交给 Cordis 调用。这个文件就是一个最简单的插件。
+
+**语法速查**
+
+| 写法 | 含义 |
+| --- | --- |
+| `import type { Context } …` | 导入 `Context` 类型，供 TypeScript 检查。 |
+| `ctx: Context` | 将参数 `ctx` 的类型声明为 `Context`。 |
+| `export function apply` | 导出插件入口，由 Cordis 加载时调用。 |
+
+## 插件如何加载和卸载 {#sec-15-2}
+
+前面的插件只打印了一句话。这次让插件每隔 200 毫秒打印一次 `tick`，再让它停下来。这里多了一个要处理的东西：定时器。入口函数执行完，定时器还会继续运行；停用插件时，也得把它关掉。
+
+我们当然也可以用 `clearInterval` 关闭定时器，但要安排好什么时候调用它。用 Cordis 时，把清理函数登记到插件上，Cordis 就会在卸载插件时调用它。下面一起把定时器和清理函数写出来；具体怎么关闭资源，仍然需要写在清理函数里。
+
+### 准备文件并运行
+
+首先，我们在这组示例的文件夹里新建 `lifecycle.ts`，把启动定时器和安排卸载的代码写进去。完整示例运行后，我们再逐段看它的执行过程。
 
 ```text
-pnpm exec cordis
-    │ (1) 启动 Cordis，并挂载 Loader
-    ▼
-  Loader
-    │ (2) 读取 cordis.yml，得到 ./hello.js
-    │ (3) 导入 hello.js
-    ▼
-  Plugin
-    │ (4) 挂载 Plugin，创建 Fiber
-    ▼
-  Fiber
-    │ (5) 调用入口函数，并传入 ctx
-    ▼
-apply(ctx)
-    │
-    ▼
-hello from my first plugin
+chapter15-cordis/02-lifecycle/
+├── lifecycle.ts   ← 本节的插件
+└── cordis.yml     ← 本节的配置
 ```
 
-这里的 `hello.js` 是磁盘上的代码文件。Loader 导入它之后，文件导出的 `apply()` 等内容构成 Plugin；Cordis 每挂载一次这个 Plugin，就创建一个 Fiber，表示这份代码的一次运行。Fiber 开始运行时，Cordis 调用 `apply(ctx)`，并把这个 Fiber 使用的 Context 作为 `ctx` 传入，代码中的 `console.log()` 随后产生终端输出。
+`lifecycle.ts` 的完整内容：
 
-这里先记住这条路径：**配置告诉 Loader 加载哪个 Plugin；Plugin 被挂载后形成一个 Fiber；Fiber 开始运行时执行 `apply(ctx)`。** 同一个 Plugin 可以被多次挂载，每次挂载都会形成一个独立的 Fiber。
+```typescript
+import type { Context } from '@deepseek-ai/cordis'
 
-### 用 config 为插件传入参数
+function heartbeat(ctx: Context) {
+  console.log('heartbeat 启动')
+  ctx.effect(() => {
+    const timer = setInterval(() => console.log('tick'), 200)
+    return () => {
+      clearInterval(timer)
+      console.log('heartbeat 已清理')
+    }
+  })
+}
 
-前面的 `hello` 插件没有参数，因此每次运行都会输出同一句话。实际插件往往需要根据配置改变行为。Cordis 允许在 `cordis.yml` 的插件条目中写入 `config`，并在插件启动时把它作为第二个参数传给 `apply(ctx, config)`。
+export function apply(ctx: Context) {
+  const fiber = ctx.plugin(heartbeat)
+  ctx.effect(() => {
+    const timer = setTimeout(async () => {
+      await fiber.dispose()
+      console.log('子插件已卸载')
+    }, 700)
+    return () => clearTimeout(timer)
+  })
+}
+```
 
-`name` 决定加载哪个 Plugin，`config` 决定这个 Plugin 这一次怎样运行。同一个 Plugin 因此可以用不同配置多次挂载，每次挂载得到的 Fiber 使用各自的 `config`。
+插件代码写好后，我们在 `02-lifecycle` 中创建 `cordis.yml`，配置如下：
 
-直接使用 YAML 中的配置还有一个问题：字段可能缺失，也可能写错类型。为此，插件可以导出一个名为 `Config` 的 Schema。Cordis 会先用它检查配置并补上默认值，通过后才执行 `apply()`。
+```yaml
+- name: './lifecycle.ts'
+```
+
+文件准备好后，我们运行示例，观察 `tick` 打印了几次、什么时候停下来，再回到代码里看是谁关掉了定时器。
+
+```bash
+cd chapter15-cordis/02-lifecycle
+node --import tsx ../../vendor/cordis/bin.js
+```
+
+```text
+heartbeat 启动
+tick
+tick
+tick
+heartbeat 已清理
+子插件已卸载
+```
+
+这里通常有三个 `tick`。卸载后，定时器停止打印，清理日志出现在“子插件已卸载”之前。
+
+### 外层插件与子插件的分工
+
+回到 `lifecycle.ts`，可以找到两个函数：`heartbeat` 启动定时器，每隔 200 毫秒打印一次；外层的 `apply` 启动 `heartbeat`，并安排在约 700 毫秒后卸载它。
+
+下图展示了外层 `apply` 启动 `heartbeat` 子插件，并由子插件创建定时器的过程。
+
+![外层插件启动 heartbeat 子插件并创建定时器](assets/chapter15/15-2-01-child-plugin.svg){.book-technical-figure width=68%}
+
+`ctx.plugin(heartbeat)` 把函数直接交给 Cordis，因此这个函数不必叫 `apply`。它返回的 `fiber` 是管理这次插件实例的对象，后面用 `fiber.dispose()` 卸载它。
+
+### 用 ctx.effect 管理资源
+
+为了让 Cordis 在插件卸载时执行清理，我们在 `heartbeat` 中使用 `ctx.effect`：
+
+```typescript
+ctx.effect(() => {
+  const timer = setInterval(() => console.log('tick'), 200)
+  return () => {
+    clearInterval(timer)
+    console.log('heartbeat 已清理')
+  }
+})
+```
+
+传给 `ctx.effect` 的函数在加载时执行，`setInterval` 创建一个每隔 200 毫秒打印一次的定时器。`timer` 保存定时器对象，`clearInterval(timer)` 可以停止它。
+
+注意，`return () => { ... }` 返回一个清理函数，此时不会执行清理。Cordis 先保存这个函数，等子插件卸载时再调用。这个清理函数也叫 `disposer`。
+
+下图展示了清理函数在插件加载时保存、在插件卸载时执行的流程。
+
+![Effect 保存清理函数，卸载时调用](assets/chapter15/15-2-02-effect-cleanup.svg){.book-technical-figure width=85%}
+
+### 卸载子插件
+
+再往下看外层 `apply` 中的 `setTimeout`。我们想先看到几次 `tick`，再卸载子插件，所以把等待时间设成了 700 毫秒。
+
+```typescript
+setTimeout(async () => {
+  await fiber.dispose()
+  console.log('子插件已卸载')
+}, 700)
+```
+
+`setTimeout` 会在约 700 毫秒后调用 `fiber.dispose()`，卸载子插件。清理完成后，才会执行后面的打印，因此终端会先显示“`heartbeat` 已清理”，再显示“子插件已卸载”。
+
+外层的定时任务也通过 `ctx.effect` 登记了清理函数。如果外层插件提前卸载，这个任务会被取消，子插件也会一并卸载。
+
+### 卸载时机与资源清理
+
+插件可能因停用、重新加载或依赖服务消失而卸载；卸载一个插件不等于退出整个程序。`apply` 执行结束也不等于插件卸载，它登记的功能仍可继续存在。
+
+自己创建的普通定时器、连接，需要通过 `ctx.effect` 登记相应的清理函数。`ctx.on` 登记的监听器和 `ctx.plugin` 挂载的子插件，则由 Cordis 随所属插件卸载而清理。
+
+**语法速查**
+
+| 写法 | 含义 |
+| --- | --- |
+| `ctx.plugin(heartbeat)` | 启动子插件并返回 `fiber`；父插件卸载时，子插件也会卸载。 |
+| `return () => { … }` | 返回一个函数，本例用作清理函数。 |
+| `ctx.effect(() => { … })` | 执行回调创建资源；保存回调返回的清理函数，在插件卸载时调用。 |
+| `async` / `await` | `async` 声明异步函数，函数内可用 `await` 等待异步操作完成。 |
+| `fiber.dispose()` | 卸载子插件，返回等待清理完成的 Promise。 |
+
+## 插件如何依赖、通信和更新 {#sec-15-3}
+
+### 通过服务共享功能
+
+如果我们想让另一个插件也能生成问候语，可以直接 `import` 一个函数；如果需要保存状态，也可以创建一个对象，传给要用它的代码。对象由谁创建、什么时候能用、什么时候释放，也要跟着安排好。
+
+而在 Cordis 中，我们可以让一个插件把问候功能注册成服务，另一个插件通过 `ctx` 调用它。使用方在 `inject` 里写明需要哪个服务，Cordis 就会等服务准备好，再启动它。
+
+#### 准备文件并运行
+
+准备两个插件文件：`greeter.ts` 提供问候功能，`consumer.ts` 调用它。再用 `cordis.yml` 把两个插件都加载进来：
+
+```text
+chapter15-cordis/03-services/
+├── greeter.ts     ← 提供问候服务
+├── consumer.ts    ← 调用服务
+└── cordis.yml
+```
+
+`greeter.ts` 的完整内容：
+
+```typescript
+import { Service, type Context } from '@deepseek-ai/cordis'
+
+declare module '@deepseek-ai/cordis' {
+  interface Context {
+    greeter: GreeterService
+  }
+}
+
+export class GreeterService extends Service {
+  constructor(ctx: Context) {
+    super(ctx, 'greeter')
+  }
+
+  greet(who: string) {
+    return `Hello, ${who}!`
+  }
+}
+
+export function apply(ctx: Context) {
+  ctx.plugin(GreeterService)
+}
+```
+
+问候服务定义好后，我们再在 `consumer.ts` 中调用它：
+
+```typescript
+import type { Context } from '@deepseek-ai/cordis'
+import type {} from './greeter.ts'
+
+export const inject = ['greeter']
+
+export function apply(ctx: Context) {
+  console.log(ctx.greeter.greet('world'))
+}
+```
+
+两个插件写好后，我们通过 `cordis.yml` 将它们加载进来：
+
+```yaml
+- name: './greeter.ts'
+- name: './consumer.ts'
+```
+
+配置完成后，我们运行示例，终端仍会打印 `Hello, world!`。这次问候语在 `greeter.ts` 里生成，在 `consumer.ts` 里打印，运行后我们再顺着调用看一遍：
+
+```bash
+cd chapter15-cordis/03-services
+node --import tsx ../../vendor/cordis/bin.js
+```
+
+```text
+Hello, world!
+```
+
+结合刚才的输出，我们先看 `consumer.ts` 中传给 `console.log` 的这一句：
+
+```typescript
+ctx.greeter.greet('world')
+```
+
+从左到右读：通过上下文 `ctx` 找到 `greeter` 服务，调用它的 `greet` 方法，把 `world` 传进去。`greet` 返回 `Hello, world!`。
+
+#### 类、实例与方法
+
+接着回到 `greeter.ts`，看看 `ctx.greeter` 上的 `greet` 方法是从哪里来的。
+
+先看 `class GreeterService`：问候功能写在这个类里，`extends Service` 让它继承 Cordis 的服务基类。创建并注册好服务对象后，另一个插件就能通过 `ctx.greeter` 找到它，调用它的 `greet` 方法。
+
+`constructor` 是创建服务对象时执行的初始化方法。里面的 `super(ctx, 'greeter')` 调用父类初始化，把这个服务以 `greeter` 的名字注册起来。
+
+定义类本身不会启动它。文件末尾的 `apply` 调用 `ctx.plugin(GreeterService)`，Cordis 才挂载这个服务类，创建实例并执行初始化。
+
+`greet` 中 `who: string` 表示参数是字符串。反引号里的 `${who}` 会把参数放进问候语。这个方法只返回文字，不打印。
+
+#### 用 `inject` 声明服务依赖
+
+如果把两个插件在配置里的顺序交换，`consumer` 还能正常使用 `greeter` 吗？先看 `consumer` 声明的依赖：
+
+```typescript
+export const inject = ['greeter']
+```
+
+有这行 `inject` 声明，即使交换配置顺序，`consumer` 也会等 `greeter` 服务可用后才执行 `apply`。这里填的 `greeter`，要和提供方 `super(ctx, 'greeter')` 中注册的服务名一致。
+
+下图展示了 `greeter` 服务注册后，依赖它的 `consumer` 插件启动的流程。
+
+![greeter 服务可用后，consumer 才启动](assets/chapter15/15-3-01-service-dependency.svg){.book-technical-figure width=65%}
+
+两个插件都有 `apply` 没有冲突，它们属于不同文件。没有依赖关系时，两个插件都可以启动；不能用 YAML 的排列顺序保证谁先完成。有依赖时，Cordis 根据服务是否可用决定启动时机。
+
+服务提供方卸载后，服务会移除；依赖它的插件也会卸载，等服务恢复后再加载。
+
+#### 用 `declare module` 补充类型声明
+
+`greeter.ts` 中的 `declare module` 为 `Context` 补充了 `greeter` 属性的类型，让编辑器能够识别 `ctx.greeter.greet()`：
+
+```typescript
+declare module '@deepseek-ai/cordis' {
+  interface Context {
+    greeter: GreeterService
+  }
+}
+```
+
+`consumer.ts` 通过 `import type {} from './greeter.ts'` 引入这段类型声明。实际加载服务仍由 `cordis.yml` 中的配置完成。
+
+**语法速查**
+
+| 写法 | 含义 |
+| --- | --- |
+| `class GreeterService extends Service` | 定义服务类，继承 Cordis 的 `Service` 基类。 |
+| `constructor` / `super(ctx, 'greeter')` | 构造方法负责初始化；`super` 调用父类构造方法，将服务注册为 `greeter`。 |
+| `ctx.plugin(GreeterService)` | 挂载服务类，创建并初始化服务实例。 |
+| `export const inject = ['greeter']` | 等待 `greeter` 服务可用后，再启动本插件。 |
+| `declare module '@deepseek-ai/cordis' { … }` | 通过声明合并补充 `Context` 的类型信息。 |
+| `import type {} from './greeter.ts'` | 引入 `greeter.ts` 中的类型声明。 |
+
+### 通过事件发送通知
+
+前面的服务示例调用 `greet` 后，调用方能直接拿到问候语。如果还想记一条日志，或者统计问候了多少次，怎么让这些功能也知道刚才发生了什么？
+
+你可以逐个调用回调函数，也可以用 `EventEmitter` 等事件库。在 Cordis 里，我们用 `ctx.emit` 发通知，用 `ctx.on` 接收通知；插件卸载时，Cordis 还会移除它登记的监听器。下面给问候服务加一条通知，再写代码接收它。
+
+#### 准备文件并运行
+
+我们在前面的服务示例中加入事件通知：`greeter` 生成问候语时发出通知，`consumer` 在调用问候方法之前登记监听。
+
+```text
+chapter15-cordis/04-events/
+├── greeter.ts     ← 本节自己的版本，生成问候语后发出事件
+├── consumer.ts    ← 本节自己的版本，先监听再调用
+└── cordis.yml
+```
+
+在独立的 `04-events` 文件夹中新建下面的文件，保留 `03-services` 中的版本，方便对照。先写 `04-events/greeter.ts`：
+
+```typescript
+import { Service, type Context } from '@deepseek-ai/cordis'
+
+declare module '@deepseek-ai/cordis' {
+  interface Context {
+    greeter: GreeterService
+  }
+  interface Events {
+    'greeter/greeted'(who: string, message: string): void
+  }
+}
+
+export class GreeterService extends Service {
+  constructor(ctx: Context) {
+    super(ctx, 'greeter')
+  }
+
+  greet(who: string) {
+    const message = `Hello, ${who}!`
+    this.ctx.emit('greeter/greeted', who, message)
+    return message
+  }
+}
+
+export function apply(ctx: Context) {
+  ctx.plugin(GreeterService)
+}
+```
+
+有了发送通知的代码，我们再在 `consumer.ts` 中登记监听，然后调用问候方法：
+
+```typescript
+import type { Context } from '@deepseek-ai/cordis'
+import type {} from './greeter.ts'
+
+export const inject = ['greeter']
+
+export function apply(ctx: Context) {
+  ctx.on('greeter/greeted', (who, message) => {
+    console.log(`[事件] 问候 ${who}：${message}`)
+  })
+
+  const message = ctx.greeter.greet('world')
+  console.log(`[返回值] ${message}`)
+}
+```
+
+这两个插件仍通过 `cordis.yml` 加载，配置与上一组示例相同：
+
+```yaml
+- name: './greeter.ts'
+- name: './consumer.ts'
+```
+
+文件准备好后，我们运行示例：
+
+```bash
+cd chapter15-cordis/04-events
+node --import tsx ../../vendor/cordis/bin.js
+```
+
+```text
+[事件] 问候 world：Hello, world!
+[返回值] Hello, world!
+```
+
+从日志顺序可以看到，`greet` 发出事件后，监听函数先打印问候语；随后，`greet` 返回结果，调用方再打印一次。因此，一次方法调用产生了两条日志。
+
+#### 发送与监听事件
+
+下面分别说明 `greeter.ts` 如何发送事件，以及 `consumer.ts` 如何监听事件。两边要使用相同的事件名，发送的数据也要和监听函数接收的参数对应。
+
+提供方新增的这句负责发送事件：
+
+```typescript
+this.ctx.emit('greeter/greeted', who, message)
+```
+
+这里用服务持有的上下文 `this.ctx` 发出通知。第一个参数 `greeter/greeted` 是事件名，后面的 `who` 和 `message` 是一起发出的数据。监听时也要写这个事件名。
+
+使用方新增的这段负责监听：
+
+```typescript
+ctx.on('greeter/greeted', (who, message) => {
+  console.log(`[事件] 问候 ${who}：${message}`)
+})
+```
+
+这段通过 `ctx.on` 登记监听函数，每次收到 `greeter/greeted` 事件，就把事件参数传给它并执行。登记时不会立即打印；后面调用 `greet`，`greet` 发出事件，才触发这里的 `console.log`。
+
+下图展示了一次 `greet` 调用中，发送事件、执行监听函数和返回问候语的顺序。
+
+![一次问候先通知监听器，再返回调用方](assets/chapter15/15-3-02-event-order.svg){.book-technical-figure width=65%}
+
+这里由同一个 `consumer` 先登记监听，再发起调用，保证本次事件不会在监听之前发生。如果先调用 `greet`，之后才登记监听，就会错过那次通知。
+
+#### 服务调用与事件通知的区别
+
+回头看这次 `greet` 调用：`consumer` 想拿到问候语，就调用方法、接收返回值；日志功能想知道问候了谁，就监听事件。同一个功能里，这两种写法可以一起用。
+
+发送方不用知道是谁在监听。可以增加多个监听器，分别打印、统计或做其他处理。`emit` 是同步广播，不收集监听器的返回值，也不等待它们返回的异步任务。当前例子里的监听函数是同步打印，所以它的日志先出现。
+
+`ctx.on` 已经由 Cordis 管理，所属插件卸载时监听器自动移除，不必额外包一层 `ctx.effect`。
+
+**语法速查**
+
+| 写法 | 含义 |
+| --- | --- |
+| `interface Events` | 声明事件名称和参数类型，供 TypeScript 检查 `emit` 和 `on` 的用法。 |
+| `ctx.emit('greeter/greeted', …)` | 发送事件并传递参数；不等待异步监听任务。 |
+| `ctx.on('greeter/greeted', …)` | 登记监听函数；插件卸载时自动移除。 |
+
+### 插件配置
+
+假如想把 `Hello` 换成你好，或者换一组问候对象，每次都去改插件源码会有些麻烦。普通函数可以通过参数接收这些值；要从配置文件里读取，就还得处理默认值和填错类型的情况。
+
+这次把问候语和名字放进 `cordis.yml`，在插件里写好检查规则，交给 Cordis 读取和检查。先换一组名字，再故意填错一个类型，看看会发生什么。
+
+#### 准备文件并运行
+
+先建两个文件：`config-demo.ts` 里写问候逻辑和配置规则，`cordis.yml` 里填这次要使用的值。以后换问候语或名字，就去改 YAML 文件。
+
+```text
+chapter15-cordis/05-config/
+├── config-demo.ts
+└── cordis.yml
+```
+
+`config-demo.ts` 的完整内容：
 
 ```typescript
 import type { Context } from '@deepseek-ai/cordis'
@@ -130,34 +519,14 @@ export const Config: Schema<Config> = Schema.object({
   targets: Schema.array(String).default(['world']),
 })
 
-export function apply(_ctx: Context, config: Config) {
+export function apply(ctx: Context, config: Config) {
   for (const target of config.targets) {
     console.log(`${config.greeting}, ${target}!`)
   }
 }
 ```
 
-这里出现了两个同名的 `Config`：
-
-| 写法               | 作用                                           |
-| ------------------ | ---------------------------------------------- |
-| `interface Config` | 给 TypeScript 看，检查代码中 `config` 的字段和类型 |
-| `const Config`     | 给 Cordis 看，在运行时校验实际配置并补默认值   |
-
-两者虽然同名，但工作在不同阶段。`interface Config` 只负责类型检查；真正处理 `cordis.yml` 中配置的是运行时的 Schema。
-
-```text
-cordis.yml 中的 config
-        │
-        ▼
-      Schema
-  校验并补默认值
-        │
-        ▼
-apply(ctx, config)
-```
-
-例如，只配置 `targets`：
+配置规则写好后，我们在 `cordis.yml` 中填入这次使用的值：
 
 ```yaml
 - name: './config-demo.ts'
@@ -165,497 +534,240 @@ apply(ctx, config)
     targets: ['alpha', 'beta']
 ```
 
-运行后会得到：
+配置里没有写 `greeting`，输出中的 `Hello` 是从哪里来的？先运行看看：
+
+```bash
+cd chapter15-cordis/05-config
+node --import tsx ../../vendor/cordis/bin.js
+```
 
 ```text
 Hello, alpha!
 Hello, beta!
 ```
 
-这里没有提供 `greeting`，Schema 会自动补上默认值 `Hello`。因此 `apply()` 实际收到的 `config` 已经是：
+输出中的 `Hello` 来自 `Schema.string().default('Hello')`：`greeting` 没填时会使用这个默认值。`targets` 提供了两个名字，所以打印两句问候语。
+
+#### 在 `apply` 中接收配置
+
+看过运行结果后，我们再对照下面的函数，看看它比最小插件的 `apply` 多了哪个参数。
 
 ```typescript
-{ greeting: 'Hello', targets: ['alpha', 'beta'] }
+export function apply(ctx: Context, config: Config) {
+  for (const target of config.targets) {
+    console.log(`${config.greeting}, ${target}!`)
+  }
+}
 ```
 
-如果把 `targets` 错写成字符串：
+`apply` 多了第二个参数 `config`。Cordis 读取 YAML 中这个插件的 `config`，检查并补上默认值后，传给 `apply`。`for` 循环逐个取出 `targets` 中的名字，每个打印一句。
+
+本例传给 `apply` 的配置相当于：
+
+```typescript
+{
+  greeting: 'Hello',
+  targets: ['alpha', 'beta']
+}
+```
+
+#### 配置类型与校验规则
+
+`interface Config` 声明配置的类型，供 TypeScript 检查代码中对配置的使用。例如，`greeting` 是字符串，`targets` 是字符串数组。
+
+`const Config` 定义运行时的校验规则，供 Cordis 读取 YAML 配置时使用。这里通过 `Schema.object` 指定各字段的类型和默认值，校验后的配置再传给 `apply`。
+
+#### 修改配置与验证校验规则
+
+现在改一下 `cordis.yml`，看看插件能不能用上新值；然后填错一个类型，看看检查规则会在哪里拦住它。
+
+我们先把配置改成：
 
 ```yaml
-config:
-  targets: 'not-an-array'
+- name: './config-demo.ts'
+  config:
+    greeting: '你好'
+    targets: ['小明', '小红']
 ```
 
-它就不符合 Schema 对 `targets` 的要求。配置会在 `apply()` 执行之前校验失败，对应的 Fiber 进入 `FAILED`，插件不会继续启动。
-
-### 让资源跟随 Fiber 清理
-
-插件开始运行后，还可能创建定时器、连接或文件监视器。如果插件已经卸载，这些资源却还在运行，就可能留下无效的任务或连接。因此，这些资源也应该随着对应的 Fiber 一起停止。
-
-Cordis 用 **Effect** 管理这类需要跟随 Fiber 一起清理的资源。插件可以通过 `ctx.effect()` 创建资源，并同时提供一个清理函数：
-
-```typescript
-ctx.effect(() => {
-  const timer = setInterval(() => console.log('tick'), 200)
-
-  return () => {
-    clearInterval(timer)
-    console.log('heartbeat cleaned up')
-  }
-})
-```
-
-传给 `ctx.effect()` 的函数会立即执行，因此这里的定时器马上开始运行。它返回的函数称为 **disposer**，负责清理刚刚创建的资源。当前 Fiber 卸载时，Cordis 会自动调用 disposer。
+再次运行会得到：
 
 ```text
-ctx.effect(...)
-      │
-      ├── 创建资源
-      │
-      └── 返回 disposer
-              │
-              │ Fiber 卸载
-              ▼
-           自动执行
-              │
-              ▼
-           释放资源
+你好, 小明!
+你好, 小红!
 ```
 
-`ctx.effect()` 自身也会返回一个函数，可以提前结束这项 Effect；多数情况下不需要主动调用，因为 Fiber 卸载时会自动清理。
+新配置生效后，我们再试着把 `targets` 写成一个字符串：
 
-下面把定时器放进一个 `heartbeat` 插件，再由外层插件在 700 毫秒后调用 `fiber.dispose()`，主动卸载它：
+```yaml
+- name: './config-demo.ts'
+  config:
+    targets: 'not-an-array'
+```
+
+运行后会报错，下面只摘出关键部分；终端还会显示调用栈等信息：
+
+```text
+invalid config:
+  - $.targets expected array but got not-an-array (at targets)
+```
+
+报错指出 `targets` 应该是数组，实际收到的却是字符串。错误发生在 `apply` 运行之前，所以不会打印问候语。默认值用于补上未填写的值，不负责把错误类型自动改对。
+
+看完错误输出后，把配置恢复成前面的合法版本。
+
+**语法速查**
+
+| 写法 | 含义 |
+| --- | --- |
+| `interface Config { … }` | 声明配置类型，供 TypeScript 检查代码；类型可以与变量同名。 |
+| `export const Config: Schema<Config> = …` | 导出配置校验规则，`Schema<Config>` 指定规则对应的配置类型。 |
+| `Schema.string().default('Hello')` | 声明字符串配置，未填写时使用默认值 `'Hello'`。 |
+| `apply(ctx: Context, config: Config)` | 第二个参数接收已检查、已补默认值的配置。 |
+
+### 插件组合与热重载
+
+前面改完代码，都要重新运行启动命令。这次我们就让程序一直开着：修改插件文件，保存后就看到新输出。这个功能叫热重载。
+
+我们用 HMR 插件来完成它。HMR 是 Hot Module Replacement（热模块替换）的缩写；文件变化后，它会卸载旧插件，再加载新代码。下面给 `hello` 加上卸载日志，就能从终端里看到这个过程，然后再试试从配置里停用和启用插件。
+
+#### 准备文件并运行
+
+先给 `hello.ts` 加一个清理函数，在插件卸载时打印一行日志。这样保存新代码后，就能看见旧插件有没有被卸载。
+
+```text
+chapter15-cordis/06-hmr/
+├── hello.ts       ← 本节新建，包含卸载日志
+└── cordis.yml     ← 本节独立启用 HMR
+```
+
+在 `06-hmr` 中新建 `hello.ts`，保留 `01-first-plugin` 中的文件。完整内容如下：
 
 ```typescript
 import type { Context } from '@deepseek-ai/cordis'
 
-function heartbeat(ctx: Context) {
-  console.log('heartbeat plugin loading')
-
-  ctx.effect(() => {
-    const timer = setInterval(() => console.log('tick'), 200)
-
-    return () => {
-      clearInterval(timer)
-      console.log('heartbeat cleaned up')
-    }
-  })
-}
-
 export function apply(ctx: Context) {
-  const fiber = ctx.plugin(heartbeat)
-
+  console.log('Hello, Cordis!')
   ctx.effect(() => {
-    const timer = setTimeout(async () => {
-      await fiber.dispose()
-      console.log('disposed')
-    }, 700)
-
-    return () => clearTimeout(timer)
+    return () => console.log('hello 已卸载')
   })
 }
 ```
 
-`heartbeat` 启动后每 200 毫秒输出一次 `tick`。700 毫秒后，外层插件调用 `fiber.dispose()`；Fiber 开始卸载，之前通过 `ctx.effect()` 注册的 disposer 随即执行并停止定时器。
-
-终端会显示：
-
-```text
-heartbeat plugin loading
-tick
-tick
-tick
-heartbeat cleaned up
-disposed
-```
-
-因此，插件停止运行时，它创建的定时器不会继续留在后台。
-
-Fiber 的主要状态包括：
-
-```text
-LOADING → ACTIVE → UNLOADING → DISPOSED
-   ↘
-   FAILED
-```
-
-正常情况下，Fiber 从 `LOADING` 进入 `ACTIVE`；卸载时进入 `UNLOADING`，等 disposer 全部执行完成后成为 `DISPOSED`。如果配置校验或插件启动失败，则进入 `FAILED`。下一节还会加入一个 `PENDING` 状态，用来表示“依赖尚未准备好”。
-
-`ctx.effect()` 主要用于 Cordis 不知道怎样清理的外部资源，例如定时器、连接和文件监视器。对于 Cordis 自己提供的注册 API，通常不需要手动写 disposer：例如 `ctx.on()` 注册的事件监听、`ctx.plugin()` 挂载的子插件，以及 Service 注册，都会自动跟当前 Fiber 绑定，并在 Fiber 卸载时撤销。dsh 中的 `ctx.tools.register()` 也是如此。
-
-**因此，Effect 的核心作用就是把资源的生命周期和 Fiber 绑在一起：Fiber 在，资源就在；Fiber 卸载，资源也随之清理。**
-
-## 插件如何依赖、通信和更新 {#sec-15-3}
-
-前面只看了一个插件从加载到卸载的生命周期。真实的 dsh 中，插件很少完全独立运行：工具插件可能要使用工具运行时，Agent Loop 需要模型、会话等服务，其他插件还可能监听某个过程，或者在其中插入自己的处理逻辑。
-
-Cordis 主要用两套机制处理这些关系：
-
-```text
-需要长期使用另一项能力
-         │
-         ▼
-  Service + inject
-
-某件事发生时需要通知、观察或介入
-         │
-         ▼
-       Event
-```
-
-简单来说，**Service + `inject` 处理“我长期需要另一项能力”，Event 处理“某件事发生时我想参与”**。下面先看 Service 和 `inject`。
-
-### 用 Service 和 `inject` 建立依赖
-
-插件经常需要使用其他插件提供的能力。例如，一个插件提供问候功能，另一个插件需要调用它。Cordis 用 **Service** 表示这种需要长期使用的能力，用 `inject` 声明插件运行时需要哪些 Service。
-
-如果写过 Python，可以用 `import` 做一个类比，但两者解决的问题不同：`import` 找的是代码，`inject` 等的是运行时能力。
-
-|                  | Python `import` | Cordis `inject`                                  |
-| ---------------- | --------------- | ------------------------------------------------ |
-| 找什么           | 模块代码        | 一个具名 Service                                 |
-| 不可用时         | 导入报错        | Fiber 等在 `PENDING`                             |
-| 是否管理运行状态 | 不负责          | Service 消失或恢复时会影响依赖它的 Fiber         |
-
-**`import` 解决“代码从哪里来”，`inject` 解决“运行时有没有这项能力”。** **`inject` 不会帮你加载提供 Service 的插件。** 提供方仍然必须由配置加载，或者由其他插件通过 `ctx.plugin()` 挂载；如果所需 Service 暂时不存在，使用方 Fiber 会留在 `PENDING`。
-
-Service 是一个插件提供给其他插件使用的具名能力。例如，可以注册一个名为 `greeter` 的 Service：
-
-```js
-import { Service } from '@deepseek-ai/cordis'
-
-export class GreeterService extends Service {
-  constructor(ctx) {
-    super(ctx, 'greeter')
-  }
-
-  greet(who) {
-    return `Hello, ${who}!`
-  }
-}
-
-export const name = 'greeter'
-
-export function apply(ctx) {
-  ctx.plugin(GreeterService)
-}
-```
-
-Cordis 运行时会执行两步：`super(ctx, 'greeter')` 注册名为 `greeter` 的 Service，`ctx.plugin(GreeterService)` 把这个 Service 插件挂载起来。如果改用 TypeScript，通常还会通过 `declare module` 为 `ctx.greeter` 补充类型；这只影响类型检查，不参与 Service 注册。
-
-另一个插件需要使用这项能力时，可以声明：
-
-```js
-export const name = 'consumer'
-export const inject = ['greeter']
-
-export function apply(ctx) {
-  console.log(ctx.greeter.greet('world'))
-}
-```
-
-`inject = ['greeter']` 表示这个插件依赖 `greeter` Service。只有这项 Service 可用时，Cordis 才会调用 `apply()`；因此进入 `apply()` 后，可以直接使用 `ctx.greeter`。
-
-在 `cordis.yml` 中组合两个插件：
+为了观察热重载，我们在 `cordis.yml` 中加入所需的插件：
 
 ```yaml
-- name: './consumer.js'
-- name: './greeter.js'
+- id: logger
+  name: '@deepseek-ai/cordis-plugin-logger-console'
+- id: timer
+  name: '@deepseek-ai/cordis-plugin-timer'
+- id: hmr
+  name: '@deepseek-ai/cordis-plugin-hmr'
+  config:
+    root: ['.']
+- id: hello
+  name: './hello.ts'
 ```
 
-本书配套目录 `demo/chapter15-cordis/15-3-relations` 已经准备好这两个文件。进入该目录后运行：
+前三项是已经安装在仓库依赖中的插件，不用自己创建文件。它们分别负责把日志显示到终端、提供计时服务、监视变化并重新加载。最后一项才是自写的 `hello.ts`。
+
+HMR 的 `root: ['.']` 指定监视当前目录。`timer` 提供它依赖的计时服务，因此这两项需要一起加载。
+
+配置好这些插件后，我们启动程序：
 
 ```bash
-pnpm install
-pnpm exec cordis
+cd chapter15-cordis/06-hmr
+node --import tsx ../../vendor/cordis/bin.js
 ```
 
-运行后会看到：
+启动后会打印 `Hello, Cordis!`，并出现包含 `hmr watching` 的日志。保持本节程序运行，打开 `chapter15-cordis/06-hmr/hello.ts`，把第一条打印改为：
+
+```typescript
+console.log('Hello, 修改后的插件!')
+```
+
+保存后会看到 HMR 的重新加载日志，以及自写插件的两行输出：
 
 ```text
-Hello, world!
+hello 已卸载
+Hello, 修改后的插件!
 ```
 
-为什么 `consumer` 写在 `greeter` 前面，却没有提前执行？因为 `inject` 把 Service 是否可用变成了 Fiber 的运行条件。
+第一行来自旧插件的清理函数，第二行来自新代码的 `apply`。HMR 日志带有时间戳，这里只列出我们自己写的两行。
 
-```text
-greeter 不可用
-      │
-      ▼
-consumer: PENDING
-      │
-      │ greeter 可用
-      ▼
-consumer: LOADING → ACTIVE
-```
+下图展示了保存代码后，卸载旧插件并加载新代码的流程。
 
-`PENDING` 表示“插件已经存在，但它需要的 Service 还没有准备好”。使用方依赖的是 `greeter` 这项能力，提供能力的具体文件可以变化。只要新的 Service 实现保持相同接口，使用方代码就不需要改变。
+![保存代码后先卸载旧插件，再加载新代码](assets/chapter15/15-3-03-hmr.svg){.book-technical-figure width=65%}
 
-### 依赖变化时重新加载
+还记得 15.2 节写的清理函数吗？热重载时它就派上用场了：旧插件的定时器、连接等需要先清理掉。Cordis 会清理它管理的资源；自己创建的资源，也要登记好对应的清理函数。
 
-如果 `greeter` Service 的提供方消失，`consumer` Fiber 会先从 `ACTIVE` 进入 `UNLOADING`，执行 disposer 并清理自己的 Effects。清理完成后，它进入 `PENDING` 等待依赖。`greeter` 恢复后，同一个 Fiber 再经过 `LOADING` 回到 `ACTIVE`，并重新执行 `apply()`。
+#### 用 disabled 停用插件
 
-```text
-greeter 消失
-      │
-      ▼
-consumer: ACTIVE → UNLOADING
-      │
-      │ 执行 disposer，清理 Effects
-      ▼
-consumer: PENDING
-      │
-      │ greeter 恢复
-      ▼
-consumer: LOADING → ACTIVE
-```
+如果想暂时关掉 `hello`，又保留配置方便以后启用，可以给它加上 `disabled`。
 
-### 用 Event 观察或介入运行过程
-
-Service 适合插件调用一项长期存在的能力。另一种情况是：程序运行到某个时刻时，其他插件希望收到通知，或者参与这一步的处理。Cordis 用 **Event** 处理这种协作。
-
-Event 可以有不同的分发方式。本章重点看两种：**`emit` 用于通知，`waterfall` 用于组成处理链。**
-
-例如，一个插件可以用 `ctx.emit()` 发出 `stats/report` 事件：
-
-```ts
-ctx.emit('stats/report', name, count)
-```
-
-其他插件通过 `ctx.on()` 监听：
-
-```ts
-ctx.on('stats/report', (name, count) => {
-  console.log(`[stats] ${name} -> ${count}`)
-})
-```
-
-`ctx.emit()` 发出事件，所有通过 `ctx.on()` 注册的监听器都会收到通知。发送方不需要知道有哪些监听器，因此以后增加新的监听插件时，不需要修改发送方。
-
-```text
-                 ┌──► listener B
-plugin A ──Event─┤
-                 └──► listener C
-```
-
-在 TypeScript 中，示例开头还可以通过 `declare module ... interface Events` 补充事件名称和参数类型。这段声明只用于类型检查；运行时由 `ctx.emit()` 和 `ctx.on()` 完成事件的发送和监听。
-
-`ctx.on()` 注册的监听器也跟当前 Fiber 绑定。Fiber 卸载时，监听器会自动撤销，因此不需要手动清理。
-
-Cordis 还提供其他几种分发方式。这里先了解它们的区别即可，本章后面只会继续使用 `emit` 和 `waterfall`。
-
-| 模式        | 行为                                           |
-| ----------- | ---------------------------------------------- |
-| `emit`      | 同步通知所有监听器，不使用返回值               |
-| `parallel`  | 并行执行并等待所有监听器完成                   |
-| `serial`    | 按顺序执行，得到第一个可用结果后停止           |
-| `bail`      | `serial` 的同步版本                            |
-| `waterfall` | 监听器组成处理链，可以继续、包装或截断后续处理 |
-
-下面重点看 `waterfall`。在 waterfall 中，每个监听器都像包在下一层外面的一层处理器。调用 `await next()` 会把控制权交给下一层；下一层返回后，当前监听器再从 `await next()` 后面继续执行。
-
-```text
-A 进入
-  ↓
-B 进入
-  ↓
-默认处理
-  ↓
-B 返回
-  ↓
-A 返回
-```
-
-配套示例使用两个监听器。A 调用 `next()` 并包装下一层的结果；B 可以继续调用 `next()`，也可以直接返回并截断后面的处理。
-
-```js
-export const name = 'waterfall-demo'
-
-export function apply(ctx) {
-  ctx.on('demo/transform', async (_input, next) => {
-    console.log('A enter')
-    const downstream = await next()
-    console.log('A leave')
-    return `A(${downstream})`
-  })
-
-  ctx.on('demo/transform', async (input, next) => {
-    console.log('B enter')
-    if (input.includes('blocked')) {
-      console.log('B short-circuit')
-      return 'blocked'
-    }
-    const downstream = await next()
-    console.log('B leave')
-    return `B(${downstream})`
-  })
-
-  void (async () => {
-    console.log(await ctx.waterfall(
-      'demo/transform',
-      'hello',
-      async () => {
-        console.log('default')
-        return 'hello'
-      },
-    ))
-
-    console.log(await ctx.waterfall(
-      'demo/transform',
-      'blocked words',
-      async () => {
-        console.log('default')
-        return 'blocked words'
-      },
-    ))
-  })()
-}
-```
-
-`cordis.yml` 只加载这个文件：
+将 `chapter15-cordis/06-hmr/cordis.yml` 的最后一项改为：
 
 ```yaml
-- name: './waterfall-demo.js'
+- id: hello
+  name: './hello.ts'
+  disabled: true
 ```
 
-进入 `demo/chapter15-cordis/15-3-waterfall`，依次执行：
+保存后，`hello` 插件被卸载，会打印“hello 已卸载”。配置项仍然在文件里，只是暂时停用。把 `true` 改成 `false` 再保存，又会加载它，打印修改后的问候语。
 
-```bash
-pnpm install
-pnpm exec cordis
-```
-
-运行时会先输出第一组结果：
-
-```text
-A enter
-B enter
-default
-B leave
-A leave
-A(B(hello))
-```
-
-第一组中，A 和 B 都调用 `next()`，因此处理进入默认函数；默认函数返回后，再按 B、A 的顺序返回。
-
-随后，第二次调用继续输出：
-
-```text
-A enter
-B enter
-B short-circuit
-A leave
-A(blocked)
-```
-
-第二组中，B 发现输入包含 `blocked` 后直接返回，没有调用 `next()`。因此默认函数不会执行，但已经进入的 A 仍然会收到 B 的结果并继续执行。
-
-**waterfall 最需要记住的是 `next()`：调用它就继续进入下一层，不调用它就从当前层直接返回。**
-
-dsh 的工具运行过程就使用了 waterfall。例如，`tools/pre-execute`、`tools/execute` 和 `tools/post-execute` 分别让插件在工具执行前、执行时和执行后介入处理。下一节回到 dsh 时，我们会沿着一次真实工具调用继续看这三条处理链。
-
-到这里，插件之间的两种主要关系就清楚了：**Service + `inject` 负责长期能力依赖，Event 负责运行过程中某一步的通知和协作。** 前者会影响 Fiber 能否运行，后者的监听器则跟随所属 Fiber 一起注册和撤销。下一节回到 dsh，看看这些机制怎样出现在真实的工具调用中。
+`id` 用来识别配置项，服务则使用各自注册时的名称。负责读取配置、加载插件的组件叫 `loader`（加载器）。固定 `id` 让它知道你修改的是原来的配置项；不写 `id` 时，重新读取会生成新标识，未改内容的配置项也可能被当作删除后重新添加。
 
 ## Cordis 如何组装 dsh {#sec-15-4}
 
-前面看到的例子都只有少量插件。真实的 dsh 则需要同时组织模型、工具、会话和 Agent Loop 等许多插件。本节先看 **dsh 怎样生成插件配置，Cordis 又怎样把这份配置变成正在运行的插件**，再沿着一次工具调用观察这些插件怎样协作。
+现在把问候功能做成一个工具。`greet(name)` 本来就能返回问候语，不过，要接收模型或其他外部输入发来的调用请求，还得告诉调用方工具叫什么、参数怎么填，并检查参数、整理结果，让监听器知道是哪次调用完成了。
 
-### 从 profile 得到插件配置树
+这些工作可以交给 harness 的 `tools` 服务。我们写一个 `greet` 工具，注册进去，再用代码发起一次调用，看看监听器怎样收到结果。这里用到的插件加载、服务依赖和事件机制由 Cordis 提供，工具定义和执行流程由 harness 的工具插件提供；这个示例不调用大模型。
 
-dsh 启动时会读取当前 profile。profile 描述这次运行采用哪些配置，其中可以引用一个或多个 bundle。
+### 准备文件并运行
 
-bundle 可以理解为一组可复用的插件配置。不同 bundle 和用户自己的 patch 会按顺序叠加，最终得到一棵完整的插件配置树。patch 可以加入新的插件配置，也可以修改已有配置。
+还记得 15.3 节事件示例中要先监听、再发出事件吗？这里也按登记监听 → 注册工具 → 发起调用的顺序写在同一个插件里，确保调用前监听器已经准备好。
 
 ```text
-dsh 配置层
-
-profile
-  ├── bundle
-  ├── bundle
-  └── patch
-       │
-       ▼
-   插件配置树
-
-Cordis 运行时
-
-   插件配置树
-       │
-       ▼
-  Root Context
-       │
-     Loader
-   ┌───┼───┐
-   ▼   ▼   ▼
-Plugin Plugin Plugin
-   │    │    │
- Fiber Fiber Fiber
+chapter15-cordis/07-tools/
+├── greet-demo.ts
+└── cordis.yml     ← 本节只加载工具示例需要的插件
 ```
 
-**这里有一个重要的边界：dsh 负责决定运行哪些插件以及使用什么配置；Cordis 的 Loader 负责根据这份配置挂载 Plugin，并产生对应的 Fiber。**
-
-### 配置变化时热更新插件
-
-dsh 运行后，插件配置还可以继续变化。例如，修改 `cordis.patch.yml` 后，不需要重新启动整个 dsh。dsh 会重新合成配置，Loader 比较新旧配置，只处理发生变化的插件。
-
-Loader 用稳定的 `id` 识别“这是之前的同一个插件配置”，从而判断某一项是新增、删除还是修改。新增配置会挂载新的插件，删除或禁用配置会卸载插件，修改配置则只更新对应的插件。其他没有变化的插件继续运行。
-
-如果被更新的插件提供了 Service，依赖它的 Fiber 也可能暂时进入 `PENDING`，等 Service 恢复后重新运行。插件卸载时，它之前注册的 Effect 也会随 Fiber 一起清理。
-
-下面的命令会打印 Web profile 静态合成后的配置树，随后直接退出，不会启动应用：
-
-```bash
-npx -y @deepseek-ai/dsh --profile web --dump-config
-```
-
-实际输出中可以找到下面这样的片段：
+这一组示例先准备 `cordis.yml`，加载工具服务及其依赖：
 
 ```yaml
-- id: tool-todo
-  name: '@deepseek-ai/dsh-tool-todo'
-  config:
-    allowParallelInProgress: true
-  disabled: true
-
-# 中间省略其他配置项
-
-- id: agent-loop
-  name: '@deepseek-ai/dsh-agent-loop'
-  config:
-    agents: []
+- name: '@deepseek-ai/dsh-system-prompt'
+- name: '@deepseek-ai/dsh-tools'
+- name: './greet-demo.ts'
 ```
 
-这里看到的还只是配置。`--dump-config` 打印完成后会直接退出，因此这些 Plugin 并没有真正挂载，也不会产生 Fiber。`tool-todo` 在这份配置中还带有 `disabled: true`，Loader 真正启动应用时也不会挂载它。
+前两项分别提供 `systemPrompt` 和 `tools` 服务。系统提示词是应用交给模型的说明，例如有哪些工具、怎样使用。`systemPrompt` 服务负责组织这些说明，`tools` 服务会向它加入工具说明，因此也依赖它。
 
-模型适配器、工具、会话、沙箱和 Agent Loop 等能力，也都通过插件进入 Cordis 运行时。
+本例虽然不调用模型，加载 `tools` 时仍然需要满足这个依赖。缺少提供方时，它会像 15.3 节服务示例中的 `consumer` 一样等待。
 
-![dsh 的各项能力通过 Cordis Context 协作](assets/chapter15/15-1-01-everything-is-plugin.svg){.book-technical-figure width=68%}
+依赖配置好后，我们在 `greet-demo.ts` 中编写监听、注册和调用工具的代码：
 
-图中的 `Context` 表示插件共同使用的运行环境，箭头表示协作关系，不代表实际加载顺序。
-
-配置树解决了“这些插件怎样进入 dsh”。接下来再看它们运行起来之后怎样协作。下面以 `tools` Service 为例，沿着一次工具调用，把前面介绍的 Service、Event 和 Effect 对应到真实的 dsh 运行过程。
-
-### 向 tools Service 注册工具
-
-下面的 `greet-tool.ts` 声明对 `tools` Service 的依赖，再通过 `ctx.tools.register()` 注册一个名为 `greet` 的工具。文件末尾的测试代码代替模型发起一次调用，并打印返回内容：
-
-```ts
+```typescript
 import type { Context } from '@deepseek-ai/cordis'
+import { brandString } from '@deepseek-ai/dsh-brand'
 import { defineTool } from '@deepseek-ai/dsh-tools'
-import { CallId } from '@deepseek-ai/dsh-llm'
+import type { ToolCallId } from '@deepseek-ai/dsh-llm'
 
-export const name = 'greet-tool'
 export const inject = ['tools']
 
-export function apply(ctx: Context) {
+export async function apply(ctx: Context) {
+  ctx.on('tools/result', (exec, result) => {
+    const text = result.content
+      .map(block => block.type === 'text' ? block.text : '')
+      .join('')
+    console.log(`[观察] ${exec.name} -> ${text}`)
+  })
+
   ctx.tools.register(defineTool({
     name: 'greet',
     description: 'Greet the named person.',
     parameters: {
-      name: {
-        type: 'string',
-        required: true,
-        description: 'Who to greet',
-      },
+      name: { type: 'string', required: true, description: 'Who to greet' },
     },
     output: {
       schema: { type: 'string' },
@@ -666,101 +778,120 @@ export function apply(ctx: Context) {
     },
   }))
 
-  void (async () => {
-    const result = await ctx.tools.execute({
-      callId: CallId('demo-1'),
-      name: 'greet',
-      arguments: { name: 'Cordis' },
-      signal: new AbortController().signal,
-    })
-    console.log('tool replied:', JSON.stringify(result.content))
-  })()
+  const result = await ctx.tools.execute({
+    callId: brandString<ToolCallId>('demo-1'),
+    name: 'greet',
+    arguments: { name: 'Cordis' },
+    signal: new AbortController().signal,
+  })
+
+  console.log('调用方收到：', JSON.stringify(result.content))
 }
 ```
 
-这里的 `ctx.tools` 是 dsh 提供的工具注册表 Service，`inject` 保证插件运行时这项能力已经可用。调用 `ctx.tools.register()` 后，工具定义会被加入注册表，Agent Loop 此后便能找到并调用 `greet`。
+现在运行工具示例，看看观察者和调用方的日志谁先出现。
 
-### 让真实工具流水线执行一次
-
-实际运行时，Agent Loop 会通过 `ctx.tools.execute()` 发起工具调用。上面的测试代码使用同一个入口调用 `greet`，因此也会经过完整的工具执行流程：
-
-这次调用会经过 dsh 的工具执行扩展点：
-
-```text
-ctx.tools.execute()
-        ↓
-tools/pre-execute（waterfall 事件）
-  A1 → A2 → A3 → 默认允许 → A3 → A2 → A1
-        ↓
-审批处理与工具调用守卫
-        ↓
-tools/execute（waterfall 事件）
-  B1 → B2 → greet.execute() → B2 → B1
-        ↓
-规范化工具结果
-        ↓
-tools/post-execute（waterfall 事件）
-  C1 → C2 → C3 → 默认接受 → C3 → C2 → C1
-        ↓
-最终内容整理
-        ↓
-tools/result（emit 事件）
+```bash
+cd chapter15-cordis/07-tools
+node --import tsx ../../vendor/cordis/bin.js
 ```
 
-`tools/pre-execute`、`tools/execute` 和 `tools/post-execute` 都是 Cordis Event，采用 waterfall 分发模式，监听器可以调用 `next()` 把处理交给下一层。图中的横向链路先向右进入各层，默认处理完成后再按相反顺序返回。`tools/result` 采用 emit 模式，它在最终结果确定后通知所有监听器，监听器只能观察结果，不能改变这次工具调用的返回值。
+```text
+[观察] greet -> Hello, Cordis!
+调用方收到： [{"type":"text","text":"Hello, Cordis!"}]
+```
 
-`tools/pre-execute` 负责执行前的检查，可以允许、拒绝或要求审批。随后工具调用守卫继续约束这次调用。`tools/execute` 包住工具本身的执行，适合加入超时、重试和指标统计。
+同一次工具调用出现两条日志：监听器打印一条，调用方拿到结果后再打印一条。它和 15.3 节的事件通知与方法返回是相似的过程。
 
-工具返回后，tools Service 会校验并渲染结果，再经过 `tools/post-execute` 和最终内容整理做最后处理。结果确定后，tools Service 发出 `tools/result` 事件，通知观察者。
+### 插件、服务与工具
 
-### 观察工具结果
+先对照刚才的文件和代码，分清插件、服务、工具这三个名称各指什么。
 
-另一个名为 `tool-logger` 的插件可以监听 `tools/result`，观察已经完成的工具调用。事件参数 `exec.name` 表示本次调用的工具名称，在这个例子中是 `greet`：
+`greet-demo.ts` 是插件，Cordis 调用它的 `apply` 入口。`ctx.tools` 是入口中使用的服务对象；`greet` 是登记在这个服务里的工具。插件负责把本例需要的监听、注册和调用组织起来。
+
+`ctx.tools.register` 登记工具，工具服务会在所属插件卸载时撤销注册；`ctx.tools.execute` 发起工具调用。`greet` 由 `tools` 服务管理和调用；15.3 节服务示例中的 `ctx.greeter` 则是单独注册的问候服务。
+
+### 用 `defineTool` 定义工具
+
+`defineTool` 用来描述工具的名称、用途、参数和返回结果，再由 `ctx.tools.register` 注册到工具服务中。
+
+本例的 `greet` 工具接收字符串参数 `name`，由 `execute(args)` 生成问候语，`output.render` 将它转换为文本内容块。
+
+注册时不会执行问候功能。发起调用后，工具服务先检查参数，再执行工具。
+
+本例的返回值与内容块之间是这样转换的：
+
+```text
+execute 返回：
+'Hello, Cordis!'
+
+output.render 转换后：
+[{ type: 'text', text: 'Hello, Cordis!' }]
+```
+
+`output.render` 接收工具返回的问候语，将它转换为文本内容块。结果用数组保存，可以包含多个内容块。
+
+### 调用请求的字段
+
+工具已经注册好了，往下找到 `ctx.tools.execute`，给它传入这次调用的请求。这里除了工具名和参数，还要带上调用标识和取消信号：
 
 ```typescript
-import type { Context } from '@deepseek-ai/cordis'
-import type {} from '@deepseek-ai/dsh-tools'
+const result = await ctx.tools.execute({
+  callId: brandString<ToolCallId>('demo-1'),
+  name: 'greet',
+  arguments: { name: 'Cordis' },
+  signal: new AbortController().signal,
+})
+```
 
-export const name = 'tool-logger'
-export const inject = ['tools']
+这份请求通过 `name: 'greet'` 选择刚才注册的工具，并通过 `arguments` 传入参数 `{ name: 'Cordis' }`。工具执行时，`execute(args)` 中的 `args.name` 就是这里的 `'Cordis'`。请求还包含调用标识 `callId`，用于关联这次请求与结果，以及用于传递取消请求的 `signal`。`await ctx.tools.execute(...)` 等待工具执行完成，随后打印返回结果。
 
-export function apply(ctx: Context) {
-  ctx.on('tools/result', (exec, result) => {
-    const text = result.content
-      .map(block => block.type === 'text' ? block.text : '')
-      .join('')
-    console.log(`[tool-logger] ${exec.name} -> ${text}`)
+### 监听 tools/result
+
+再回到 `apply` 开头的结果监听器。如果以后加了更多工具，也想打印它们的结果，可以在这里统一接收结果通知，不必挨个给工具加打印代码。
+
+`ctx.on('tools/result', ...)` 登记结果监听器，`exec` 是这次调用的信息，`result` 是最终结果。代码遍历 `result.content`，取出文本块的文字，再用 `join` 拼起来打印。
+
+工具服务得到最终结果后，以 `emit` 模式通知已登记、且作用域匹配的监听器。作用域可以先理解为监听器的接收范围：只有这次调用在它的接收范围内，它才会收到通知。监听器只观察结果，不改变工具的返回值。
+
+`emit` 不等待异步监听任务。本例同步打印，所以观察日志在调用方日志之前。
+
+下图展示了工具注册、执行和结果通知的完整流程。
+
+![工具注册、执行与结果通知的顺序](assets/chapter15/15-4-01-tool-sequence.svg){.book-technical-figure width=100%}
+
+### 监听工具执行过程
+
+前面是在结果出来后打印日志。如果还想看到执行开始和执行返回的时刻，可以再监听 `tools/execute`。下面在这两个时刻各打印一行，并记录它们之间的耗时。
+
+`execute` 在本例中有三种用法：`ctx.tools.execute(...)` 发起工具调用，工具定义中的 `execute(args)` 实现问候功能，`tools/execute` 则是用于监听执行过程的事件名。
+
+监听 `tools/execute` 时，函数会多收到一个 `next` 参数。调用它，后面的处理才会继续；等待它返回后，还可以接着写代码。这种事件分发方式叫 waterfall。
+
+在现有示例的基础上，我们把下面这段加入 `greet-demo.ts` 的 `apply` 内，放在现有结果监听之后、`ctx.tools.register` 之前。
+
+```typescript
+  ctx.on('tools/execute', async (exec, next) => {
+    const started = performance.now()
+    console.log(`[开始] ${exec.name}`)
+    const result = await next()
+    const elapsed = (performance.now() - started).toFixed(1)
+    console.log(`[执行返回] ${exec.name}，耗时 ${elapsed} ms`)
+    return result
   })
-}
 ```
 
-如果把 logger 和前面的 `greet` 工具一起加入配置：
+看 `await next()` 的前后：前面记下开始时间、打印“开始”，后面拿到返回结果、计算耗时并打印“执行返回”，最后用 `return result` 交回结果。`performance.now()` 用来读取时间，`toFixed(1)` 把耗时保留到一位小数。
 
-```yaml
-- name: '@deepseek-ai/dsh-system-prompt'
-- name: '@deepseek-ai/dsh-tools'
-- name: './tool-logger.ts'
-- name: './greet-tool.ts'
-```
-
-一次成功调用中，`tool-logger` 先打印事件中收到的结果，测试代码随后打印 `ctx.tools.execute()` 的返回内容：
+加入监听后，我们重新运行示例，输出类似下面这样；6.3 ms 是一次实跑值，每次耗时都会不同：
 
 ```text
-[tool-logger] greet -> Hello, Cordis!
-tool replied: [{"type":"text","text":"Hello, Cordis!"}]
+[开始] greet
+[执行返回] greet，耗时 6.3 ms
+[观察] greet -> Hello, Cordis!
+调用方收到： [{"type":"text","text":"Hello, Cordis!"}]
 ```
 
-`tools/result` 会在 `ctx.tools.execute()` 返回之前发出，因此 logger 先收到并打印结果。`greet-tool` 和 `tool-logger` 没有直接依赖彼此：前者通过 `ctx.tools` 注册能力，后者通过 Event 观察执行结果，两者在同一条工具流水线中协作。
+`tools/execute` 返回后，还会进行后续结果处理；最终结果由 `tools/result` 通知。
 
-把这次调用对应回前面几节，Cordis 的几个核心概念都有了具体位置：
-
-| **Cordis 概念** | **在 dsh 工具系统中的位置**                                  |
-| --------------- | ------------------------------------------------------------ |
-| Service         | `ctx.tools` 提供工具注册和执行能力                           |
-| `inject`        | 工具插件声明自己依赖 `tools`                                 |
-| Effect          | `ctx.tools.register()` 和 `ctx.on()` 随所属 Fiber 一起撤销   |
-| Event           | `tools/result` 用于观察结果，执行前后的 waterfall 事件可以介入处理 |
-| Plugin          | tools、工具、logger 和策略都可以由独立插件提供               |
-| Fiber           | Plugin 挂载后形成自己的运行实例                             |
-
-从 Agent Loop 接收模型给出的工具调用，到 tools Service 执行工具，再到会话日志保存调用和结果，一次工具调用把多个插件串在了一起。Agent Loop 负责调度，工具插件完成具体工作，审批、策略和日志插件通过 Event 参与过程，会话插件保存调用记录。每个插件只承担其中一段职责，Cordis 用 Service、`inject`、Event 和 Effect 管理它们之间的连接与生命周期。dsh 正是通过这种协作方式，把各自独立的插件组装成一套完整的 Agent Harness。
+到这里，你已经写好了一个工具，也能看到它开始执行、执行返回和发出结果通知。示例中的调用由代码发起；接入真实智能体后，调用请求由模型提出，harness 执行工具并把结果交回模型。

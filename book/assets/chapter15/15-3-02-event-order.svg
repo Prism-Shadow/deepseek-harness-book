@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="644" height="588" viewBox="78 76 644 588" role="img" aria-labelledby="title">
+<title id="title">一次调用中的事件与返回值</title>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" /></marker></defs>
+<rect width="800" height="740" fill="white" />
+<g font-family="Noto Sans CJK SC, Source Han Sans SC, sans-serif" fill="#172b4d">
+<rect x="90" y="88" width="620" height="64" rx="12" fill="#eff6ff" stroke="#93b7e8" stroke-width="1.5" />
+<text x="400.0" y="128" text-anchor="middle" font-size="22">consumer 登记监听函数</text>
+<path d="M400 153 L400 184" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+<rect x="90" y="188" width="620" height="64" rx="12" fill="#eff6ff" stroke="#93b7e8" stroke-width="1.5" />
+<text x="400.0" y="228" text-anchor="middle" font-size="22">consumer 调用 greet('world')</text>
+<path d="M400 253 L400 284" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+<rect x="90" y="288" width="620" height="64" rx="12" fill="#eff6ff" stroke="#93b7e8" stroke-width="1.5" />
+<text x="400.0" y="328" text-anchor="middle" font-size="22">greeter 生成问候语，发出事件</text>
+<path d="M400 353 L400 384" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+<rect x="90" y="388" width="620" height="64" rx="12" fill="#eff6ff" stroke="#93b7e8" stroke-width="1.5" />
+<text x="400.0" y="428" text-anchor="middle" font-size="22">监听函数收到参数，打印事件日志</text>
+<path d="M400 453 L400 484" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+<rect x="90" y="488" width="620" height="64" rx="12" fill="#eff6ff" stroke="#93b7e8" stroke-width="1.5" />
+<text x="400.0" y="528" text-anchor="middle" font-size="22">greet 返回问候语</text>
+<path d="M400 553 L400 584" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+<rect x="90" y="588" width="620" height="64" rx="12" fill="#eff6ff" stroke="#93b7e8" stroke-width="1.5" />
+<text x="400.0" y="628" text-anchor="middle" font-size="22">consumer 打印返回值</text>
+</g>
+</svg>
