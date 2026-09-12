@@ -151,6 +151,27 @@ def number_web_figures(text: str, chapter_number: int) -> str:
     return FIGURE_BLOCK.sub(replace, text)
 
 
+def number_web_sections(text: str, chapter_number: int) -> str:
+    """Display section numbers while preserving canonical anchors and code."""
+    output: list[str] = []
+    fence: tuple[str, int] | None = None
+    section = re.compile(r"^(##\s+)(.+?)(\s+\{#sec-(\d+)-(\d+)\}\s*)$")
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        if fence is not None:
+            marker, length = fence
+            if re.fullmatch(re.escape(marker) + "{" + str(length) + r",}\s*", stripped):
+                fence = None
+        elif match := FENCE_START.match(line):
+            token = match.group(1)
+            fence = (token[0], len(token))
+        elif match := section.match(line):
+            if int(match.group(4)) == chapter_number:
+                line = f"{match.group(1)}{chapter_number}.{match.group(5)} {match.group(2)}{match.group(3)}"
+        output.append(line)
+    return "\n".join(output) + "\n"
+
+
 def transform_markdown(text: str, chapter_number: int | None = None) -> str:
     """Prepare canonical Markdown for the website."""
     if "```{=latex}" in text:
@@ -158,6 +179,7 @@ def transform_markdown(text: str, chapter_number: int | None = None) -> str:
 
     rendered_text = render_markdown_figures(text).rstrip() + "\n"
     if chapter_number is not None:
+        rendered_text = number_web_sections(rendered_text, chapter_number)
         rendered_text = number_web_figures(rendered_text, chapter_number)
 
     rendered_text = UNPUBLISHED_DEMO_LINK.sub(lambda match: match.group(1), rendered_text)

@@ -1,0 +1,3 @@
+- name: './config-demo.ts'
+  config:
+    targets: ['alpha', 'beta']

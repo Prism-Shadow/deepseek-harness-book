@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900">
+<title>工具注册、执行与结果通知的顺序</title>
+<rect width="1600" height="900" fill="white"/>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 Z" fill="#45566e"/></marker></defs>
+<g font-family="Source Han Sans SC, Noto Sans CJK SC, sans-serif" fill="#273142">
+<rect x="55" y="35" width="310" height="75" rx="10" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
+<text x="210" y="81" text-anchor="middle" font-size="28">greet-demo 的 apply</text>
+<path d="M210 110 V850" stroke="#9AA7B8" stroke-width="2" stroke-dasharray="7 7"/>
+<rect x="455" y="35" width="310" height="75" rx="10" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
+<text x="610" y="81" text-anchor="middle" font-size="28">Cordis 事件系统</text>
+<path d="M610 110 V850" stroke="#9AA7B8" stroke-width="2" stroke-dasharray="7 7"/>
+<rect x="855" y="35" width="310" height="75" rx="10" fill="#EEF2FF" stroke="#9AA7B8" stroke-width="2"/>
+<text x="1010" y="81" text-anchor="middle" font-size="28">tools 服务</text>
+<path d="M1010 110 V850" stroke="#9AA7B8" stroke-width="2" stroke-dasharray="7 7"/>
+<rect x="1255" y="35" width="310" height="75" rx="10" fill="#F3F4F6" stroke="#9AA7B8" stroke-width="2"/>
+<text x="1410" y="81" text-anchor="middle" font-size="28">greet 工具</text>
+<path d="M1410 110 V850" stroke="#9AA7B8" stroke-width="2" stroke-dasharray="7 7"/>
+<path d="M210 170 H610" stroke="#45566e" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="410.0" y="156" text-anchor="middle" font-size="24">ctx.on 登记结果监听</text>
+<path d="M210 255 H1010" stroke="#45566e" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="610.0" y="241" text-anchor="middle" font-size="24">register 登记 greet</text>
+<path d="M210 340 H1010" stroke="#45566e" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="610.0" y="326" text-anchor="middle" font-size="24">execute 请求执行，等待结果</text>
+<path d="M1010 425 H1410" stroke="#45566e" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="1210.0" y="411" text-anchor="middle" font-size="24">检查参数后执行工具</text>
+<path d="M1410 510 H1010" stroke="#45566e" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="1210.0" y="496" text-anchor="middle" font-size="24">返回 Hello, Cordis!</text>
+<rect x="825" y="535" width="370" height="46" rx="5" fill="#EEF2FF" stroke="#9AA7B8"/>
+<text x="1010" y="566" text-anchor="middle" font-size="23">生成最终结果内容</text>
+<path d="M1010 635 H610" stroke="#45566e" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="810.0" y="621" text-anchor="middle" font-size="24">emit 通知 tools/result</text>
+<rect x="425" y="660" width="370" height="46" rx="5" fill="#EEF2FF" stroke="#9AA7B8"/>
+<text x="610" y="691" text-anchor="middle" font-size="23">同步监听器打印观察日志</text>
+<path d="M1010 770 H210" stroke="#45566e" stroke-width="2.5" marker-end="url(#arrow)"/>
+<text x="610.0" y="756" text-anchor="middle" font-size="24">返回结果</text>
+<rect x="25" y="795" width="370" height="46" rx="5" fill="#EEF2FF" stroke="#9AA7B8"/>
+<text x="210" y="826" text-anchor="middle" font-size="23">await 完成，打印调用方日志</text>
+</g></svg>

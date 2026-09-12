@@ -1,0 +1,3 @@
+- name: '@deepseek-ai/dsh-system-prompt'
+- name: '@deepseek-ai/dsh-tools'
+- name: './greet-demo.ts'

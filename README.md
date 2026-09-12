@@ -58,7 +58,7 @@ DeepSeek Harness（简称 dsh）是一套由插件组装而成的 Agent Harness�
 | [第 13 章 让 dsh 通过自进化画出概念图](https://dshbook.penguin.ooo/chapter13/) | 通过多轮评分改进并复用绘画 Skill。 | [Demo](demo/chapter13-concept-art-evolution/) |
 | **⚙️ 第三部分　拆解 dsh** |  |  |
 | [第 14 章 Harness 的工作原理](https://dshbook.penguin.ooo/chapter14/) | 理解消息、会话、工具和上下文管理。 |  |
-| [第 15 章 dsh 的核心：Cordis](https://dshbook.penguin.ooo/chapter15/) | 理解 Cordis 的插件加载、依赖和通信。 | [Demo](demo/chapter15-cordis/) |
+| [第 15 章 dsh 的核心：Cordis](https://dshbook.penguin.ooo/chapter15/) | 从问候插件逐步练习生命周期、服务、事件、配置和工具调用。 | [Demo](demo/chapter15-cordis/) |
 
 ## 👥 适合谁，怎么读
 
