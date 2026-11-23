@@ -75,6 +75,68 @@ input {
   padding: clamp(0.25rem, 0.7vw, 0.55rem);
 }
 
+.md-typeset img.book-figure-image,
+.md-typeset .readme-page table img {
+  cursor: zoom-in;
+}
+
+html.book-lightbox-open,
+html.book-lightbox-open body {
+  overflow: hidden;
+}
+
+.book-image-lightbox {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  box-sizing: border-box;
+  cursor: zoom-out;
+  display: none;
+  height: 100vh;
+  justify-content: center;
+  margin: 0;
+  max-height: none;
+  max-width: none;
+  padding: 1.5rem;
+  width: 100vw;
+}
+
+.book-image-lightbox[open] {
+  display: flex;
+}
+
+.book-image-lightbox::backdrop {
+  background: rgb(15 23 42 / 78%);
+  backdrop-filter: blur(2px);
+}
+
+.book-image-lightbox__figure {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  max-height: 100%;
+  max-width: 100%;
+}
+
+.book-image-lightbox__image {
+  box-shadow: 0 20px 50px rgb(0 0 0 / 45%);
+  display: block;
+  height: auto;
+  max-height: 82vh;
+  max-width: min(92vw, 80rem);
+  object-fit: contain;
+}
+
+.book-image-lightbox__caption {
+  color: rgba(248, 250, 252, 0.92);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  margin-top: 0.75rem;
+  max-width: min(88vw, 60rem);
+  text-align: center;
+}
+
 /* 表格块居中；表头和短标签列居中，说明文字继续左对齐。 */
 .md-typeset__scrollwrap:has(> .md-typeset__table) {
   margin-left: auto;

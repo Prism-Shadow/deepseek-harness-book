@@ -72,6 +72,7 @@ extra_css:
 extra_javascript:
   - javascripts/sidebar-toggle.js
   - javascripts/drawer-scroll-lock.js
+  - javascripts/image-zoom.js
   - javascripts/mathjax.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
 
