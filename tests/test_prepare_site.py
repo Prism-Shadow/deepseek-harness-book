@@ -55,6 +55,13 @@ class PrepareSiteTest(unittest.TestCase):
             rendered,
         )
 
+    def test_readme_case_images_are_not_wrapped_in_links(self) -> None:
+        readme_text = (ROOT / "README.md").read_text(encoding="utf-8")
+        rendered = transform_readme(readme_text, "https://github.com/example/book")
+        self.assertIn("| [短剧画面](chapter8.md) | [活动海报](chapter7.md) | [自进化概念图](chapter13.md) |", rendered)
+        self.assertIn("| ![dsh 生成短剧关键帧](assets/chapter8/8-2-07-frame-hook.png) |", rendered)
+        self.assertNotIn("[![dsh 生成短剧关键帧]", rendered)
+
     def test_adds_visible_caption_to_standalone_markdown_image(self) -> None:
         source = (
             "正文。\n\n"

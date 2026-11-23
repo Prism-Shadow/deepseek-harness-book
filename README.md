@@ -35,7 +35,7 @@ DeepSeek Harness（简称 dsh）是一套由插件组装而成的 Agent Harness�
 
 | [短剧画面](https://dshbook.penguin.ooo/chapter8/) | [活动海报](https://dshbook.penguin.ooo/chapter7/) | [自进化概念图](https://dshbook.penguin.ooo/chapter13/) |
 | --- | --- | --- |
-| [![dsh 生成短剧关键帧](book/assets/chapter8/8-2-07-frame-hook.png)](https://dshbook.penguin.ooo/chapter8/) | [![dsh 生成社区读书会海报](book/assets/chapter7/7-4-01-poster-final-export.png)](https://dshbook.penguin.ooo/chapter7/) | [![dsh 复用演化后的 Skill 生成概念图](book/assets/chapter13/13-2-07-skill-reuse.png)](https://dshbook.penguin.ooo/chapter13/) |
+| ![dsh 生成短剧关键帧](book/assets/chapter8/8-2-07-frame-hook.png) | ![dsh 生成社区读书会海报](book/assets/chapter7/7-4-01-poster-final-export.png) | ![dsh 复用演化后的 Skill 生成概念图](book/assets/chapter13/13-2-07-skill-reuse.png) |
 
 ## 📚 内容导航
 
